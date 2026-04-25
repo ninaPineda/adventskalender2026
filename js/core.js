@@ -1,0 +1,302 @@
+// ── CONFIG ──────────────────────────────────────────────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzewl84KjS__hMI7eeb1Upa-aQAQD-RtrfSS62CRvRXEUAbhibgdEvRhldODNfEeebGjA/exec';
+const READ_URL = SHEET_URL + '?callback=onScores';
+
+// ── PUZZLE METADATA ──────────────────────────────────────
+const PUZZLES = [
+  { day: 1,  type: 'quiz',    icon: '🎄', label: 'Quiz',    title: 'Weihnachts-Quiz',        maxPts: 300 },
+  { day: 2,  type: 'math',    icon: '🔢', label: 'Mathe',   title: 'Zahlen-Rätsel',          maxPts: 400 },
+  { day: 3,  type: 'wordle',  icon: '🔤', label: 'Wörter',  title: 'Weihnachts-Wordle',      maxPts: 500 },
+  { day: 4,  type: 'slide',   icon: '🎁', label: 'Puzzle',  title: 'Schiebe-Puzzle',         maxPts: 350 },
+  { day: 5,  type: 'geo',     icon: '🌍', label: 'Geo',     title: 'Weihnachts-Geografie',   maxPts: 300 },
+  { day: 6,  type: 'logic',   icon: '🧩', label: 'Logik',   title: 'Nonogramm',              maxPts: 450 },
+  { day: 7,  type: 'quiz',    icon: '⭐', label: 'Quiz',    title: 'Winter-Quiz',            maxPts: 300 },
+  { day: 8,  type: 'sudoku',  icon: '📊', label: 'Sudoku',  title: 'Mini-Sudoku',            maxPts: 500 },
+  { day: 9,  type: 'math',    icon: '🎅', label: 'Mathe',   title: 'Nikolaus-Rechnen',       maxPts: 400 },
+  { day: 10, type: 'wordle',  icon: '🦌', label: 'Wörter',  title: 'Rentier-Wordle',         maxPts: 500 },
+  { day: 11, type: 'quiz',    icon: '❄️', label: 'Quiz',    title: 'Schnee-Quiz',            maxPts: 300 },
+  { day: 12, type: 'slide',   icon: '🌟', label: 'Puzzle',  title: 'Stern-Puzzle',           maxPts: 350 },
+  { day: 13, type: 'geo',     icon: '🗺️', label: 'Geo',     title: 'Welt-Hauptstädte',       maxPts: 300 },
+  { day: 14, type: 'logic',   icon: '🎶', label: 'Logik',   title: 'Melodie-Muster',         maxPts: 450 },
+  { day: 15, type: 'math',    icon: '🍪', label: 'Mathe',   title: 'Plätzchen-Rechnen',      maxPts: 400 },
+  { day: 16, type: 'sudoku',  icon: '🔔', label: 'Sudoku',  title: 'Glocken-Sudoku',         maxPts: 500 },
+  { day: 17, type: 'quiz',    icon: '🎠', label: 'Quiz',    title: 'Advent-Quiz',            maxPts: 300 },
+  { day: 18, type: 'wordle',  icon: '🕯️', label: 'Wörter',  title: 'Kerzen-Wordle',          maxPts: 500 },
+  { day: 19, type: 'geo',     icon: '🏔️', label: 'Geo',     title: 'Weihnachts-Länder',      maxPts: 300 },
+  { day: 20, type: 'slide',   icon: '🎿', label: 'Puzzle',  title: 'Winter-Puzzle',          maxPts: 350 },
+  { day: 21, type: 'logic',   icon: '🧸', label: 'Logik',   title: 'Spielzeug-Logik',        maxPts: 450 },
+  { day: 22, type: 'math',    icon: '🎪', label: 'Mathe',   title: 'Weihnachts-Mathe',       maxPts: 400 },
+  { day: 23, type: 'quiz',    icon: '🏠', label: 'Quiz',    title: 'Traditions-Quiz',        maxPts: 300 },
+  { day: 24, type: 'special', icon: '🎉', label: 'Special', title: 'Heiligabend-Challenge',  maxPts: 1000 },
+];
+
+// ── USER DATA ────────────────────────────────────────────
+function getUserName() {
+  return localStorage.getItem('advent_name') || 'Anonym';
+}
+function setUserName(name) {
+  localStorage.setItem('advent_name', name.trim() || 'Anonym');
+}
+function getTheme() {
+  return document.documentElement.getAttribute('data-theme') || 'light';
+}
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+}
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', getTheme());
+}
+
+// Streak aus Google-Sheet-Zeitstempeln berechnen
+async function getStreak() {
+  const name = getUserName();
+  const rows = await fetchLeaderboard();
+  const dates = [...new Set(rows
+    .filter(r => getRowName(r) === name)
+    .map(r => getRowTimestamp(r))
+    .filter(Boolean)
+    .map(ts => new Date(ts).toDateString())
+  )].sort((a, b) => new Date(b) - new Date(a));
+
+  if (!dates.length) return { count: 0, lastDay: null };
+
+  let count = 1;
+  let cursor = new Date(dates[0]);
+
+  for (let i = 1; i < dates.length; i++) {
+    const expected = new Date(cursor);
+    expected.setDate(expected.getDate() - 1);
+    const actual = new Date(dates[i]);
+    if (actual.toDateString() !== expected.toDateString()) break;
+    count++;
+    cursor = actual;
+  }
+
+  return { count, lastDay: dates[0] };
+}
+function updateStreak() {
+  return getStreak();
+}
+function checkStreakVisit() {
+  return getStreak();
+}
+
+// ── GOOGLE SHEETS ────────────────────────────────────────
+function getRowValue(row, names) {
+  if (!row || typeof row !== 'object') return '';
+  const normalized = {};
+  Object.keys(row).forEach(key => {
+    normalized[String(key).trim().toLowerCase()] = row[key];
+  });
+  for (const name of names) {
+    const value = normalized[String(name).trim().toLowerCase()];
+    if (value !== undefined && value !== null && value !== '') return value;
+  }
+  return '';
+}
+
+function getRowName(row) {
+  return String(getRowValue(row, ['name', 'Name', 'spieler', 'player']) || 'Anonym').trim();
+}
+
+function getRowDay(row) {
+  const day = Number(getRowValue(row, ['day', 'tag']));
+  if (Number.isInteger(day) && day >= 1 && day <= 24) return day;
+  const solvedDay = Number(getRowValue(row, ['solved', 'gelöst', 'geloest']));
+  if (Number.isInteger(solvedDay) && solvedDay >= 1 && solvedDay <= 24) return solvedDay;
+  return 0;
+}
+
+function getRowPoints(row) {
+  const raw = getRowValue(row, ['points', 'pts', 'punkte', 'score']);
+  const normalized = String(raw).replace(',', '.').replace(/[^\d.-]/g, '');
+  const points = Number(normalized);
+  return Number.isFinite(points) ? points : 0;
+}
+
+function getRowTimestamp(row) {
+  return getRowValue(row, ['timestamp', 'time', 'date', 'datum', 'zeit']);
+}
+
+// Scores aus Google Sheets berechnen: { day: { pts, solved, timestamp } }
+async function getScores() {
+  const name = getUserName();
+  const rows = await fetchLeaderboard();
+
+  const scores = {};
+
+  rows
+    .filter(r => getRowName(r) === name)
+    .forEach(r => {
+      const day = getRowDay(r);
+      const pts = getRowPoints(r);
+      const rowTimestamp = getRowTimestamp(r);
+      const timestamp = rowTimestamp ? new Date(rowTimestamp).getTime() : Date.now();
+
+      if (!day) return;
+
+      const prev = scores[day]?.pts || 0;
+
+      // nur besten Score pro Tag speichern
+      if (!scores[day] || pts > prev) {
+        scores[day] = {
+          pts,
+          solved: true,
+          timestamp
+        };
+      }
+    });
+
+  return scores;
+}
+
+async function saveScore(day, pts) {
+  const scores = await getScores();
+  const prev = scores[day]?.pts || 0;
+
+  if (pts > prev) {
+    logToSheet(day, pts);
+    return true; // new highscore
+  }
+
+  return false;
+}
+
+async function isNewHighscore(day, pts) {
+  const scores = await getScores();
+  return pts > (scores[day]?.pts || 0);
+}
+
+async function getTotalPoints() {
+  const scores = await getScores();
+  return Object.values(scores).reduce((sum, s) => sum + (s.pts || 0), 0);
+}
+
+async function isSolved(day) {
+  const scores = await getScores();
+  return !!scores[day]?.solved;
+}
+
+function logToSheet(day, pts) {
+  const name = getUserName();
+  const params = new URLSearchParams({
+    name,
+    day: String(day),
+    solved: String(day),
+    points: String(pts),
+    timestamp: new Date().toISOString()
+  });
+  fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: params }).catch(() => {});
+}
+
+async function fetchLeaderboard() {
+  return new Promise((resolve) => {
+    const id = 'cb_' + Date.now();
+    window[id] = (data) => {
+      delete window[id];
+      resolve(Array.isArray(data) ? data : []);
+    };
+    const script = document.createElement('script');
+    script.src = READ_URL.replace('onScores', id);
+    script.onerror = () => { delete window[id]; resolve([]); };
+    document.head.appendChild(script);
+    setTimeout(() => { delete window[id]; resolve([]); }, 5000);
+  });
+}
+
+// ── DATE HELPERS ─────────────────────────────────────────
+function getCurrentAdventDay() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const dec1 = new Date(year, 11, 1);
+  if (now < dec1) return 0;
+  const day = now.getDate();
+  return now.getMonth() === 11 ? Math.min(day, 24) : 24;
+}
+
+function getDaysUntilChristmas() {
+  const now = new Date();
+  const christmas = new Date(now.getFullYear(), 11, 24);
+  if (now > christmas) {
+    christmas.setFullYear(christmas.getFullYear() + 1);
+  }
+  const diff = christmas - now;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function isUnlocked(day) {
+  // For testing: always unlock all days. 
+  // Remove the line below to use real date locking:
+  return true;
+  //return day <= getCurrentAdventDay();
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  let t = document.querySelector('.toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.className = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── CONFETTI ──────────────────────────────────────────────
+function launchConfetti() {
+  const colors = ['#58CC02', '#FF6B35', '#FFD54F', '#EF5350', '#FFFFFF'];
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${Math.random() * 100}%;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      width: ${6 + Math.random() * 8}px;
+      height: ${6 + Math.random() * 8}px;
+      animation-duration: ${2 + Math.random() * 2}s;
+      animation-delay: ${Math.random() * 0.5}s;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.remove(), 4000);
+}
+
+// ── SNOW ──────────────────────────────────────────────────
+function initSnow(count = 8) {
+  const flakes = ['❄', '❅', '❆', '✦'];
+  for (let i = 0; i < count; i++) {
+    const flake = document.createElement('div');
+    flake.className = 'snowflake';
+    flake.textContent = flakes[Math.floor(Math.random() * flakes.length)];
+    flake.style.cssText = `
+      left: ${Math.random() * 100}%;
+      font-size: ${0.6 + Math.random() * 0.8}rem;
+      animation-duration: ${8 + Math.random() * 10}s;
+      animation-delay: ${Math.random() * 10}s;
+      opacity: 0.4;
+    `;
+    document.body.appendChild(flake);
+  }
+}
+
+// ── NAV HIGHLIGHT ─────────────────────────────────────────
+function setActiveNav(page) {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === page);
+  });
+}
+
+// ── THEME TOGGLE ──────────────────────────────────────────
+function toggleTheme() {
+  const next = getTheme() === 'light' ? 'dark' : 'light';
+  setTheme(next);
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = next === 'dark' ? '☀️' : '🌙';
+}

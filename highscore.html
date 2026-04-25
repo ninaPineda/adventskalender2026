@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Highscore – Adventskalender</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="desktop-block">
+  <div class="icon">📱</div>
+  <h1>Nur für Handys!</h1>
+  <p>Bitte öffne diese Seite auf deinem Smartphone.</p>
+</div>
+
+<nav class="top-nav">
+  <div class="logo">🏆 Highscore</div>
+  <div class="nav-actions">
+    <div class="streak-badge" id="streakBadge">🔥 0</div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </div>
+</nav>
+
+<div class="page-content">
+
+  <!-- My Stats -->
+  <div class="section-label">Deine Statistiken</div>
+  <div class="panel">
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-val" id="myTotalPts">–</div>
+        <div class="stat-label">Gesamtpunkte</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="mySolvedCount">–</div>
+        <div class="stat-label">Gelöst</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-val" id="myStreak">–</div>
+        <div class="stat-label">Streak 🔥</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="myBestDay">–</div>
+        <div class="stat-label">Bester Tag</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Leaderboard -->
+  <div class="section-label">Gesamtrangliste</div>
+  <div class="panel" id="leaderboardPanel">
+    <div style="text-align:center;padding:20px;color:var(--text-muted);">
+      <div style="font-size:1.5rem;margin-bottom:8px;">⏳</div>
+      Lade Rangliste...
+    </div>
+  </div>
+
+  <!-- Day Records -->
+  <div class="section-label">Tagesrekorde</div>
+  <div id="dayRecordsPanel"></div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-item" data-page="home" href="index.html">
+    <span class="nav-icon">🏠</span><span class="nav-label">Kalender</span>
+  </a>
+  <a class="nav-item active" data-page="highscore" href="highscore.html">
+    <span class="nav-icon">🏆</span><span class="nav-label">Highscore</span>
+  </a>
+  <a class="nav-item" data-page="profile" href="profile.html">
+    <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+  </a>
+  <a class="nav-item" data-page="howto" href="howto.html">
+    <span class="nav-icon">❓</span><span class="nav-label">Anleitung</span>
+  </a>
+</nav>
+
+<script src="js/core.js"></script>
+<script>
+async function initHighscorePage() {
+  applyTheme();
+  initSnow(4);
+  document.getElementById('themeBtn').textContent = getTheme() === 'dark' ? '☀️' : '🌙';
+
+  // My stats
+  const scores = await getScores();
+  const streak = await getStreak();
+  const solved = Object.values(scores).filter(s => s.solved);
+  const total = await getTotalPoints();
+  const bestDay = Object.entries(scores).sort((a,b) => b[1].pts-a[1].pts)[0];
+
+  document.getElementById('myTotalPts').textContent = total;
+  document.getElementById('mySolvedCount').textContent = solved.length + '/24';
+  document.getElementById('myStreak').textContent = streak.count;
+  document.getElementById('myBestDay').textContent = bestDay ? bestDay[0] : '–';
+  document.getElementById('streakBadge').textContent = '🔥 ' + streak.count;
+
+  // Day Records (local + from sheet)
+  function buildDayRecords(sheetData) {
+    const panel = document.getElementById('dayRecordsPanel');
+    // Process sheet data into { day -> { name, pts } }
+    const dayBest = {};
+    if (Array.isArray(sheetData)) {
+      sheetData.forEach(row => {
+        const d = getRowDay(row);
+        const p = getRowPoints(row);
+        if (!d) return;
+        if (!dayBest[d] || p > dayBest[d].pts) {
+          dayBest[d] = { name: getRowName(row), pts: p };
+        }
+      });
+    }
+
+    // Also include local scores
+    Object.entries(scores).forEach(([day, s]) => {
+      const d = parseInt(day);
+      if (!dayBest[d] || s.pts > dayBest[d].pts) {
+        dayBest[d] = { name: getUserName(), pts: s.pts };
+      }
+    });
+
+    const today = getCurrentAdventDay();
+    panel.innerHTML = '';
+    for (let d = 1; d <= Math.min(today, 24); d++) {
+      const meta = PUZZLES.find(p => p.day === d);
+      const best = dayBest[d];
+      const div = document.createElement('div');
+      div.className = 'panel';
+      div.style.marginBottom = '10px';
+      div.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:1.8rem;">${meta?.icon || '🎄'}</div>
+          <div style="flex:1;">
+            <div style="font-weight:800;font-size:0.9rem;">Tag ${d} – ${meta?.title || 'Rätsel'}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">
+              ${best ? `🏆 ${best.name}: <strong>${best.pts}</strong> Punkte` : 'Noch kein Rekord'}
+            </div>
+          </div>
+          <a href="puzzle.html?day=${d}" style="text-decoration:none;">
+            <button class="btn btn-ghost" style="width:auto;padding:8px 12px;font-size:0.78rem;">${scores[d] ? '🔄' : '▶'}</button>
+          </a>
+        </div>
+      `;
+      panel.appendChild(div);
+    }
+  }
+
+  // Global leaderboard from sheet
+  async function loadLeaderboard() {
+    let data = [];
+    try {
+      data = await fetchLeaderboard();
+    } catch(e) {}
+
+    // Aggregate by name
+    const byName = {};
+    if (Array.isArray(data)) {
+      data.forEach(row => {
+        const name = getRowName(row);
+        const pts = getRowPoints(row);
+        const day = getRowDay(row);
+        if (!day) return;
+        if (!byName[name]) byName[name] = { pts: 0, days: new Set() };
+        // Only count best per day
+        if (!byName[name][day] || pts > byName[name][day]) {
+          if (byName[name][day]) byName[name].pts -= byName[name][day];
+          byName[name][day] = pts;
+          byName[name].pts += pts;
+          byName[name].days.add(day);
+        }
+      });
+    }
+
+    // Add local user
+    const myName = getUserName();
+    if (!byName[myName]) byName[myName] = { pts: 0, days: new Set() };
+    Object.entries(scores).forEach(([day, s]) => {
+      if (!byName[myName][day] || s.pts > byName[myName][day]) {
+        if (byName[myName][day]) byName[myName].pts -= byName[myName][day];
+        byName[myName][day] = s.pts;
+        byName[myName].pts += s.pts;
+        byName[myName].days.add(String(day));
+      }
+    });
+
+    const sorted = Object.entries(byName).sort((a,b) => b[1].pts - a[1].pts);
+    const medals = ['🥇','🥈','🥉'];
+    const panel = document.getElementById('leaderboardPanel');
+
+    if (sorted.length === 0) {
+      panel.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:16px;">Noch keine Einträge – sei der Erste! 🎄</p>`;
+    } else {
+      panel.innerHTML = sorted.slice(0, 20).map(([name, info], i) => `
+        <div class="leaderboard-item rank-${i+1}">
+          <div class="rank-medal">${medals[i] || (i+1) + '.'}</div>
+          <div class="rank-name">${name === myName ? '⭐ ' + name + ' (Du)' : name}</div>
+          <div class="rank-pts">⭐ ${info.pts}</div>
+        </div>
+      `).join('');
+    }
+
+    buildDayRecords(data);
+  }
+
+  loadLeaderboard();
+}
+
+initHighscorePage();
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Profil – Adventskalender</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="desktop-block">
+  <div class="icon">📱</div>
+  <h1>Nur für Handys!</h1>
+  <p>Bitte öffne diese Seite auf deinem Smartphone.</p>
+</div>
+
+<nav class="top-nav">
+  <div class="logo">👤 Profil</div>
+  <div class="nav-actions">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </div>
+</nav>
+
+<div class="page-content">
+
+  <!-- Avatar & Name -->
+  <div class="panel" style="text-align:center;">
+    <div class="avatar-circle" id="avatarCircle">🎅</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.5rem;" id="displayName">–</div>
+    <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;" id="displayStats">0 Punkte · 0 gelöst</div>
+    <button class="btn btn-ghost" style="margin-top:14px;width:auto;padding:10px 20px;" onclick="openEdit()">✏️ Name ändern</button>
+  </div>
+
+  <!-- Streak Info -->
+  <div class="section-label">Streak</div>
+  <div class="panel">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:3rem;">🔥</div>
+      <div>
+        <div style="font-family:'Fredoka One',cursive;font-size:2rem;color:var(--streak);" id="streakCount">0</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;">Tage in Folge aktiv</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;background:var(--input-bg);border-radius:10px;padding:10px;font-size:0.82rem;color:var(--text-muted);line-height:1.5;">
+      📅 Letzter Besuch: <strong id="lastVisit">–</strong>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="section-label">Fortschritt</div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-weight:700;">Rätsel gelöst</span>
+      <span id="progressLabel" style="font-weight:800;color:var(--green-bright);">0/24</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div id="dayChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:12px;"></div>
+  </div>
+
+  <!-- Theme -->
+  <div class="section-label">Einstellungen</div>
+  <div class="panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-weight:700;">Dunkles Design</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">Augenschonend für abends</div>
+      </div>
+      <div id="themeToggle" onclick="toggleThemeSwitch()" style="width:50px;height:28px;background:var(--locked);border-radius:14px;cursor:pointer;position:relative;transition:background 0.3s;">
+        <div id="themeKnob" style="position:absolute;top:3px;left:3px;width:22px;height:22px;background:white;border-radius:50%;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>
+      </div>
+    </div>
+      <div style="border-top:2px solid var(--card-border);padding-top:14px;">
+        <div style="font-weight:700;margin-bottom:4px;">Daten zurücksetzen</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Punkte, gelöste Tage und Streak kommen aus Google Sheets.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EDIT NAME MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Name ändern</div>
+    <p style="text-align:center;color:var(--text-muted);margin-bottom:16px;font-size:0.9rem;">
+      Dein Name erscheint in der Highscore-Liste
+    </p>
+    <input class="input-field" type="text" id="nameEditInput" placeholder="Neuer Name..." maxlength="20" />
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn btn-ghost" onclick="closeEdit()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveName()">Speichern ✓</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-item" data-page="home" href="index.html">
+    <span class="nav-icon">🏠</span><span class="nav-label">Kalender</span>
+  </a>
+  <a class="nav-item" data-page="highscore" href="highscore.html">
+    <span class="nav-icon">🏆</span><span class="nav-label">Highscore</span>
+  </a>
+  <a class="nav-item active" data-page="profile" href="profile.html">
+    <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+  </a>
+  <a class="nav-item" data-page="howto" href="howto.html">
+    <span class="nav-icon">❓</span><span class="nav-label">Anleitung</span>
+  </a>
+</nav>
+
+<script src="js/core.js"></script>
+<script src="js/puzzles.js"></script>
+<script>
+  applyTheme();
+  initSnow(4);
+
+  const avatarEmojis = ['🎅','⛄','🦌','🎄','⭐','❄️','🎁','🔔'];
+
+  async function refreshPage() {
+    const name = getUserName();
+    const scores = await getScores();
+    const streak = await getStreak();
+    const solved = Object.values(scores).filter(s=>s.solved).length;
+    const total = await getTotalPoints();
+
+    document.getElementById('displayName').textContent = name;
+    document.getElementById('displayStats').textContent = total + ' Punkte · ' + solved + ' gelöst';
+    document.getElementById('streakCount').textContent = streak.count;
+    document.getElementById('avatarCircle').textContent = avatarEmojis[name.charCodeAt(0) % avatarEmojis.length] || '🎅';
+
+    const lastDay = streak.lastDay;
+    document.getElementById('lastVisit').textContent = lastDay ? new Date(lastDay).toLocaleDateString('de-DE') : 'Noch nicht';
+
+    // Progress
+    document.getElementById('progressLabel').textContent = solved + '/24';
+    document.getElementById('progressFill').style.width = (solved/24*100) + '%';
+
+    // Day chips
+    const chips = document.getElementById('dayChips');
+    chips.innerHTML = '';
+    for (let d=1; d<=24; d++) {
+      const s = scores[d];
+      const chip = document.createElement('div');
+      chip.style.cssText = `
+        width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+        font-size:0.65rem;font-weight:800;
+        background:${s?.solved ? 'var(--green-bright)' : 'var(--input-bg)'};
+        color:${s?.solved ? 'white' : 'var(--text-muted)'};
+      `;
+      chip.textContent = d;
+      chip.title = s ? '⭐ ' + s.pts + ' Punkte' : 'Nicht gelöst';
+      chips.appendChild(chip);
+    }
+
+    // Theme switch
+    const isDark = getTheme() === 'dark';
+    document.getElementById('themeToggle').style.background = isDark ? 'var(--green-bright)' : 'var(--locked)';
+    document.getElementById('themeKnob').style.transform = isDark ? 'translateX(22px)' : 'translateX(0)';
+    document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  }
+
+  refreshPage();
+
+  function openEdit() {
+    document.getElementById('nameEditInput').value = getUserName();
+    document.getElementById('editModal').classList.add('open');
+    setTimeout(() => document.getElementById('nameEditInput').focus(), 400);
+  }
+  function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
+  function saveName() {
+    const v = document.getElementById('nameEditInput').value.trim();
+    if (!v) return;
+    setUserName(v);
+    closeEdit();
+    showToast('Name gespeichert: ' + v + ' ✓', 'success');
+    refreshPage();
+  }
+  document.getElementById('nameEditInput').addEventListener('keydown', e => { if (e.key==='Enter') saveName(); });
+
+  function toggleThemeSwitch() {
+    toggleTheme();
+    refreshPage();
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+</script>
+</body>
+</html>

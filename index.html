@@ -2,75 +2,183 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unser Adventskalender 2026</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>🎄 Adventskalender 2024</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <main class="content">
-    <header class="hero">
-      <p class="eyebrow">Adventskalender 2026</p>
-      <h1>Willkommen,<br>ihr Lieben</h1>
-      <p class="intro">
-        Jeden Tag wartet hier eine kleine Überraschung auf euch.
-        Klickt auf ein Türchen und schaut nach, was sich dahinter versteckt.
-      </p>
-      <div class="button-grid">
-  <a href="highscores.html" class="button">
-    <h2 class="feature-title">🏆 <br>Highscores</h2>
-    <h3 class="feature-meta">Wer führt?</h3>
-  </a>
 
-  <a href="guide.html" class="button">
-    <h2 class="feature-title">📜 <br>Anleitung</h2>
-    <h3 class="feature-meta">So funktioniert’s</h3>
-  </a>
-
-  <a href="#" class="button">
-    <h2 class="feature-title">🔥 <br>Streak</h2>
-    <h3 class="feature-meta">5 Tage in Folge</h3>
-  </a>
-
-  <a href="#" class="button">
-    <h2 class="feature-title">⏳ <br>Countdown</h2>
-    <h3 class="feature-meta">Noch 24 Tage</h3>
-  </a>
+<!-- DESKTOP BLOCK -->
+<div class="desktop-block">
+  <div class="icon">📱</div>
+  <h1>Nur für Handys!</h1>
+  <p>Dieser Adventskalender ist für Mobilgeräte optimiert. Bitte öffne die Seite auf deinem Smartphone oder Tablet.</p>
+  <p style="margin-top:8px; font-size:0.85rem; opacity:0.6;">🎄 Frohe Weihnachten!</p>
 </div>
-          </header>
 
-    <section class="calendar-section" aria-label="Adventskalender mit 24 Türchen">
-      <div class="calendar-grid">
-        <a href="content/17.html" class="day day-17">17</a>
-        <a href="content/3.html" class="day day-3">3</a>
-        <a href="content/12.html" class="day day-12">12</a>
-        <a href="content/8.html" class="day day-8">8</a>
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="logo">🎄 Advent</div>
+  <div class="nav-actions">
+    <div class="streak-badge" id="streakBadge">🔥 0</div>
+    <div class="points-badge" id="pointsBadge">⭐ 0</div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </div>
+</nav>
 
-        <a href="content/21.html" class="day day-21">21</a>
-        <a href="content/5.html" class="day day-5">5</a>
-        <a href="content/14.html" class="day day-14">14</a>
-        <a href="content/1.html" class="day day-1">1</a>
+<!-- COUNTDOWN -->
+<div class="countdown-bar" id="countdownBar"></div>
 
-        <a href="content/19.html" class="day day-19">19</a>
-        <a href="content/7.html" class="day day-7">7</a>
-        <a href="content/24.html" class="day day-24">24</a>
-        <a href="content/10.html" class="day day-10">10</a>
+<!-- MAIN CONTENT -->
+<div class="page-content">
+  <div class="calendar-header">
+    <h2>Adventskalender 2024</h2>
+    <p id="subtitleText">Öffne jeden Tag ein neues Rätsel 🎅</p>
+  </div>
+  <div class="calendar-grid" id="calendarGrid"></div>
+</div>
 
-        <a href="content/2.html" class="day day-2">2</a>
-        <a href="content/16.html" class="day day-16">16</a>
-        <a href="content/9.html" class="day day-9">9</a>
-        <a href="content/22.html" class="day day-22">22</a>
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a class="nav-item active" data-page="home" href="index.html">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Kalender</span>
+  </a>
+  <a class="nav-item" data-page="highscore" href="highscore.html">
+    <span class="nav-icon">🏆</span>
+    <span class="nav-label">Highscore</span>
+  </a>
+  <a class="nav-item" data-page="profile" href="profile.html">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Profil</span>
+  </a>
+  <a class="nav-item" data-page="howto" href="howto.html">
+    <span class="nav-icon">❓</span>
+    <span class="nav-label">Anleitung</span>
+  </a>
+</nav>
 
-        <a href="content/6.html" class="day day-6">6</a>
-        <a href="content/13.html" class="day day-13">13</a>
-        <a href="content/20.html" class="day day-20">20</a>
-        <a href="content/4.html" class="day day-4">4</a>
+<!-- LOCKED MODAL -->
+<div class="modal-overlay" id="lockedModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Noch gesperrt</div>
+    <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;" id="lockedMsg">
+      Dieses Rätsel ist noch nicht freigeschaltet!
+    </p>
+    <button class="btn btn-ghost" onclick="closeModal('lockedModal')">OK, ich warte 🎅</button>
+  </div>
+</div>
 
-        <a href="content/11.html" class="day day-11">11</a>
-        <a href="content/18.html" class="day day-18">18</a>
-        <a href="content/23.html" class="day day-23">23</a>
-        <a href="content/15.html" class="day day-15">15</a>
-      </div>
-    </section>
-  </main>
+<!-- NAME MODAL (first visit) -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🎅 Willkommen!</div>
+    <p style="text-align:center; color:var(--text-muted); margin-bottom:16px;">
+      Wie soll dich der Weihnachtsmann nennen?
+    </p>
+    <input class="input-field" type="text" id="nameInput" placeholder="Dein Name..." maxlength="20" />
+    <button class="btn btn-primary" onclick="saveName()">Los geht's! 🎄</button>
+  </div>
+</div>
+
+<script src="js/core.js"></script>
+<script>
+  // Init
+  applyTheme();
+  initSnow(6);
+  document.getElementById('themeBtn').textContent = getTheme() === 'dark' ? '☀️' : '🌙';
+
+  // Show name modal on first visit
+  if (!localStorage.getItem('advent_name')) {
+    openModal('nameModal');
+  }
+
+  function saveName() {
+    const v = document.getElementById('nameInput').value.trim();
+    if (!v) return;
+    setUserName(v);
+    closeModal('nameModal');
+    showToast('Willkommen, ' + v + '! 🎄', 'success');
+    updateBadges();
+    buildCalendar();
+  }
+  document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveName(); });
+
+  // Countdown
+  function updateCountdown() {
+    const days = getDaysUntilChristmas();
+    const bar = document.getElementById('countdownBar');
+    if (days === 0) {
+      bar.innerHTML = '🎉 Heute ist Heiligabend! Frohe Weihnachten! 🎄';
+    } else {
+      bar.innerHTML = `🎅 Noch <span>${days}</span> ${days === 1 ? 'Tag' : 'Tage'} bis Weihnachten!`;
+    }
+  }
+  updateCountdown();
+
+  // Update badges
+  async function updateBadges() {
+    const streak = await getStreak();
+    document.getElementById('streakBadge').textContent = '🔥 ' + streak.count;
+    document.getElementById('pointsBadge').textContent = '⭐ ' + await getTotalPoints();
+  }
+  updateBadges();
+
+  // Build calendar
+  async function buildCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const scores = await getScores();
+    const today = getCurrentAdventDay();
+    grid.innerHTML = '';
+
+    PUZZLES.forEach(p => {
+      const card = document.createElement('div');
+      const unlocked = isUnlocked(p.day);
+      const score = scores[p.day];
+      const solved = score?.solved;
+      const isToday = p.day === today;
+
+      card.className = 'day-card ' + (solved ? 'solved' : unlocked ? 'unlocked' : 'locked');
+      card.innerHTML = `
+        ${isToday && !solved ? '<div class="today-pulse"></div>' : ''}
+        <div class="day-icon">${p.icon}</div>
+        <div class="day-num">${p.day}</div>
+        <div class="day-type">${p.label}</div>
+        ${solved ? '<div class="check-mark">✓</div>' : ''}
+        ${solved ? `<div class="score-chip">⭐${score.pts}</div>` : ''}
+      `;
+
+      card.addEventListener('click', () => {
+        if (!unlocked) {
+          const daysLeft = p.day - today;
+          document.getElementById('lockedMsg').textContent =
+            `Tag ${p.day} wird in ${daysLeft} ${daysLeft === 1 ? 'Tag' : 'Tagen'} freigeschaltet!`;
+          openModal('lockedModal');
+        } else {
+          window.location.href = `puzzle.html?day=${p.day}`;
+        }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+  buildCalendar();
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  // Close modal on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+</script>
 </body>
 </html>
