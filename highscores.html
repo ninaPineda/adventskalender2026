@@ -9,95 +9,10 @@
     <title>Adventskalender</title>
     <link rel="stylesheet" href="style.css" />
     <meta name="theme-color" content="#000000" />
-    <style>
-  .info-content {
-    width: min(1000px, 100%);
-    margin: 0 auto;
-    padding: 32px 20px 48px;
-  }
-
-  .info-content h1 {
-    margin-bottom: 18px;
-  }
-
-  .question {
-    background: var(--card);
-    border: 1px solid rgba(125, 85, 48, 0.12);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-
-  .score-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(125, 85, 48, 0.12);
-  }
-
-  .score-row:last-child {
-    border-bottom: none;
-  }
-
-  .score-row strong {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .scores-table {
-    overflow-x: auto;
-  }
-
-  .scores-table table {
-    width: 100%;
-    min-width: 760px;
-    border-collapse: collapse;
-    font-size: 0.95rem;
-  }
-
-  .scores-table th,
-  .scores-table td {
-    padding: 12px 10px;
-    border-bottom: 1px solid rgba(125, 85, 48, 0.12);
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .scores-table th {
-    color: var(--accent);
-    font-weight: 700;
-    background: rgba(255,255,255,0.35);
-  }
-
-  .scores-table small {
-    opacity: 0.7;
-    font-size: 0.78em;
-  }
-
-  .back-button {
-    display: inline-block;
-    margin-bottom: 24px;
-    text-decoration: none;
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .back-button::before {
-    content: "← Zurück zum Kalender";
-  }
-
-  .back-button:hover {
-    text-decoration: underline;
-  }
-</style>
   </head>
 
   <body>
-    <main>
+    <main class="content">
       <a href="index.html" class="back-button"></a>
       <h1>Bestenliste</h1>
       <div id="scoreList"></div>
@@ -168,7 +83,7 @@
     // HTML bauen
     wrap.innerHTML = `
       <!-- Gesamt-Bestenliste -->
-      <div class="question">
+      <div class="score-card">
         ${leaderboardArr.length === 0 ? "<p>Noch keine Einträge 🤷‍♀️</p>" : leaderboardArr.map(
           ([name, pts], i) => `
           <div class="score-row">
@@ -182,7 +97,7 @@
       </div>
 
       <h1>Heute (Tag ${todayTag})</h1>
-      <div class="question">
+      <div class="score-card">
         ${todayEntries.length === 0
           ? "<p>Heute hat noch niemand gelöst ✨</p>"
           : todayEntries.map((e, i) => {
@@ -197,7 +112,7 @@
       </div>
 
       <h1>Alle Tage</h1>
-      <div class="question scores-table">
+      <div class="scores-table">
         <table>
           <thead>
             <tr>
@@ -230,7 +145,6 @@
                 <tr>
                   <td>${tag}</td>
                   ${cells}
-                  <td>${others || "-"}</td>
                 </tr>
               `;
             }).join("")}

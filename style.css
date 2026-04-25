@@ -20,8 +20,15 @@
   --accent: #a33b2f;
   --accent-dark: #7e2d24;
 
-  --shadow: 0 10px 25px rgba(60, 40, 20, 0.12);
+  --shadow2: 0 10px 25px rgba(60, 40, 20, 0.12);
   --radius: 20px;
+    --shadow: 
+3px 6px 0 rgba(0,0,0,0.25),
+    5px 8px 0 rgba(0,0,0,0.15),
+    6px 10px 12px rgba(0,0,0,0.2),
+    inset 0 2px 0 rgba(255,255,255,0.7);
+
+  --my-margin: 1rem;
 }
 
 /* ---------- BASE ---------- */
@@ -33,17 +40,18 @@ body {
   background: linear-gradient(180deg, var(--bg), var(--bg-2));
 }
 
-main {
-  width: 100vw;
-  margin: 0 ;
+p {
+  margin-bottom: 2rem;
 }
 
-p{
-    margin-bottom: 2rem;
+h3,
+h2 {
+  color: var(--paper);
 }
 
-h3, h2{
-    color: var(--paper)
+/* ---------- GENERAL ---------- */
+.content {
+  margin: var(--my-margin);
 }
 
 /* ---------- HERO ---------- */
@@ -132,7 +140,7 @@ h3, h2{
 
 .feature-title {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: var(--my-margin);
 }
 
 .feature-meta {
@@ -165,8 +173,8 @@ h3, h2{
   box-shadow: var(--shadow);
 }
 
-.button-grid{
-display: grid;
+.button-grid {
+  display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
@@ -199,14 +207,30 @@ display: grid;
 }
 
 /* unregelmäßige Größen */
-.day-1 { grid-column: span 2; }
-.day-4 { grid-column: span 2; }
-.day-6 { grid-row: span 2; }
-.day-21 { grid-column: span 2; }
-.day-12 { grid-row: span 2; }
-.day-18 { grid-column: span 2; }
-.day-16 { grid-column: span 2; }
-.day-20 { grid-column: span 2; }
+.day-1 {
+  grid-column: span 2;
+}
+.day-4 {
+  grid-column: span 2;
+}
+.day-6 {
+  grid-row: span 2;
+}
+.day-21 {
+  grid-column: span 2;
+}
+.day-12 {
+  grid-row: span 2;
+}
+.day-18 {
+  grid-column: span 2;
+}
+.day-16 {
+  grid-column: span 2;
+}
+.day-20 {
+  grid-column: span 2;
+}
 
 /* ---------- DOOR PAGE ---------- */
 
@@ -259,4 +283,86 @@ display: grid;
 
 .result.error {
   color: red;
+}
+
+/* ---------- TABLE ---------- */
+.score-card {
+  margin-bottom: 3rem;
+  background-color: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--my-margin);
+  margin-top: var(--my-margin);
+}
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(125, 85, 48, 0.12);
+}
+
+.score-row:last-child {
+  border-bottom: none;
+}
+
+.score-row strong {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.scores-table {
+  overflow-x: auto;
+  background-color: var(--paper);
+  border-radius: var(--radius);
+    margin-top: var(--my-margin);
+    box-shadow: var(--shadow);
+}
+
+.scores-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow);
+  padding-top: var(--my-margin);
+}
+
+.scores-table th,
+.scores-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(125, 85, 48, 0.12);
+  text-align: left;
+  vertical-align: top;
+}
+
+.scores-table th {
+  align-content: center;
+  color: var(--paper);
+  font-weight: 700;
+  background: var(--accent);
+  height: 3.5rem;
+}
+
+.scores-table small {
+  opacity: 0.7;
+  font-size: 0.78em;
+}
+
+.scores-table th,
+.scores-table td {
+  text-align: left;
+}
+
+.scores-table td:first-child,
+.scores-table th:first-child {
+  text-align: center;
+  padding-right: var(--my-margin);
+  font-weight: bold;
+
+}
+
+.scores-table td:first-child{
+  color: var(--accent);
 }
