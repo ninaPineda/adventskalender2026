@@ -84,6 +84,7 @@
 async function initHighscorePage() {
   applyTheme();
   initSnow(4);
+  if (!requireLogin()) return;
   document.getElementById('themeBtn').textContent = getTheme() === 'dark' ? '☀️' : '🌙';
 
   // My stats

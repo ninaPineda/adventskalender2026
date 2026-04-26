@@ -28,7 +28,7 @@
     <div class="avatar-circle" id="avatarCircle">🎅</div>
     <div style="font-family:'Fredoka One',cursive;font-size:1.5rem;" id="displayName">–</div>
     <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;" id="displayStats">0 Punkte · 0 gelöst</div>
-    <button class="btn btn-ghost" style="margin-top:14px;width:auto;padding:10px 20px;" onclick="openEdit()">✏️ Name ändern</button>
+    <button class="btn btn-ghost" style="margin-top:14px;width:auto;padding:10px 20px;" onclick="logout()">Abmelden</button>
   </div>
 
   <!-- Streak Info -->
@@ -72,27 +72,11 @@
       </div>
     </div>
       <div style="border-top:2px solid var(--card-border);padding-top:14px;">
-        <div style="font-weight:700;margin-bottom:4px;">Daten zurücksetzen</div>
-      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Punkte, gelöste Tage und Streak kommen aus Google Sheets.</div>
+        <div style="font-weight:700;margin-bottom:4px;">Account</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Username, Punkte, gelöste Tage und Streak kommen aus Google Sheets.</div>
     </div>
   </div>
 
-</div>
-
-<!-- EDIT NAME MODAL -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ Name ändern</div>
-    <p style="text-align:center;color:var(--text-muted);margin-bottom:16px;font-size:0.9rem;">
-      Dein Name erscheint in der Highscore-Liste
-    </p>
-    <input class="input-field" type="text" id="nameEditInput" placeholder="Neuer Name..." maxlength="20" />
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <button class="btn btn-ghost" onclick="closeEdit()">Abbrechen</button>
-      <button class="btn btn-primary" onclick="saveName()">Speichern ✓</button>
-    </div>
-  </div>
 </div>
 
 <nav class="bottom-nav">
@@ -115,6 +99,7 @@
 <script>
   applyTheme();
   initSnow(4);
+  const canShowProfile = requireLogin();
 
   const avatarEmojis = ['🎅','⛄','🦌','🎄','⭐','❄️','🎁','🔔'];
 
@@ -161,23 +146,12 @@
     document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
   }
 
-  refreshPage();
+  function logout() {
+    clearUserName();
+    window.location.href = 'index.html';
+  }
 
-  function openEdit() {
-    document.getElementById('nameEditInput').value = getUserName();
-    document.getElementById('editModal').classList.add('open');
-    setTimeout(() => document.getElementById('nameEditInput').focus(), 400);
-  }
-  function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
-  function saveName() {
-    const v = document.getElementById('nameEditInput').value.trim();
-    if (!v) return;
-    setUserName(v);
-    closeEdit();
-    showToast('Name gespeichert: ' + v + ' ✓', 'success');
-    refreshPage();
-  }
-  document.getElementById('nameEditInput').addEventListener('keydown', e => { if (e.key==='Enter') saveName(); });
+  if (canShowProfile) refreshPage();
 
   function toggleThemeSwitch() {
     toggleTheme();

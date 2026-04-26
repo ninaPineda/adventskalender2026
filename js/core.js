@@ -1,6 +1,8 @@
 // ── CONFIG ──────────────────────────────────────────────
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzewl84KjS__hMI7eeb1Upa-aQAQD-RtrfSS62CRvRXEUAbhibgdEvRhldODNfEeebGjA/exec';
 const READ_URL = SHEET_URL + '?callback=onScores';
+const AUTH_URL = 'https://script.google.com/macros/s/AKfycbzhDmg5P0cOmh0lQzL2LUplCdApUo96Y2rp62eLXOSUW105MNq6zC4BiQu5sR8CYjqx1A/exec';
+const AUTH_READ_URL = AUTH_URL + '?callback=onUsers';
 
 // ── PUZZLE METADATA ──────────────────────────────────────
 const PUZZLES = [
@@ -32,10 +34,100 @@ const PUZZLES = [
 
 // ── USER DATA ────────────────────────────────────────────
 function getUserName() {
-  return localStorage.getItem('advent_name') || 'Anonym';
+  return localStorage.getItem('advent_name') || '';
 }
 function setUserName(name) {
-  localStorage.setItem('advent_name', name.trim() || 'Anonym');
+  localStorage.setItem('advent_name', normalizeUsername(name));
+}
+function clearUserName() {
+  localStorage.removeItem('advent_name');
+}
+function isLoggedIn() {
+  return !!getUserName();
+}
+function requireLogin() {
+  if (isLoggedIn()) return true;
+  window.location.href = 'index.html';
+  return false;
+}
+function normalizeUsername(name) {
+  return String(name || '').trim();
+}
+function normalizeUsernameKey(name) {
+  return normalizeUsername(name).toLowerCase();
+}
+
+async function hashPassword(username, password) {
+  const normalized = normalizeUsernameKey(username);
+  const data = new TextEncoder().encode(`advent2026:${normalized}:${password}`);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(digest)]
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function getUserRowName(row) {
+  return String(getRowValue(row, ['username','name']) || '').trim();
+}
+
+function getUserRowHash(row) {
+  return String(getRowValue(row, ['passwordhash']) || '').trim();
+}
+
+async function fetchUsers() {
+  return new Promise((resolve) => {
+    const id = 'auth_' + Date.now();
+    window[id] = (data) => {
+      delete window[id];
+      resolve(Array.isArray(data) ? data : []);
+    };
+    const script = document.createElement('script');
+    script.src = AUTH_READ_URL.replace('onUsers', id);
+    script.onerror = () => { delete window[id]; resolve([]); };
+    document.head.appendChild(script);
+    setTimeout(() => { delete window[id]; resolve([]); }, 5000);
+  });
+}
+
+async function findUser(username) {
+  const key = normalizeUsernameKey(username);
+  const users = await fetchUsers();
+  return users.find(row => normalizeUsernameKey(getUserRowName(row)) === key) || null;
+}
+
+async function loginUser(username, password) {
+  const cleanName = normalizeUsername(username);
+  if (!cleanName || !password) return { ok: false, message: 'Bitte Username und Passwort eingeben.' };
+
+  const user = await findUser(cleanName);
+  if (!user) return { ok: false, message: 'Diesen Username gibt es noch nicht.' };
+
+  const expectedHash = getUserRowHash(user);
+  const actualHash = await hashPassword(cleanName, password);
+  if (expectedHash !== actualHash) return { ok: false, message: 'Das Passwort stimmt nicht.' };
+
+  setUserName(getUserRowName(user) || cleanName);
+  return { ok: true, username: getUserName() };
+}
+
+async function registerUser(username, password) {
+  const cleanName = normalizeUsername(username);
+  if (cleanName.length < 2) return { ok: false, message: 'Der Username ist zu kurz.' };
+  if (password.length < 6) return { ok: false, message: 'Das Passwort braucht mindestens 6 Zeichen.' };
+
+  const existing = await findUser(cleanName);
+  if (existing) return { ok: false, message: 'Diesen Username gibt es schon.' };
+  const passwordhash = await hashPassword(cleanName, password);
+  const parameter = new URLSearchParams({
+    username: String(cleanName),
+    passwordhash: String(passwordhash)
+  });
+
+console.log(parameter);
+
+  fetch(AUTH_URL, { method: 'POST', mode: 'no-cors', body: parameter }).catch(() => {});
+  setUserName(cleanName);
+  return { ok: true, username: cleanName };
 }
 function getTheme() {
   return document.documentElement.getAttribute('data-theme') || 'light';

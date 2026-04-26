@@ -66,6 +66,7 @@
 async function initPuzzlePage() {
   applyTheme();
   initSnow(4);
+  if (!requireLogin()) return;
 
   const params = new URLSearchParams(location.search);
   const day = parseInt(params.get('day') || '1');

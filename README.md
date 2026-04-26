@@ -35,6 +35,15 @@ Deine Tabelle braucht diese Spalten:
 
 Wenn Punkte in der App nicht angezeigt werden, prüfe die Google-Apps-Script-Web-App: Sie muss beim Lesen auch `points` zurückgeben. Eine passende Vorlage liegt in `google-apps-script.js`.
 
+## 🔐 Login Setup
+
+Die User-Tabelle braucht diese Spalten:
+| username | passwordHash |
+|----------|--------------|
+| Max      | sha256...    |
+
+Die App hasht Passwörter im Browser mit SHA-256 und speichert nur den Hash. Eine passende Apps-Script-Vorlage liegt in `google-auth-apps-script.js`.
+
 ## 🗂️ Dateistruktur
 ```
 advent-calendar/

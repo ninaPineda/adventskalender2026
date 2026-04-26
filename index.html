@@ -73,16 +73,22 @@
   </div>
 </div>
 
-<!-- NAME MODAL (first visit) -->
-<div class="modal-overlay" id="nameModal">
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">🎅 Willkommen!</div>
+    <div class="modal-title" id="authTitle">Einloggen</div>
     <p style="text-align:center; color:var(--text-muted); margin-bottom:16px;">
-      Wie soll dich der Weihnachtsmann nennen?
+      Melde dich an, damit deine Punkte auf jedem Gerät da sind.
     </p>
-    <input class="input-field" type="text" id="nameInput" placeholder="Dein Name..." maxlength="20" />
-    <button class="btn btn-primary" onclick="saveName()">Los geht's! 🎄</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <button class="btn btn-primary" id="loginTab" onclick="setAuthMode('login')">Login</button>
+      <button class="btn btn-ghost" id="registerTab" onclick="setAuthMode('register')">Registrieren</button>
+    </div>
+    <input class="input-field" type="text" id="authUsername" placeholder="Username" maxlength="20" autocomplete="username" />
+    <input class="input-field" type="password" id="authPassword" placeholder="Passwort" maxlength="80" autocomplete="current-password" />
+    <p id="authMessage" style="min-height:20px;text-align:center;color:var(--red-light);font-size:0.85rem;margin:4px 0 10px;"></p>
+    <button class="btn btn-primary" id="authSubmit" onclick="submitAuth()">Einloggen</button>
   </div>
 </div>
 
@@ -93,21 +99,58 @@
   initSnow(6);
   document.getElementById('themeBtn').textContent = getTheme() === 'dark' ? '☀️' : '🌙';
 
-  // Show name modal on first visit
-  if (!localStorage.getItem('advent_name')) {
-    openModal('nameModal');
+  let authMode = 'login';
+
+  if (isLoggedIn()) {
+    loadHome();
+  } else {
+    openModal('authModal');
   }
 
-  function saveName() {
-    const v = document.getElementById('nameInput').value.trim();
-    if (!v) return;
-    setUserName(v);
-    closeModal('nameModal');
-    showToast('Willkommen, ' + v + '! 🎄', 'success');
+  function setAuthMode(mode) {
+    authMode = mode;
+    const isRegister = mode === 'register';
+    document.getElementById('authTitle').textContent = isRegister ? 'Account erstellen' : 'Einloggen';
+    document.getElementById('authSubmit').textContent = isRegister ? 'Account erstellen' : 'Einloggen';
+    document.getElementById('authPassword').autocomplete = isRegister ? 'new-password' : 'current-password';
+    document.getElementById('loginTab').className = isRegister ? 'btn btn-ghost' : 'btn btn-primary';
+    document.getElementById('registerTab').className = isRegister ? 'btn btn-primary' : 'btn btn-ghost';
+    document.getElementById('authMessage').textContent = '';
+  }
+
+  async function submitAuth() {
+    const username = document.getElementById('authUsername').value;
+    const password = document.getElementById('authPassword').value;
+    const message = document.getElementById('authMessage');
+    const submit = document.getElementById('authSubmit');
+    submit.disabled = true;
+    submit.textContent = authMode === 'register' ? 'Erstelle Account...' : 'Logge ein...';
+    message.textContent = '';
+
+    const result = authMode === 'register'
+      ? await registerUser(username, password)
+      : await loginUser(username, password);
+
+    submit.disabled = false;
+    submit.textContent = authMode === 'register' ? 'Account erstellen' : 'Einloggen';
+
+    if (!result.ok) {
+      message.textContent = result.message;
+      return;
+    }
+
+    closeModal('authModal');
+    showToast('Willkommen, ' + result.username + '! 🎄', 'success');
+    loadHome();
+  }
+
+  function loadHome() {
     updateBadges();
     buildCalendar();
   }
-  document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveName(); });
+  document.querySelectorAll('#authUsername, #authPassword').forEach(input => {
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
+  });
 
   // Countdown
   function updateCountdown() {
@@ -127,8 +170,6 @@
     document.getElementById('streakBadge').textContent = '🔥 ' + streak.count;
     document.getElementById('pointsBadge').textContent = '⭐ ' + await getTotalPoints();
   }
-  updateBadges();
-
   // Build calendar
   async function buildCalendar() {
     const grid = document.getElementById('calendarGrid');
@@ -167,8 +208,6 @@
       grid.appendChild(card);
     });
   }
-  buildCalendar();
-
   function openModal(id) {
     document.getElementById(id).classList.add('open');
   }
@@ -177,7 +216,11 @@
   }
   // Close modal on overlay click
   document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+    m.addEventListener('click', e => {
+      if (e.target !== m) return;
+      if (m.id === 'authModal' && !isLoggedIn()) return;
+      m.classList.remove('open');
+    });
   });
 </script>
 </body>
