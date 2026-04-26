@@ -1,57 +1,76 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
 
 :root {
-  --green: #2E7D32;
-  --green-light: #4CAF50;
-  --green-bright: #58CC02;
-  --red: #C62828;
-  --red-light: #EF5350;
-  --gold: #F9A825;
-  --gold-light: #FFD54F;
+  --green: #404912;
+  --green-light: #6F7C25;
+  --green-bright: #92A82A;
+  --red: #B80000;
+  --red-light: #E02424;
+  --gold: #F0B429;
+  --gold-light: #FFD166;
   --snow: #FFFFFF;
-  --bg: #F5F9F0;
+  --bg: #FFF8E8;
   --card: #FFFFFF;
-  --card-border: #D7E8CC;
-  --text: #1B2A1B;
-  --text-muted: #5A7A5A;
-  --locked: #C8D8C8;
-  --locked-text: #9AAA9A;
-  --shadow: 0 4px 0 #B8D4A8;
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
-  --streak: #FF6B35;
+  --card-border: #D9D6B8;
+  --text: #171A07;
+  --text-muted: #62683A;
+  --locked: #E3E0C8;
+  --locked-text: #74775A;
+  --shadow: 0 4px 0 #BFC88A;
+  --shadow-card: 0 2px 12px rgba(23,26,7,0.12);
+  --shadow-red: 0 4px 0 rgb(122, 0, 0);
+  --streak: #B80000;
   --nav-bg: #FFFFFF;
-  --overlay: rgba(255,255,255,0.95);
-  --input-bg: #F0F7E8;
-  --input-border: #C5DEB0;
-  --badge-bg: #E8F5E9;
-  --progress-bg: #E0F0D8;
+  --overlay: rgba(255,248,232,0.95);
+  --input-bg: #FFF4D6;
+  --input-border: #C9CF91;
+  --badge-bg: #F5F2D1;
+  --progress-bg: #E5E9BD;
+  --success-bg: rgba(64,73,18,0.16);
+  --error-bg: rgba(184,0,0,0.12);
+  --warm-bg: rgba(240,180,41,0.16);
+  --button-shadow: #2D340C;
+  --red-shadow: #7D0000;
+  --gold-shadow: #B77900;
+  --overlay-dark: rgba(23,26,7,0.58);
+  --accent-text: #FFFFFF;
+
+  --radius: 20px;
 }
 
 [data-theme="dark"] {
-  --green: #81C784;
-  --green-light: #A5D6A7;
-  --green-bright: #58CC02;
-  --red: #EF9A9A;
-  --red-light: #FFCDD2;
-  --gold: #FFD54F;
-  --gold-light: #FFECB3;
+  --green: #AFC451;
+  --green-light: #D2E57B;
+  --green-bright: #D2E57B;
+  --red: #FF4B4B;
+  --red-light: #FF7B7B;
+  --gold: #FFD166;
+  --gold-light: #FFE19C;
   --snow: #FFFFFF;
-  --bg: #0F1F0F;
-  --card: #1A2E1A;
-  --card-border: #2D4A2D;
-  --text: #E8F5E9;
-  --text-muted: #81A881;
-  --locked: #1E2E1E;
-  --locked-text: #4A6A4A;
-  --shadow: 0 4px 0 #0A150A;
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.4);
-  --streak: #FF8C5A;
-  --nav-bg: #1A2E1A;
-  --overlay: rgba(15,31,15,0.95);
-  --input-bg: #1E3A1E;
-  --input-border: #3A5A3A;
-  --badge-bg: #1E3A1E;
-  --progress-bg: #1A2A1A;
+  --bg: #111302;
+  --card: #1B1F08;
+  --card-border: #46500F;
+  --text: #FFF8E8;
+  --text-muted: #CBD39D;
+  --locked: #282C10;
+  --locked-text: #8F965F;
+  --shadow: 0 4px 0 #090B01;
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.45);
+  --streak: #FF7B7B;
+  --nav-bg: #171A07;
+  --overlay: rgba(17,19,2,0.95);
+  --input-bg: #252A0D;
+  --input-border: #596517;
+  --badge-bg: #252A0D;
+  --progress-bg: #303714;
+  --success-bg: rgba(210,229,123,0.18);
+  --error-bg: rgba(255,75,75,0.16);
+  --warm-bg: rgba(255,209,102,0.16);
+  --button-shadow: #6F7C25;
+  --red-shadow: #7D0000;
+  --gold-shadow: #B77900;
+  --overlay-dark: rgba(0,0,0,0.55);
+  --accent-text: #111302;
 }
 
 * {
@@ -70,12 +89,12 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* ─── DESKTOP BLOCK ─── */
+/* ─── LEGACY DESKTOP BLOCK ─── */
 .desktop-block {
-  display: none;
+  display: none !important;
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #1B5E20, #2E7D32, #C62828);
+  background: #181914;
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -85,13 +104,9 @@ html, body {
   padding: 40px;
 }
 .desktop-block .icon { font-size: 80px; animation: bounce 1.5s infinite; }
+.desktop-block .icon svg { width: 80px; height: 80px; color: var(--green-bright); }
 .desktop-block h1 { font-family: 'Fredoka One', cursive; color: white; font-size: 2rem; }
 .desktop-block p { color: rgba(255,255,255,0.85); font-size: 1.1rem; max-width: 380px; line-height: 1.6; }
-
-@media (min-width: 768px) {
-  .desktop-block { display: flex; }
-  body > *:not(.desktop-block) { display: none !important; }
-}
 
 /* ─── TOP NAV ─── */
 .top-nav {
@@ -112,7 +127,11 @@ html, body {
   color: var(--green-bright);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+.logo-icon {
+  width: 22px;
+  height: 22px;
 }
 .top-nav .nav-actions {
   display: flex;
@@ -126,9 +145,14 @@ html, body {
   font-weight: 800;
   font-size: 0.95rem;
   color: var(--streak);
-  background: rgba(255,107,53,0.12);
+  background: var(--error-bg);
   padding: 4px 10px;
   border-radius: 20px;
+}
+.badge-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 .points-badge {
   display: flex;
@@ -137,30 +161,67 @@ html, body {
   font-weight: 800;
   font-size: 0.95rem;
   color: var(--gold);
-  background: rgba(249,168,37,0.12);
+  background: var(--warm-bg);
   padding: 4px 10px;
   border-radius: 20px;
 }
-.theme-btn {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
+.theme-switch {
+  width: 46px;
+  height: 26px;
+  background: var(--locked);
+  border: 2px solid var(--card-border);
+  border-radius: 999px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  transition: transform 0.2s;
+  padding: 2px;
+  position: relative;
+  flex: 0 0 auto;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-.theme-btn:active { transform: scale(0.85); }
+.theme-switch-knob {
+  width: 18px;
+  height: 18px;
+  display: block;
+  background: var(--card);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.22);
+  transform: translateX(0);
+  transition: transform 0.2s, background 0.2s;
+}
+.theme-switch.is-on {
+  background: var(--green-bright);
+  border-color: var(--green-bright);
+}
+.theme-switch.is-on .theme-switch-knob {
+  background: var(--bg);
+  transform: translateX(20px);
+}
+.theme-switch-large {
+  width: 54px;
+  height: 30px;
+}
+.theme-switch-large .theme-switch-knob {
+  width: 22px;
+  height: 22px;
+}
+.theme-switch-large.is-on .theme-switch-knob {
+  transform: translateX(24px);
+}
+.theme-switch:active { transform: scale(0.96); }
 
 /* ─── COUNTDOWN ─── */
 .countdown-bar {
-  background: linear-gradient(135deg, var(--green), var(--red));
+  background: var(--red);
   color: white;
   text-align: center;
   padding: 10px 20px;
   font-weight: 800;
   font-size: 0.95rem;
   letter-spacing: 0.5px;
+  width:80%;
+  margin-left: 10%;
+  border-radius: var(--radius);
+  margin-top: 0.75rem;
+  box-shadow: var(--shadow-red);
 }
 .countdown-bar span { font-family: 'Fredoka One', cursive; font-size: 1.2rem; }
 
@@ -189,26 +250,49 @@ html, body {
 }
 
 .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 14px 8px 34px;
+  min-height: 1320px;
+}
+.calendar-grid::before {
+  content: '';
+  position: absolute;
+  top: 48px;
+  bottom: 54px;
+  left: 50%;
+  width: 8px;
+  border-radius: 999px;
+  background: var(--card-border);
+  transform: translateX(-50%);
+  z-index: 0;
 }
 
 .day-card {
-  aspect-ratio: 1;
-  border-radius: 16px;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   position: relative;
+  z-index: 1;
   transition: transform 0.15s, box-shadow 0.15s;
   border: 2px solid transparent;
   user-select: none;
   -webkit-user-select: none;
 }
 .day-card:active { transform: scale(0.93); }
+.day-card:nth-child(6n+1) { margin-left: 25%; }
+.day-card:nth-child(6n+2) { margin-left: 47%; }
+.day-card:nth-child(6n+3) { margin-left: 64%; }
+.day-card:nth-child(6n+4) { margin-left: 46%; }
+.day-card:nth-child(6n+5) { margin-left: 24%; }
+.day-card:nth-child(6n) { margin-left: 38%; }
 
 .day-card.unlocked {
   background: var(--card);
@@ -219,10 +303,10 @@ html, body {
 .day-card.unlocked:active { box-shadow: none; transform: translateY(4px); }
 
 .day-card.solved {
-  background: linear-gradient(135deg, var(--green-bright), #45A800);
-  border-color: #45A800;
-  box-shadow: 0 4px 0 #337A00;
-  color: white;
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 4px 0 var(--button-shadow);
+  color: var(--accent-text);
 }
 
 .day-card.locked {
@@ -235,14 +319,21 @@ html, body {
 
 .day-card .day-num {
   font-family: 'Fredoka One', cursive;
-  font-size: 1.5rem;
+  font-size: 1.55rem;
   line-height: 1;
 }
 .day-card .day-icon {
-  font-size: 1.3rem;
-  margin-bottom: 2px;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 1px;
+}
+.day-card .day-icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 .day-card .day-type {
+  display: none;
   font-size: 0.55rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -253,7 +344,7 @@ html, body {
   position: absolute;
   top: -6px;
   right: -6px;
-  background: white;
+  background: var(--card);
   color: var(--green-bright);
   border-radius: 50%;
   width: 22px;
@@ -264,6 +355,10 @@ html, body {
   font-size: 0.75rem;
   font-weight: 900;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.day-card .check-mark svg {
+  width: 14px;
+  height: 14px;
 }
 .day-card .today-pulse {
   position: absolute;
@@ -276,12 +371,15 @@ html, body {
   position: absolute;
   bottom: -8px;
   background: var(--gold);
-  color: white;
+  color: var(--accent-text);
   font-size: 0.6rem;
   font-weight: 900;
   padding: 2px 6px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 /* ─── BOTTOM NAV ─── */
@@ -313,7 +411,7 @@ html, body {
 }
 .nav-item.active { color: var(--green-bright); }
 .nav-item:active { background: var(--badge-bg); }
-.nav-item .nav-icon { font-size: 1.4rem; }
+.nav-item .nav-icon svg { width: 22px; height: 22px; display: block; }
 .nav-item .nav-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
 
 /* ─── BUTTONS ─── */
@@ -337,17 +435,17 @@ html, body {
 .btn-primary {
   background: var(--green-bright);
   color: white;
-  box-shadow: 0 4px 0 #45A800;
+  box-shadow: 0 4px 0 var(--button-shadow);
 }
 .btn-red {
   background: var(--red-light);
   color: white;
-  box-shadow: 0 4px 0 #B71C1C;
+  box-shadow: 0 4px 0 var(--red-shadow);
 }
 .btn-gold {
   background: var(--gold);
   color: white;
-  box-shadow: 0 4px 0 #E65100;
+  box-shadow: 0 4px 0 var(--gold-shadow);
 }
 .btn-ghost {
   background: var(--card);
@@ -386,16 +484,28 @@ html, body {
   background: var(--input-bg);
   transition: transform 0.2s;
 }
-.leaderboard-item.rank-1 { background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,215,0,0.05)); border: 2px solid var(--gold); }
-.leaderboard-item.rank-2 { border: 2px solid #9E9E9E; }
-.leaderboard-item.rank-3 { border: 2px solid #CD7F32; }
+.leaderboard-item.rank-1 { background: var(--warm-bg); border: 2px solid var(--gold); }
+.leaderboard-item.rank-2 { border: 2px solid var(--green-light); }
+.leaderboard-item.rank-3 { border: 2px solid var(--gold); }
 .rank-medal { font-size: 1.5rem; width: 32px; text-align: center; }
 .rank-name { flex: 1; font-weight: 700; }
 .rank-pts { font-weight: 900; color: var(--gold); font-size: 1rem; }
+.rank-name,
+.rank-pts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.day-record-icon svg {
+  width: 30px;
+  height: 30px;
+  color: var(--green-bright);
+  display: block;
+}
 
 /* ─── PUZZLE PAGE ─── */
 .puzzle-header {
-  background: linear-gradient(135deg, var(--green), var(--red));
+  background: var(--red);
   color: white;
   padding: 24px 20px 20px;
   border-radius: 0 0 24px 24px;
@@ -421,7 +531,7 @@ html, body {
 }
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--green-bright), var(--gold));
+  background: var(--green-bright);
   border-radius: 10px;
   transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -445,8 +555,8 @@ html, body {
   box-shadow: 0 3px 0 var(--card-border);
 }
 .quiz-option:active { transform: translateY(3px); box-shadow: none; }
-.quiz-option.correct { background: rgba(88,204,2,0.15); border-color: var(--green-bright); color: var(--green-bright); }
-.quiz-option.wrong { background: rgba(255,70,70,0.12); border-color: var(--red-light); color: var(--red-light); }
+.quiz-option.correct { background: var(--success-bg); border-color: var(--green-bright); color: var(--green-bright); }
+.quiz-option.wrong { background: var(--error-bg); border-color: var(--red-light); color: var(--red-light); }
 .quiz-option:disabled { cursor: not-allowed; }
 
 /* ─── TOAST ─── */
@@ -475,7 +585,7 @@ html, body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: var(--overlay-dark);
   z-index: 500;
   display: flex;
   align-items: flex-end;
@@ -513,13 +623,22 @@ html, body {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--green-bright), var(--gold));
+  background: var(--green-bright);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   margin: 0 auto 16px;
-  box-shadow: 0 4px 16px rgba(88,204,2,0.3);
+  box-shadow: 0 4px 16px var(--success-bg);
+}
+.avatar-circle svg {
+  width: 38px;
+  height: 38px;
+}
+.profile-stat-icon {
+  width: 44px;
+  height: 44px;
+  display: block;
 }
 
 /* ─── STATS ─── */
@@ -588,8 +707,8 @@ html, body {
   color: var(--text);
 }
 .sudoku-cell.given { background: var(--card-border); cursor: default; color: var(--text-muted); }
-.sudoku-cell.selected { background: rgba(88,204,2,0.25); border-color: var(--green-bright); }
-.sudoku-cell.error { background: rgba(255,70,70,0.15); }
+.sudoku-cell.selected { background: var(--success-bg); border-color: var(--green-bright); }
+.sudoku-cell.error { background: var(--error-bg); }
 
 .numpad {
   display: grid;
@@ -626,7 +745,7 @@ html, body {
 }
 .slide-tile {
   aspect-ratio: 1;
-  background: linear-gradient(135deg, var(--green), var(--green-light));
+  background: var(--green);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -635,7 +754,7 @@ html, body {
   font-size: 1.3rem;
   color: white;
   cursor: pointer;
-  box-shadow: 0 3px 0 #1B5E20;
+  box-shadow: 0 3px 0 var(--button-shadow);
   transition: transform 0.15s;
   user-select: none;
 }
@@ -647,7 +766,8 @@ html, body {
   text-align: center;
   padding: 20px;
 }
-.result-emoji { font-size: 4rem; margin-bottom: 12px; animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.result-emoji { margin-bottom: 12px; animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); color: var(--green-bright); display: flex; justify-content: center; }
+.result-emoji svg { width: 64px; height: 64px; }
 .result-title { font-family: 'Fredoka One', cursive; font-size: 1.8rem; color: var(--green-bright); margin-bottom: 8px; }
 .result-pts { font-family: 'Fredoka One', cursive; font-size: 3rem; color: var(--gold); }
 .result-pts-label { color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
@@ -728,6 +848,194 @@ html, body {
   animation: snowfall linear infinite;
 }
 
+/* ─── RESPONSIVE LAYOUT ─── */
+@media (min-width: 700px) {
+  .top-nav {
+    padding: 14px clamp(28px, 7vw, 72px);
+  }
+
+  .top-nav .logo {
+    font-size: 1.55rem;
+  }
+
+  .logo-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .page-content {
+    max-width: 740px;
+    padding: 24px 28px 112px;
+  }
+
+  .countdown-bar {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .calendar-header {
+    margin: 28px 0 18px;
+  }
+
+  .calendar-header h2 {
+    font-size: 2.15rem;
+  }
+
+  .calendar-grid {
+    max-width: 660px;
+    min-height: 1480px;
+    margin: 0 auto;
+    gap: 22px;
+    padding: 22px 42px 44px;
+  }
+
+  .calendar-grid::before {
+    top: 58px;
+    bottom: 66px;
+    width: 10px;
+  }
+
+  .day-card {
+    width: 96px;
+    height: 96px;
+  }
+
+  .day-card .day-num {
+    font-size: 1.8rem;
+  }
+
+  .day-card .day-icon,
+  .day-card .day-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .day-card .score-chip {
+    bottom: -10px;
+    font-size: 0.68rem;
+  }
+
+  .panel {
+    padding: 24px;
+  }
+
+  .stat-row {
+    gap: 14px;
+  }
+
+  .bottom-nav {
+    left: 50%;
+    right: auto;
+    bottom: 18px;
+    width: min(560px, calc(100vw - 48px));
+    padding: 10px 14px;
+    border: 2px solid var(--card-border);
+    border-radius: 24px;
+    transform: translateX(-50%);
+    box-shadow: var(--shadow-card);
+  }
+
+  .nav-item {
+    min-width: 92px;
+    padding: 8px 14px;
+  }
+
+  .modal-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-sheet {
+    width: min(460px, 100%);
+    border-radius: 24px;
+    padding: 28px;
+    transform: translateY(24px) scale(0.98);
+    box-shadow: var(--shadow-card);
+  }
+
+  .modal-overlay.open .modal-sheet {
+    transform: translateY(0) scale(1);
+  }
+
+  .puzzle-header {
+    max-width: 740px;
+    margin: 18px auto 22px;
+    border-radius: 24px;
+  }
+}
+
+@media (min-width: 1080px) {
+  .top-nav {
+    padding-left: clamp(72px, 10vw, 140px);
+    padding-right: clamp(72px, 10vw, 140px);
+  }
+
+  .page-content {
+    max-width: 920px;
+  }
+
+  .calendar-grid {
+    max-width: 760px;
+    min-height: 1540px;
+    gap: 24px;
+    padding-left: 56px;
+    padding-right: 56px;
+  }
+
+  .day-card {
+    width: 104px;
+    height: 104px;
+  }
+
+  .day-card .day-icon,
+  .day-card .day-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .bottom-nav {
+    width: 600px;
+  }
+
+  .puzzle-header {
+    max-width: 860px;
+  }
+}
+
+@media (max-width: 380px) {
+  .top-nav {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .top-nav .nav-actions {
+    gap: 8px;
+  }
+
+  .streak-badge,
+  .points-badge {
+    padding: 4px 8px;
+    font-size: 0.82rem;
+  }
+
+  .calendar-grid {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .day-card {
+    width: 76px;
+    height: 76px;
+  }
+
+  .nav-item {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
 /* ─── HOW TO PAGE ─── */
 .howto-step {
   display: flex;
@@ -746,7 +1054,7 @@ html, body {
   justify-content: center;
   font-family: 'Fredoka One', cursive;
   font-size: 1rem;
-  box-shadow: 0 3px 0 #45A800;
+  box-shadow: 0 3px 0 var(--button-shadow);
 }
 .howto-text h3 { font-weight: 800; margin-bottom: 4px; }
 .howto-text p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }

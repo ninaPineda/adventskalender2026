@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Rätsel – Adventskalender</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <div class="desktop-block">
-  <div class="icon">📱</div>
+  <div class="icon"><i data-lucide="smartphone" aria-hidden="true"></i></div>
   <h1>Nur für Handys!</h1>
   <p>Bitte öffne diese Seite auf deinem Smartphone.</p>
 </div>
@@ -18,26 +19,26 @@
 <!-- PUZZLE HEADER (dynamic) -->
 <div class="puzzle-header" id="puzzleHeader">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-    <a href="index.html" style="color:white;font-size:1.3rem;text-decoration:none;">←</a>
+    <a href="index.html" style="color:white;text-decoration:none;display:flex;"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
     <div>
       <div style="font-size:0.8rem;opacity:0.75;font-weight:700;">TAG <span id="dayNum">?</span></div>
       <h1 id="puzzleTitle" style="font-size:1.3rem;">Lade...</h1>
     </div>
     <div style="margin-left:auto;text-align:right;">
       <div style="font-size:0.7rem;opacity:0.75;">Max. Punkte</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;" id="maxPtsDisplay">–</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;display:flex;align-items:center;justify-content:flex-end;gap:4px;" id="maxPtsDisplay">–</div>
     </div>
   </div>
   <!-- Best score chip -->
   <div id="bestScoreChip" style="display:none;background:rgba(255,255,255,0.2);border-radius:12px;padding:6px 12px;font-size:0.8rem;font-weight:700;text-align:center;margin-top:4px;">
-    🏅 Dein Rekord: <span id="bestScoreVal">0</span> Punkte – Versuch es zu schlagen!
+    Dein Rekord: <span id="bestScoreVal">0</span> Punkte - Versuch es zu schlagen!
   </div>
 </div>
 
 <!-- PUZZLE CONTAINER -->
 <div class="page-content" style="padding-top:0;" id="puzzleContainer">
   <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
-    <div style="font-size:2rem;margin-bottom:8px;">⏳</div>
+    <div style="width:32px;height:32px;margin:0 auto 8px;color:var(--green-bright);"><i data-lucide="loader-circle" style="width:32px;height:32px;" aria-hidden="true"></i></div>
     Lade Rätsel...
   </div>
 </div>
@@ -47,25 +48,27 @@
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="result-screen">
-      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <div class="result-emoji" id="resultEmoji"><i data-lucide="party-popper" aria-hidden="true"></i></div>
       <div class="result-title" id="resultTitle">Geschafft!</div>
       <div class="result-pts" id="resultPts">0</div>
       <div class="result-pts-label">Punkte</div>
-      <div id="newHighscoreMsg" style="display:none;background:rgba(255,215,0,0.15);border-radius:12px;padding:8px 16px;margin:12px 0;color:var(--gold);font-weight:800;">🏆 Neuer Rekord!</div>
+      <div id="newHighscoreMsg" style="display:none;background:var(--warm-bg);border-radius:12px;padding:8px 16px;margin:12px 0;color:var(--gold);font-weight:800;">Neuer Rekord!</div>
       <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-primary" onclick="window.location.href='index.html'">Zurück zum Kalender 🏠</button>
-        <button class="btn btn-ghost" onclick="retryPuzzle()">🔄 Nochmal versuchen</button>
+        <button class="btn btn-primary" onclick="window.location.href='index.html'">Zurück zum Kalender</button>
+        <button class="btn btn-ghost" onclick="retryPuzzle()">Nochmal versuchen</button>
       </div>
     </div>
   </div>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/core.js"></script>
 <script src="js/puzzles.js"></script>
 <script>
 async function initPuzzlePage() {
   applyTheme();
   initSnow(4);
+  renderIcons();
   if (!requireLogin()) return;
 
   const params = new URLSearchParams(location.search);
@@ -77,7 +80,8 @@ async function initPuzzlePage() {
   if (meta) {
     document.title = `Tag ${day} – ${meta.title}`;
     document.getElementById('puzzleTitle').textContent = meta.title;
-    document.getElementById('maxPtsDisplay').textContent = '⭐ ' + meta.maxPts;
+    document.getElementById('maxPtsDisplay').innerHTML = `${iconHtml('star', 'badge-icon')} ${meta.maxPts}`;
+    renderIcons(document.getElementById('maxPtsDisplay'));
   }
 
   // Check for existing score
@@ -96,7 +100,7 @@ async function initPuzzlePage() {
   } else {
     document.getElementById('puzzleContainer').innerHTML = `
       <div class="panel" style="text-align:center;padding:40px 20px;">
-        <div style="font-size:3rem;margin-bottom:12px;">${meta?.icon || '🎄'}</div>
+        <div style="width:48px;height:48px;margin:0 auto 12px;color:var(--green-bright);">${iconHtml(meta?.icon || 'tree-pine')}</div>
         <p style="font-weight:700;color:var(--text-muted);">Dieses Rätsel kommt bald!</p>
       </div>
     `;
@@ -108,13 +112,15 @@ async function initPuzzlePage() {
     // Show result modal
     const score = Math.round(pts);
     document.getElementById('resultPts').textContent = score;
-    document.getElementById('resultEmoji').textContent = score >= (meta?.maxPts * 0.8) ? '🏆' : score >= (meta?.maxPts * 0.5) ? '🎉' : '😊';
+    const resultIcon = score >= (meta?.maxPts * 0.8) ? 'trophy' : score >= (meta?.maxPts * 0.5) ? 'party-popper' : 'smile';
+    document.getElementById('resultEmoji').innerHTML = iconHtml(resultIcon);
     document.getElementById('resultTitle').textContent = score >= (meta?.maxPts * 0.8) ? 'Ausgezeichnet!' : score >= (meta?.maxPts * 0.5) ? 'Gut gemacht!' : 'Geschafft!';
     if (isNew) {
       document.getElementById('newHighscoreMsg').style.display = 'block';
       launchConfetti();
     }
     document.getElementById('resultModal').classList.add('open');
+    renderIcons(document.getElementById('resultModal'));
     updateStreak();
   }
 

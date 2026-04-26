@@ -6,26 +6,29 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>🎄 Adventskalender 2024</title>
+  <title>Adventskalender 2026</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <!-- DESKTOP BLOCK -->
 <div class="desktop-block">
-  <div class="icon">📱</div>
+  <div class="icon"><i data-lucide="smartphone" aria-hidden="true"></i></div>
   <h1>Nur für Handys!</h1>
   <p>Dieser Adventskalender ist für Mobilgeräte optimiert. Bitte öffne die Seite auf deinem Smartphone oder Tablet.</p>
-  <p style="margin-top:8px; font-size:0.85rem; opacity:0.6;">🎄 Frohe Weihnachten!</p>
+  <p style="margin-top:8px; font-size:0.85rem; opacity:0.6;">Frohe Weihnachten!</p>
 </div>
 
 <!-- TOP NAV -->
 <nav class="top-nav">
-  <div class="logo">🎄 Advent</div>
+  <div class="logo"><i data-lucide="tree-pine" class="logo-icon" aria-hidden="true"></i> Advent</div>
   <div class="nav-actions">
-    <div class="streak-badge" id="streakBadge">🔥 0</div>
-    <div class="points-badge" id="pointsBadge">⭐ 0</div>
-    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
+      <span class="theme-switch-knob"></span>
+    </button>
   </div>
 </nav>
 
@@ -34,29 +37,25 @@
 
 <!-- MAIN CONTENT -->
 <div class="page-content">
-  <div class="calendar-header">
-    <h2>Adventskalender 2024</h2>
-    <p id="subtitleText">Öffne jeden Tag ein neues Rätsel 🎅</p>
-  </div>
   <div class="calendar-grid" id="calendarGrid"></div>
 </div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a class="nav-item active" data-page="home" href="index.html">
-    <span class="nav-icon">🏠</span>
+    <span class="nav-icon"><i data-lucide="home" aria-hidden="true"></i></span>
     <span class="nav-label">Kalender</span>
   </a>
   <a class="nav-item" data-page="highscore" href="highscore.html">
-    <span class="nav-icon">🏆</span>
+    <span class="nav-icon"><i data-lucide="trophy" aria-hidden="true"></i></span>
     <span class="nav-label">Highscore</span>
   </a>
   <a class="nav-item" data-page="profile" href="profile.html">
-    <span class="nav-icon">👤</span>
+    <span class="nav-icon"><i data-lucide="user" aria-hidden="true"></i></span>
     <span class="nav-label">Profil</span>
   </a>
   <a class="nav-item" data-page="howto" href="howto.html">
-    <span class="nav-icon">❓</span>
+    <span class="nav-icon"><i data-lucide="circle-help" aria-hidden="true"></i></span>
     <span class="nav-label">Anleitung</span>
   </a>
 </nav>
@@ -65,11 +64,11 @@
 <div class="modal-overlay" id="lockedModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">🔒 Noch gesperrt</div>
+    <div class="modal-title"><i data-lucide="lock" class="logo-icon" aria-hidden="true"></i> Noch gesperrt</div>
     <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;" id="lockedMsg">
       Dieses Rätsel ist noch nicht freigeschaltet!
     </p>
-    <button class="btn btn-ghost" onclick="closeModal('lockedModal')">OK, ich warte 🎅</button>
+    <button class="btn btn-ghost" onclick="closeModal('lockedModal')">OK, ich warte</button>
   </div>
 </div>
 
@@ -92,12 +91,14 @@
   </div>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/core.js"></script>
 <script>
   // Init
   applyTheme();
   initSnow(6);
-  document.getElementById('themeBtn').textContent = getTheme() === 'dark' ? '☀️' : '🌙';
+  updateThemeSwitch();
+  renderIcons();
 
   let authMode = 'login';
 
@@ -140,7 +141,7 @@
     }
 
     closeModal('authModal');
-    showToast('Willkommen, ' + result.username + '! 🎄', 'success');
+    showToast('Willkommen, ' + result.username + '!', 'success');
     loadHome();
   }
 
@@ -157,9 +158,9 @@
     const days = getDaysUntilChristmas();
     const bar = document.getElementById('countdownBar');
     if (days === 0) {
-      bar.innerHTML = '🎉 Heute ist Heiligabend! Frohe Weihnachten! 🎄';
+      bar.textContent = 'Heute ist Heiligabend! Frohe Weihnachten!';
     } else {
-      bar.innerHTML = `🎅 Noch <span>${days}</span> ${days === 1 ? 'Tag' : 'Tage'} bis Weihnachten!`;
+      bar.innerHTML = `Noch <span>${days}</span> ${days === 1 ? 'Tag' : 'Tage'} bis Weihnachten!`;
     }
   }
   updateCountdown();
@@ -167,8 +168,10 @@
   // Update badges
   async function updateBadges() {
     const streak = await getStreak();
-    document.getElementById('streakBadge').textContent = '🔥 ' + streak.count;
-    document.getElementById('pointsBadge').textContent = '⭐ ' + await getTotalPoints();
+    document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')} ${streak.count}`;
+    document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')} ${await getTotalPoints()}`;
+    renderIcons(document.getElementById('streakBadge'));
+    renderIcons(document.getElementById('pointsBadge'));
   }
   // Build calendar
   async function buildCalendar() {
@@ -187,11 +190,11 @@
       card.className = 'day-card ' + (solved ? 'solved' : unlocked ? 'unlocked' : 'locked');
       card.innerHTML = `
         ${isToday && !solved ? '<div class="today-pulse"></div>' : ''}
-        <div class="day-icon">${p.icon}</div>
+        <div class="day-icon">${iconHtml(p.icon)}</div>
         <div class="day-num">${p.day}</div>
         <div class="day-type">${p.label}</div>
-        ${solved ? '<div class="check-mark">✓</div>' : ''}
-        ${solved ? `<div class="score-chip">⭐${score.pts}</div>` : ''}
+        ${solved ? `<div class="check-mark">${iconHtml('check')}</div>` : ''}
+        ${solved ? `<div class="score-chip">${iconHtml('star', 'badge-icon')}${score.pts}</div>` : ''}
       `;
 
       card.addEventListener('click', () => {
@@ -207,6 +210,7 @@
 
       grid.appendChild(card);
     });
+    renderIcons(grid);
   }
   function openModal(id) {
     document.getElementById(id).classList.add('open');

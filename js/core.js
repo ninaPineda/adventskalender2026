@@ -6,30 +6,30 @@ const AUTH_READ_URL = AUTH_URL + '?callback=onUsers';
 
 // ── PUZZLE METADATA ──────────────────────────────────────
 const PUZZLES = [
-  { day: 1,  type: 'quiz',    icon: '🎄', label: 'Quiz',    title: 'Weihnachts-Quiz',        maxPts: 300 },
-  { day: 2,  type: 'math',    icon: '🔢', label: 'Mathe',   title: 'Zahlen-Rätsel',          maxPts: 400 },
-  { day: 3,  type: 'wordle',  icon: '🔤', label: 'Wörter',  title: 'Weihnachts-Wordle',      maxPts: 500 },
-  { day: 4,  type: 'slide',   icon: '🎁', label: 'Puzzle',  title: 'Schiebe-Puzzle',         maxPts: 350 },
-  { day: 5,  type: 'geo',     icon: '🌍', label: 'Geo',     title: 'Weihnachts-Geografie',   maxPts: 300 },
-  { day: 6,  type: 'logic',   icon: '🧩', label: 'Logik',   title: 'Nonogramm',              maxPts: 450 },
-  { day: 7,  type: 'quiz',    icon: '⭐', label: 'Quiz',    title: 'Winter-Quiz',            maxPts: 300 },
-  { day: 8,  type: 'sudoku',  icon: '📊', label: 'Sudoku',  title: 'Mini-Sudoku',            maxPts: 500 },
-  { day: 9,  type: 'math',    icon: '🎅', label: 'Mathe',   title: 'Nikolaus-Rechnen',       maxPts: 400 },
-  { day: 10, type: 'wordle',  icon: '🦌', label: 'Wörter',  title: 'Rentier-Wordle',         maxPts: 500 },
-  { day: 11, type: 'quiz',    icon: '❄️', label: 'Quiz',    title: 'Schnee-Quiz',            maxPts: 300 },
-  { day: 12, type: 'slide',   icon: '🌟', label: 'Puzzle',  title: 'Stern-Puzzle',           maxPts: 350 },
-  { day: 13, type: 'geo',     icon: '🗺️', label: 'Geo',     title: 'Welt-Hauptstädte',       maxPts: 300 },
-  { day: 14, type: 'logic',   icon: '🎶', label: 'Logik',   title: 'Melodie-Muster',         maxPts: 450 },
-  { day: 15, type: 'math',    icon: '🍪', label: 'Mathe',   title: 'Plätzchen-Rechnen',      maxPts: 400 },
-  { day: 16, type: 'sudoku',  icon: '🔔', label: 'Sudoku',  title: 'Glocken-Sudoku',         maxPts: 500 },
-  { day: 17, type: 'quiz',    icon: '🎠', label: 'Quiz',    title: 'Advent-Quiz',            maxPts: 300 },
-  { day: 18, type: 'wordle',  icon: '🕯️', label: 'Wörter',  title: 'Kerzen-Wordle',          maxPts: 500 },
-  { day: 19, type: 'geo',     icon: '🏔️', label: 'Geo',     title: 'Weihnachts-Länder',      maxPts: 300 },
-  { day: 20, type: 'slide',   icon: '🎿', label: 'Puzzle',  title: 'Winter-Puzzle',          maxPts: 350 },
-  { day: 21, type: 'logic',   icon: '🧸', label: 'Logik',   title: 'Spielzeug-Logik',        maxPts: 450 },
-  { day: 22, type: 'math',    icon: '🎪', label: 'Mathe',   title: 'Weihnachts-Mathe',       maxPts: 400 },
-  { day: 23, type: 'quiz',    icon: '🏠', label: 'Quiz',    title: 'Traditions-Quiz',        maxPts: 300 },
-  { day: 24, type: 'special', icon: '🎉', label: 'Special', title: 'Heiligabend-Challenge',  maxPts: 1000 },
+  { day: 1,  type: 'quiz',    icon: 'tree-pine',       label: 'Quiz',    title: 'Weihnachts-Quiz',        maxPts: 300 },
+  { day: 2,  type: 'math',    icon: 'calculator',      label: 'Mathe',   title: 'Zahlen-Rätsel',          maxPts: 400 },
+  { day: 3,  type: 'wordle',  icon: 'type',            label: 'Wörter',  title: 'Weihnachts-Wordle',      maxPts: 500 },
+  { day: 4,  type: 'slide',   icon: 'gift',            label: 'Puzzle',  title: 'Schiebe-Puzzle',         maxPts: 350 },
+  { day: 5,  type: 'geo',     icon: 'globe-2',         label: 'Geo',     title: 'Weihnachts-Geografie',   maxPts: 300 },
+  { day: 6,  type: 'logic',   icon: 'puzzle',          label: 'Logik',   title: 'Nonogramm',              maxPts: 450 },
+  { day: 7,  type: 'quiz',    icon: 'sparkle',         label: 'Quiz',    title: 'Winter-Quiz',            maxPts: 300 },
+  { day: 8,  type: 'sudoku',  icon: 'grid-3x3',        label: 'Sudoku',  title: 'Mini-Sudoku',            maxPts: 500 },
+  { day: 9,  type: 'math',    icon: 'plus',            label: 'Mathe',   title: 'Nikolaus-Rechnen',       maxPts: 400 },
+  { day: 10, type: 'wordle',  icon: 'text-cursor-input', label: 'Wörter', title: 'Rentier-Wordle',         maxPts: 500 },
+  { day: 11, type: 'quiz',    icon: 'snowflake',       label: 'Quiz',    title: 'Schnee-Quiz',            maxPts: 300 },
+  { day: 12, type: 'slide',   icon: 'star',            label: 'Puzzle',  title: 'Stern-Puzzle',           maxPts: 350 },
+  { day: 13, type: 'geo',     icon: 'map',             label: 'Geo',     title: 'Welt-Hauptstädte',       maxPts: 300 },
+  { day: 14, type: 'logic',   icon: 'music-2',         label: 'Logik',   title: 'Melodie-Muster',         maxPts: 450 },
+  { day: 15, type: 'math',    icon: 'circle-dot',      label: 'Mathe',   title: 'Plätzchen-Rechnen',      maxPts: 400 },
+  { day: 16, type: 'sudoku',  icon: 'bell',            label: 'Sudoku',  title: 'Glocken-Sudoku',         maxPts: 500 },
+  { day: 17, type: 'quiz',    icon: 'circle-help',     label: 'Quiz',    title: 'Advent-Quiz',            maxPts: 300 },
+  { day: 18, type: 'wordle',  icon: 'flame',           label: 'Wörter',  title: 'Kerzen-Wordle',          maxPts: 500 },
+  { day: 19, type: 'geo',     icon: 'mountain-snow',   label: 'Geo',     title: 'Weihnachts-Länder',      maxPts: 300 },
+  { day: 20, type: 'slide',   icon: 'shapes',          label: 'Puzzle',  title: 'Winter-Puzzle',          maxPts: 350 },
+  { day: 21, type: 'logic',   icon: 'blocks',          label: 'Logik',   title: 'Spielzeug-Logik',        maxPts: 450 },
+  { day: 22, type: 'math',    icon: 'percent',         label: 'Mathe',   title: 'Weihnachts-Mathe',       maxPts: 400 },
+  { day: 23, type: 'quiz',    icon: 'house',           label: 'Quiz',    title: 'Traditions-Quiz',        maxPts: 300 },
+  { day: 24, type: 'special', icon: 'party-popper',    label: 'Special', title: 'Heiligabend-Challenge',  maxPts: 1000 },
 ];
 
 // ── USER DATA ────────────────────────────────────────────
@@ -137,6 +137,20 @@ function setTheme(t) {
 }
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', getTheme());
+  updateThemeSwitch();
+}
+
+function iconHtml(name, className = '') {
+  return `<i data-lucide="${name}" class="${className}" aria-hidden="true"></i>`;
+}
+
+function renderIcons() {
+  if (!window.lucide) return;
+  window.lucide.createIcons({
+    attrs: {
+      'stroke-width': 2.4
+    }
+  });
 }
 
 // Streak aus Google-Sheet-Zeitstempeln berechnen
@@ -362,7 +376,7 @@ function launchConfetti() {
 
 // ── SNOW ──────────────────────────────────────────────────
 function initSnow(count = 8) {
-  const flakes = ['❄', '❅', '❆', '✦'];
+  const flakes = ['•', '·', '✦'];
   for (let i = 0; i < count; i++) {
     const flake = document.createElement('div');
     flake.className = 'snowflake';
@@ -389,6 +403,13 @@ function setActiveNav(page) {
 function toggleTheme() {
   const next = getTheme() === 'light' ? 'dark' : 'light';
   setTheme(next);
-  const btn = document.getElementById('themeBtn');
-  if (btn) btn.textContent = next === 'dark' ? '☀️' : '🌙';
+  updateThemeSwitch();
+}
+
+function updateThemeSwitch() {
+  const isDark = getTheme() === 'dark';
+  document.querySelectorAll('.theme-switch').forEach(btn => {
+    btn.classList.toggle('is-on', isDark);
+    btn.setAttribute('aria-pressed', String(isDark));
+  });
 }

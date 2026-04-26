@@ -4,27 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Anleitung – Adventskalender</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <div class="desktop-block">
-  <div class="icon">📱</div>
+  <div class="icon"><i data-lucide="smartphone" aria-hidden="true"></i></div>
   <h1>Nur für Handys!</h1>
   <p>Bitte öffne diese Seite auf deinem Smartphone.</p>
 </div>
 
 <nav class="top-nav">
-  <div class="logo">❓ Anleitung</div>
+  <div class="logo"><i data-lucide="circle-help" class="logo-icon" aria-hidden="true"></i> Anleitung</div>
   <div class="nav-actions">
-    <button class="theme-btn" id="themeBtn" onclick="toggleTheme(); document.getElementById('themeBtn').textContent = getTheme()==='dark'?'☀️':'🌙';">🌙</button>
+    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
+      <span class="theme-switch-knob"></span>
+    </button>
   </div>
 </nav>
 
 <div class="page-content">
 
   <div style="text-align:center;margin:16px 0 24px;">
-    <div style="font-size:3rem;margin-bottom:8px;animation:bounce 2s infinite;">🎄</div>
+    <div style="margin:0 auto 8px;width:48px;height:48px;color:var(--green-bright);animation:bounce 2s infinite;"><i data-lucide="tree-pine" style="width:48px;height:48px;" aria-hidden="true"></i></div>
     <div style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--green-bright);">Wie funktioniert's?</div>
     <div style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">Alle Infos zum Adventskalender</div>
   </div>
@@ -50,14 +53,14 @@
       <div class="howto-num">3</div>
       <div class="howto-text">
         <h3>Streak aufbauen</h3>
-        <p>Besuche die Seite jeden Tag und löse ein Rätsel, um deinen Streak zu erhöhen. Die Flamme 🔥 zeigt deinen aktuellen Streak!</p>
+        <p>Besuche die Seite jeden Tag und löse ein Rätsel, um deinen Streak zu erhöhen. Das Flammen-Icon zeigt deinen aktuellen Streak.</p>
       </div>
     </div>
     <div class="howto-step">
       <div class="howto-num">4</div>
       <div class="howto-text">
         <h3>Highscore-Liste</h3>
-        <p>Deine Punkte werden gespeichert und in der Rangliste angezeigt. Wer am Ende die meisten Punkte hat, gewinnt! 🏆</p>
+        <p>Deine Punkte werden gespeichert und in der Rangliste angezeigt. Wer am Ende die meisten Punkte hat, gewinnt.</p>
       </div>
     </div>
   </div>
@@ -67,17 +70,17 @@
   <div class="panel">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       ${[
-        { icon:'🎯', label:'Quiz', desc:'Wissensfragen zu Weihnachten & mehr' },
-        { icon:'🔢', label:'Mathe', desc:'Knifflige Rechenaufgaben & Gleichungen' },
-        { icon:'🔤', label:'Wordle', desc:'Errate das versteckte Weihnachtswort' },
-        { icon:'🎁', label:'Puzzle', desc:'Schiebe die Teile in die richtige Reihenfolge' },
-        { icon:'🌍', label:'Geografie', desc:'Weihnachten rund um die Welt' },
-        { icon:'🧩', label:'Logik', desc:'Nonogramm und Logik-Rätsel' },
-        { icon:'📊', label:'Sudoku', desc:'Das klassische Zahlenrätsel' },
-        { icon:'🎉', label:'Special', desc:'Besondere Herausforderungen an Heiligabend' },
+        { icon:'circle-help', label:'Quiz', desc:'Wissensfragen zu Weihnachten & mehr' },
+        { icon:'calculator', label:'Mathe', desc:'Knifflige Rechenaufgaben & Gleichungen' },
+        { icon:'type', label:'Wordle', desc:'Errate das versteckte Weihnachtswort' },
+        { icon:'gift', label:'Puzzle', desc:'Schiebe die Teile in die richtige Reihenfolge' },
+        { icon:'globe-2', label:'Geografie', desc:'Weihnachten rund um die Welt' },
+        { icon:'puzzle', label:'Logik', desc:'Nonogramm und Logik-Rätsel' },
+        { icon:'grid-3x3', label:'Sudoku', desc:'Das klassische Zahlenrätsel' },
+        { icon:'party-popper', label:'Special', desc:'Besondere Herausforderungen an Heiligabend' },
       ].map(t => `
         <div style="background:var(--input-bg);border-radius:12px;padding:12px;text-align:center;">
-          <div style="font-size:1.6rem;margin-bottom:6px;">${t.icon}</div>
+          <div style="width:28px;height:28px;margin:0 auto 6px;color:var(--green-bright);"><i data-lucide="${t.icon}" style="width:28px;height:28px;" aria-hidden="true"></i></div>
           <div style="font-weight:800;font-size:0.85rem;">${t.label}</div>
           <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;line-height:1.3;">${t.desc}</div>
         </div>
@@ -90,28 +93,28 @@
   <div class="panel">
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border-radius:12px;padding:12px;">
-        <div style="font-size:1.5rem;">⚡</div>
+        <div style="width:28px;height:28px;color:var(--green-bright);"><i data-lucide="zap" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Schnelligkeit</div>
           <div style="font-size:0.82rem;color:var(--text-muted);">Schnellere Lösungen geben mehr Punkte</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border-radius:12px;padding:12px;">
-        <div style="font-size:1.5rem;">🎯</div>
+        <div style="width:28px;height:28px;color:var(--green-bright);"><i data-lucide="target" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Genauigkeit</div>
           <div style="font-size:0.82rem;color:var(--text-muted);">Weniger Fehler = mehr Punkte</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border-radius:12px;padding:12px;">
-        <div style="font-size:1.5rem;">🔄</div>
+        <div style="width:28px;height:28px;color:var(--green-bright);"><i data-lucide="refresh-cw" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Wiederholungen</div>
           <div style="font-size:0.82rem;color:var(--text-muted);">Versuche alle vergangenen Rätsel, um deinen Highscore zu verbessern!</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;background:rgba(249,168,37,0.15);border:2px solid var(--gold);border-radius:12px;padding:12px;">
-        <div style="font-size:1.5rem;">🏆</div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--warm-bg);border:2px solid var(--gold);border-radius:12px;padding:12px;">
+        <div style="width:28px;height:28px;color:var(--gold);"><i data-lucide="trophy" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Gesamtsieger</div>
           <div style="font-size:0.82rem;color:var(--text-muted);">Am Ende gewinnt, wer die meisten Gesamtpunkte hat!</div>
@@ -135,14 +138,14 @@
   <!-- About -->
   <div class="section-label">Info</div>
   <div class="panel" style="text-align:center;">
-    <div style="font-size:2rem;margin-bottom:8px;">🎄</div>
+    <div style="width:36px;height:36px;margin:0 auto 8px;color:var(--green-bright);"><i data-lucide="tree-pine" style="width:36px;height:36px;" aria-hidden="true"></i></div>
     <div style="font-weight:800;margin-bottom:6px;">Weihnachts-Adventskalender 2024</div>
     <div style="color:var(--text-muted);font-size:0.85rem;line-height:1.5;">
-      Für Freunde & Familie gemacht.<br>Viel Spaß und frohe Weihnachten! 🎅
+      Für Freunde & Familie gemacht.<br>Viel Spaß und frohe Weihnachten!
     </div>
     <div style="margin-top:16px;">
       <a href="profile.html" style="text-decoration:none;">
-        <button class="btn btn-primary">Profil einrichten 👤</button>
+        <button class="btn btn-primary">Profil einrichten</button>
       </a>
     </div>
   </div>
@@ -151,24 +154,26 @@
 
 <nav class="bottom-nav">
   <a class="nav-item" data-page="home" href="index.html">
-    <span class="nav-icon">🏠</span><span class="nav-label">Kalender</span>
+    <span class="nav-icon"><i data-lucide="home" aria-hidden="true"></i></span><span class="nav-label">Kalender</span>
   </a>
   <a class="nav-item" data-page="highscore" href="highscore.html">
-    <span class="nav-icon">🏆</span><span class="nav-label">Highscore</span>
+    <span class="nav-icon"><i data-lucide="trophy" aria-hidden="true"></i></span><span class="nav-label">Highscore</span>
   </a>
   <a class="nav-item" data-page="profile" href="profile.html">
-    <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+    <span class="nav-icon"><i data-lucide="user" aria-hidden="true"></i></span><span class="nav-label">Profil</span>
   </a>
   <a class="nav-item active" data-page="howto" href="howto.html">
-    <span class="nav-icon">❓</span><span class="nav-label">Anleitung</span>
+    <span class="nav-icon"><i data-lucide="circle-help" aria-hidden="true"></i></span><span class="nav-label">Anleitung</span>
   </a>
 </nav>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/core.js"></script>
 <script>
   applyTheme();
   initSnow(4);
-  document.getElementById('themeBtn').textContent = getTheme() === 'dark' ? '☀️' : '🌙';
+  updateThemeSwitch();
+  renderIcons();
 </script>
 </body>
 </html>
