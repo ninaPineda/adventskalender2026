@@ -3,6 +3,15 @@ const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzewl84KjS__hMI7eeb1U
 const READ_URL = SHEET_URL + '?callback=onScores';
 const AUTH_URL = 'https://script.google.com/macros/s/AKfycbzhDmg5P0cOmh0lQzL2LUplCdApUo96Y2rp62eLXOSUW105MNq6zC4BiQu5sR8CYjqx1A/exec';
 const AUTH_READ_URL = AUTH_URL + '?callback=onUsers';
+const SHEET_CACHE_TTL = 60 * 1000;
+const USER_CACHE_TTL = 5 * 60 * 1000;
+const SHEET_CACHE_KEY = 'advent_sheet_cache_v1';
+const USER_CACHE_KEY = 'advent_user_cache_v1';
+let leaderboardCache = null;
+let leaderboardPromise = null;
+let userCache = null;
+let userPromise = null;
+let jsonpCounter = 0;
 
 // ── PUZZLE METADATA ──────────────────────────────────────
 const PUZZLES = [
@@ -75,18 +84,40 @@ function getUserRowHash(row) {
 }
 
 async function fetchUsers() {
-  return new Promise((resolve) => {
-    const id = 'auth_' + Date.now();
+  const cached = getSessionCache(USER_CACHE_KEY, USER_CACHE_TTL, userCache);
+  if (cached) return cached;
+  if (userPromise) return userPromise;
+
+  userPromise = new Promise((resolve) => {
+    const id = createJsonpCallbackName('auth');
     window[id] = (data) => {
       delete window[id];
-      resolve(Array.isArray(data) ? data : []);
+      cleanupJsonpScript(id);
+      const rows = Array.isArray(data) ? data : [];
+      userCache = setSessionCache(USER_CACHE_KEY, rows);
+      userPromise = null;
+      resolve(rows);
     };
     const script = document.createElement('script');
+    script.dataset.jsonpId = id;
     script.src = AUTH_READ_URL.replace('onUsers', id);
-    script.onerror = () => { delete window[id]; resolve([]); };
+    script.onerror = () => {
+      delete window[id];
+      cleanupJsonpScript(id);
+      userPromise = null;
+      resolve([]);
+    };
     document.head.appendChild(script);
-    setTimeout(() => { delete window[id]; resolve([]); }, 5000);
+    setTimeout(() => {
+      if (!window[id]) return;
+      delete window[id];
+      cleanupJsonpScript(id);
+      userPromise = null;
+      resolve([]);
+    }, 5000);
   });
+
+  return userPromise;
 }
 
 async function findUser(username) {
@@ -123,9 +154,8 @@ async function registerUser(username, password) {
     passwordhash: String(passwordhash)
   });
 
-console.log(parameter);
-
   fetch(AUTH_URL, { method: 'POST', mode: 'no-cors', body: parameter }).catch(() => {});
+  appendCachedUser({ username: cleanName, passwordhash });
   setUserName(cleanName);
   return { ok: true, username: cleanName };
 }
@@ -224,6 +254,63 @@ function getRowTimestamp(row) {
   return getRowValue(row, ['timestamp', 'time', 'date', 'datum', 'zeit']);
 }
 
+function createJsonpCallbackName(prefix) {
+  jsonpCounter += 1;
+  return `${prefix}_${Date.now()}_${jsonpCounter}`;
+}
+
+function cleanupJsonpScript(id) {
+  document.querySelectorAll(`script[data-jsonp-id="${id}"]`).forEach(script => script.remove());
+}
+
+function getSessionCache(key, ttl, memoryCache) {
+  const now = Date.now();
+  if (memoryCache?.data && now - memoryCache.at < ttl) return memoryCache.data;
+
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.data || now - parsed.at >= ttl) return null;
+    return parsed.data;
+  } catch {
+    return null;
+  }
+}
+
+function getStaleSessionCache(key, memoryCache) {
+  if (memoryCache?.data) return memoryCache.data;
+
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.data || null;
+  } catch {
+    return null;
+  }
+}
+
+function setSessionCache(key, data) {
+  const entry = { at: Date.now(), data };
+  try {
+    sessionStorage.setItem(key, JSON.stringify(entry));
+  } catch {
+    // If session storage is unavailable or full, the in-memory cache still helps this page.
+  }
+  return entry;
+}
+
+function appendCachedUser(row) {
+  const cached = getStaleSessionCache(USER_CACHE_KEY, userCache) || [];
+  userCache = setSessionCache(USER_CACHE_KEY, [...cached, row]);
+}
+
+function appendCachedScore(row) {
+  const cached = getStaleSessionCache(SHEET_CACHE_KEY, leaderboardCache) || [];
+  leaderboardCache = setSessionCache(SHEET_CACHE_KEY, [...cached, row]);
+}
+
 // Scores aus Google Sheets berechnen: { day: { pts, solved, timestamp } }
 async function getScores() {
   const name = getUserName();
@@ -285,29 +372,66 @@ async function isSolved(day) {
 
 function logToSheet(day, pts) {
   const name = getUserName();
+  const timestamp = new Date().toISOString();
   const params = new URLSearchParams({
     name,
     day: String(day),
     solved: String(day),
     points: String(pts),
-    timestamp: new Date().toISOString()
+    timestamp
   });
   fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: params }).catch(() => {});
+  appendCachedScore({ name, day: String(day), solved: String(day), points: String(pts), timestamp });
 }
 
-async function fetchLeaderboard() {
-  return new Promise((resolve) => {
-    const id = 'cb_' + Date.now();
+async function fetchLeaderboard(options = {}) {
+  const force = options.force === true;
+  const cached = !force ? getSessionCache(SHEET_CACHE_KEY, SHEET_CACHE_TTL, leaderboardCache) : null;
+  if (cached) return cached;
+
+  const stale = !force ? getStaleSessionCache(SHEET_CACHE_KEY, leaderboardCache) : null;
+  if (stale) {
+    refreshLeaderboardCache();
+    return stale;
+  }
+
+  return refreshLeaderboardCache();
+}
+
+function refreshLeaderboardCache() {
+  if (leaderboardPromise) return leaderboardPromise;
+
+  leaderboardPromise = new Promise((resolve) => {
+    const stale = getStaleSessionCache(SHEET_CACHE_KEY, leaderboardCache) || [];
+    const id = createJsonpCallbackName('cb');
     window[id] = (data) => {
       delete window[id];
-      resolve(Array.isArray(data) ? data : []);
+      cleanupJsonpScript(id);
+      const rows = Array.isArray(data) ? data : [];
+      leaderboardCache = setSessionCache(SHEET_CACHE_KEY, rows);
+      leaderboardPromise = null;
+      resolve(rows);
     };
     const script = document.createElement('script');
+    script.dataset.jsonpId = id;
     script.src = READ_URL.replace('onScores', id);
-    script.onerror = () => { delete window[id]; resolve([]); };
+    script.onerror = () => {
+      delete window[id];
+      cleanupJsonpScript(id);
+      leaderboardPromise = null;
+      resolve(stale);
+    };
     document.head.appendChild(script);
-    setTimeout(() => { delete window[id]; resolve([]); }, 5000);
+    setTimeout(() => {
+      if (!window[id]) return;
+      delete window[id];
+      cleanupJsonpScript(id);
+      leaderboardPromise = null;
+      resolve(stale);
+    }, 5000);
   });
+
+  return leaderboardPromise;
 }
 
 // ── DATE HELPERS ─────────────────────────────────────────

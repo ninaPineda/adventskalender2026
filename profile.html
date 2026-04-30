@@ -17,11 +17,6 @@
 
 <nav class="top-nav">
   <div class="logo"><i data-lucide="user" class="logo-icon" aria-hidden="true"></i> Profil</div>
-  <div class="nav-actions">
-    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
-      <span class="theme-switch-knob"></span>
-    </button>
-  </div>
 </nav>
 
 <div class="page-content">
@@ -62,24 +57,6 @@
     <div id="dayChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:12px;"></div>
   </div>
 
-  <!-- Theme -->
-  <div class="section-label">Einstellungen</div>
-  <div class="panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div>
-        <div style="font-weight:700;">Dunkles Design</div>
-        <div style="font-size:0.8rem;color:var(--text-muted);">Augenschonend für abends</div>
-      </div>
-      <button class="theme-switch theme-switch-large" id="themeToggle" onclick="toggleThemeSwitch()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
-        <span class="theme-switch-knob"></span>
-      </button>
-    </div>
-      <div style="border-top:2px solid var(--card-border);padding-top:14px;">
-        <div style="font-weight:700;margin-bottom:4px;">Account</div>
-      <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Username, Punkte, gelöste Tage und Streak kommen aus Google Sheets.</div>
-    </div>
-  </div>
-
 </div>
 
 <nav class="bottom-nav">
@@ -102,7 +79,6 @@
 <script src="js/puzzles.js"></script>
 <script>
   applyTheme();
-  initSnow(4);
   const canShowProfile = requireLogin();
   renderIcons();
 
@@ -135,8 +111,10 @@
       chip.style.cssText = `
         width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
         font-size:0.65rem;font-weight:800;
-        background:${s?.solved ? 'var(--green-bright)' : 'var(--input-bg)'};
-        color:${s?.solved ? 'white' : 'var(--text-muted)'};
+        background:var(--card);
+        color:${s?.solved ? 'var(--text)' : 'var(--text-muted)'};
+        border:1px solid ${s?.solved ? 'var(--text)' : 'var(--card-border)'};
+        box-shadow:0 6px 14px rgba(17,17,17,0.05);
       `;
       chip.textContent = d;
       chip.title = s ? s.pts + ' Punkte' : 'Nicht gelöst';

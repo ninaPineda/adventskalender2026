@@ -17,11 +17,6 @@
 
 <nav class="top-nav">
   <div class="logo"><i data-lucide="circle-help" class="logo-icon" aria-hidden="true"></i> Anleitung</div>
-  <div class="nav-actions">
-    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
-      <span class="theme-switch-knob"></span>
-    </button>
-  </div>
 </nav>
 
 <div class="page-content">
@@ -68,23 +63,15 @@
   <!-- Puzzle types -->
   <div class="section-label">Rätsel-Typen</div>
   <div class="panel">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      ${[
-        { icon:'circle-help', label:'Quiz', desc:'Wissensfragen zu Weihnachten & mehr' },
-        { icon:'calculator', label:'Mathe', desc:'Knifflige Rechenaufgaben & Gleichungen' },
-        { icon:'type', label:'Wordle', desc:'Errate das versteckte Weihnachtswort' },
-        { icon:'gift', label:'Puzzle', desc:'Schiebe die Teile in die richtige Reihenfolge' },
-        { icon:'globe-2', label:'Geografie', desc:'Weihnachten rund um die Welt' },
-        { icon:'puzzle', label:'Logik', desc:'Nonogramm und Logik-Rätsel' },
-        { icon:'grid-3x3', label:'Sudoku', desc:'Das klassische Zahlenrätsel' },
-        { icon:'party-popper', label:'Special', desc:'Besondere Herausforderungen an Heiligabend' },
-      ].map(t => `
-        <div style="background:var(--input-bg);border-radius:12px;padding:12px;text-align:center;">
-          <div style="width:28px;height:28px;margin:0 auto 6px;color:var(--green-bright);"><i data-lucide="${t.icon}" style="width:28px;height:28px;" aria-hidden="true"></i></div>
-          <div style="font-weight:800;font-size:0.85rem;">${t.label}</div>
-          <div style="font-size:0.73rem;color:var(--text-muted);margin-top:3px;line-height:1.3;">${t.desc}</div>
-        </div>
-      `).join('')}
+    <div class="feature-grid">
+      <div class="feature-card"><i data-lucide="circle-help" aria-hidden="true"></i><strong>Quiz</strong><span>Wissensfragen zu Weihnachten & mehr</span></div>
+      <div class="feature-card"><i data-lucide="calculator" aria-hidden="true"></i><strong>Mathe</strong><span>Knifflige Rechenaufgaben & Gleichungen</span></div>
+      <div class="feature-card"><i data-lucide="type" aria-hidden="true"></i><strong>Wordle</strong><span>Errate das versteckte Weihnachtswort</span></div>
+      <div class="feature-card"><i data-lucide="gift" aria-hidden="true"></i><strong>Puzzle</strong><span>Schiebe die Teile in die richtige Reihenfolge</span></div>
+      <div class="feature-card"><i data-lucide="globe-2" aria-hidden="true"></i><strong>Geografie</strong><span>Weihnachten rund um die Welt</span></div>
+      <div class="feature-card"><i data-lucide="puzzle" aria-hidden="true"></i><strong>Logik</strong><span>Nonogramm und Logik-Rätsel</span></div>
+      <div class="feature-card"><i data-lucide="grid-3x3" aria-hidden="true"></i><strong>Sudoku</strong><span>Das klassische Zahlenrätsel</span></div>
+      <div class="feature-card"><i data-lucide="party-popper" aria-hidden="true"></i><strong>Special</strong><span>Besondere Herausforderungen an Heiligabend</span></div>
     </div>
   </div>
 
@@ -126,12 +113,12 @@
   <!-- Tips -->
   <div class="section-label">Tipps & Tricks</div>
   <div class="panel">
-    <div style="line-height:1.8;font-size:0.9rem;">
-      <div>💡 <strong>Tipp für Wordle:</strong> Beginne mit Vokalen-reichen Wörtern</div>
-      <div>💡 <strong>Tipp für Sudoku:</strong> Suche zuerst nach fast vollständigen Zeilen/Spalten</div>
-      <div>💡 <strong>Tipp für Nonogramm:</strong> Fange mit den längsten Clue-Zahlen an</div>
-      <div>💡 <strong>Tipp für Schiebe-Puzzle:</strong> Löse erst die oberste Reihe, dann die linke Spalte</div>
-      <div>💡 <strong>Streak:</strong> Öffne die Seite jeden Tag, auch wenn du wenig Zeit hast!</div>
+    <div class="tip-list">
+      <div><i data-lucide="lightbulb" aria-hidden="true"></i><span><strong>Wordle:</strong> Beginne mit Vokalen-reichen Wörtern</span></div>
+      <div><i data-lucide="lightbulb" aria-hidden="true"></i><span><strong>Sudoku:</strong> Suche zuerst nach fast vollständigen Zeilen/Spalten</span></div>
+      <div><i data-lucide="lightbulb" aria-hidden="true"></i><span><strong>Nonogramm:</strong> Fange mit den längsten Clue-Zahlen an</span></div>
+      <div><i data-lucide="lightbulb" aria-hidden="true"></i><span><strong>Schiebe-Puzzle:</strong> Löse erst die oberste Reihe, dann die linke Spalte</span></div>
+      <div><i data-lucide="lightbulb" aria-hidden="true"></i><span><strong>Streak:</strong> Öffne die Seite jeden Tag, auch wenn du wenig Zeit hast</span></div>
     </div>
   </div>
 
@@ -139,7 +126,7 @@
   <div class="section-label">Info</div>
   <div class="panel" style="text-align:center;">
     <div style="width:36px;height:36px;margin:0 auto 8px;color:var(--green-bright);"><i data-lucide="tree-pine" style="width:36px;height:36px;" aria-hidden="true"></i></div>
-    <div style="font-weight:800;margin-bottom:6px;">Weihnachts-Adventskalender 2024</div>
+    <div style="font-weight:800;margin-bottom:6px;">Weihnachts-Adventskalender 2026</div>
     <div style="color:var(--text-muted);font-size:0.85rem;line-height:1.5;">
       Für Freunde & Familie gemacht.<br>Viel Spaß und frohe Weihnachten!
     </div>
@@ -171,7 +158,6 @@
 <script src="js/core.js"></script>
 <script>
   applyTheme();
-  initSnow(4);
   updateThemeSwitch();
   renderIcons();
 </script>

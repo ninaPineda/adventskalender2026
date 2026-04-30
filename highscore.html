@@ -19,9 +19,6 @@
   <div class="logo"><i data-lucide="trophy" class="logo-icon" aria-hidden="true"></i> Highscore</div>
   <div class="nav-actions">
     <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
-    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
-      <span class="theme-switch-knob"></span>
-    </button>
   </div>
 </nav>
 
@@ -87,7 +84,6 @@
 <script>
 async function initHighscorePage() {
   applyTheme();
-  initSnow(4);
   if (!requireLogin()) return;
   updateThemeSwitch();
   renderIcons();
@@ -196,7 +192,7 @@ async function initHighscorePage() {
     });
 
     const sorted = Object.entries(byName).sort((a,b) => b[1].pts - a[1].pts);
-    const medals = ['🥇','🥈','🥉'];
+    const medals = ['1', '2', '3'];
     const panel = document.getElementById('leaderboardPanel');
 
     if (sorted.length === 0) {

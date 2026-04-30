@@ -6,7 +6,7 @@ const PUZZLE_DEFS = {
   // ── DAY 1: CHRISTMAS QUIZ ────────────────────────────────
   1: {
     type: 'quiz',
-    title: 'Weihnachts-Quiz 🎄',
+    title: 'Weihnachts-Quiz',
     maxPts: 300,
     render(container, onComplete) {
       const questions = [
@@ -43,8 +43,8 @@ const PUZZLE_DEFS = {
               if (bi === q.ans) b.classList.add('correct');
               else if (bi === idx && !correct) b.classList.add('wrong');
             });
-            if (correct) { pts += maxPtsPerQ; showToast('Richtig! +' + maxPtsPerQ + ' Punkte ✅', 'success'); }
-            else showToast('Falsch! Die Antwort war: ' + q.opts[q.ans] + ' ❌', 'error');
+            if (correct) { pts += maxPtsPerQ; showToast('Richtig! +' + maxPtsPerQ + ' Punkte', 'success'); }
+            else showToast('Falsch! Die Antwort war: ' + q.opts[q.ans], 'error');
             setTimeout(() => { current++; showQuestion(); }, 1400);
           });
         });
@@ -56,19 +56,14 @@ const PUZZLE_DEFS = {
   // ── DAY 2: MATH PUZZLE ──────────────────────────────────
   2: {
     type: 'math',
-    title: 'Zahlen-Rätsel 🔢',
+    title: 'Zahlen-Rätsel',
     maxPts: 400,
     render(container, onComplete) {
-      const problems = [
-        { expr: '🎄 + 🎄 = 🎅\n🎅 × 🎄 = ?', solve: () => { const t=6, s=t*2; return {q:'Wenn 🎄=6, was ist 🎅×🎄?', ans: String(s), hint:'🎅=12, 🎄=6, also 12×6=72'}; }, ans:'72' },
-        { q: '⭐+❄️=10, ⭐×2=❄️, was ist ⭐+❄️+⭐?', ans: '16', hint: '⭐=10/3? Nein: ⭐=10-❄️, ❄️=2⭐ → 3⭐=10 → ⭐≈3,33... Hmm, lass es einfacher: ⭐=4,❄️=6' },
-      ];
-      let current = 0, pts = 0;
       const qs = [
-        { q: 'Wenn 🎄 = 5 ist, was ergibt 🎄 × 🎄 + 🎄?', ans: '30', hint: '5 × 5 + 5 = 30' },
-        { q: '🎅 hat 8 Rentiere. Jedes trägt 4 Geschenke. Wieviele Geschenke gesamt?', ans: '32', hint: '8 × 4 = 32' },
+        { q: 'Wenn A = 5 ist, was ergibt A x A + A?', ans: '30', hint: '5 x 5 + 5 = 30' },
+        { q: '8 Rentiere tragen je 4 Geschenke. Wieviele Geschenke sind es gesamt?', ans: '32', hint: '8 x 4 = 32' },
         { q: 'In 3 Häusern stehen je 7 Kerzen. Wie viele Kerzen insgesamt?', ans: '21', hint: '3 × 7 = 21' },
-        { q: '🎄 + 🎅 = 15\n🎄 × 2 = 🎅\nWas ist 🎄?', ans: '5', hint: 'x + 2x = 15 → 3x = 15 → x = 5' },
+        { q: 'A + B = 15\nA x 2 = B\nWas ist A?', ans: '5', hint: 'x + 2x = 15 -> 3x = 15 -> x = 5' },
       ];
       let qIdx = 0, totalPts = 0, attempts = 0;
 
@@ -83,8 +78,8 @@ const PUZZLE_DEFS = {
             <p style="font-weight:700;margin-bottom:8px;color:var(--text-muted);">Deine Antwort:</p>
             <input class="input-field" type="number" id="mathInput" placeholder="Zahl eingeben..." />
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
-              <button class="btn btn-ghost" id="hintBtn">💡 Tipp</button>
-              <button class="btn btn-primary" id="checkBtn">Prüfen ✓</button>
+              <button class="btn btn-ghost" id="hintBtn">Tipp</button>
+              <button class="btn btn-primary" id="checkBtn">Prüfen</button>
             </div>
             <p id="hintText" style="color:var(--gold);font-size:0.85rem;margin-top:8px;display:none;">${q.hint}</p>
           </div>
@@ -102,15 +97,15 @@ const PUZZLE_DEFS = {
           if (val === q.ans) {
             const gained = attempts === 0 ? 100 : attempts === 1 ? 60 : 30;
             totalPts += gained;
-            showToast('Richtig! +' + gained + ' ⭐', 'success');
+            showToast('Richtig! +' + gained + ' Punkte', 'success');
             setTimeout(() => { qIdx++; showQ(); }, 1200);
           } else {
             attempts++;
             if (attempts >= 3) {
-              showToast('Antwort: ' + q.ans + ' 💡', '');
+              showToast('Antwort: ' + q.ans, '');
               setTimeout(() => { qIdx++; showQ(); }, 1500);
             } else {
-              showToast('Nicht ganz! Versuch ' + (3-attempts) + ' übrig ❌', 'error');
+              showToast('Nicht ganz! Versuch ' + (3-attempts) + ' übrig', 'error');
               document.getElementById('mathInput').value = '';
               document.getElementById('mathInput').focus();
             }
@@ -124,7 +119,7 @@ const PUZZLE_DEFS = {
   // ── DAY 3: WORDLE ────────────────────────────────────────
   3: {
     type: 'wordle',
-    title: 'Weihnachts-Wordle 🔤',
+    title: 'Weihnachts-Wordle',
     maxPts: 500,
     render(container, onComplete) {
       const words = ['STERN', 'SCHNEE', 'ADVENT', 'KERZEN', 'ENGEL'];
@@ -229,7 +224,7 @@ const PUZZLE_DEFS = {
         if (won) {
           gameOver = true;
           const pts = Math.max(50, 500 - (guesses.length - 1) * 80);
-          setTimeout(() => { showToast('🎉 Gewonnen!', 'success'); onComplete(pts); }, 600);
+          setTimeout(() => { showToast('Gewonnen!', 'success'); onComplete(pts); }, 600);
         } else if (guesses.length >= MAX_GUESSES) {
           gameOver = true;
           setTimeout(() => { showToast('Das Wort war: ' + targetWord, ''); onComplete(50); }, 600);
@@ -249,7 +244,7 @@ const PUZZLE_DEFS = {
   // ── DAY 4: SLIDING PUZZLE ────────────────────────────────
   4: {
     type: 'slide',
-    title: 'Schiebe-Puzzle 🎁',
+    title: 'Schiebe-Puzzle',
     maxPts: 350,
     render(container, onComplete) {
       const SIZE = 4;
@@ -285,7 +280,7 @@ const PUZZLE_DEFS = {
         container.innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
             <span style="font-weight:700;color:var(--text-muted);">Züge: <strong style="color:var(--text)">${moves}</strong></span>
-            <button class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:0.85rem;" onclick="window.slideShuffle()">🔀 Neu</button>
+            <button class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:0.85rem;" onclick="window.slideShuffle()">Neu mischen</button>
           </div>
           <div class="slide-grid" id="slideGrid"></div>
           <p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-top:8px;">Schiebe die Zahlen in die richtige Reihenfolge (1–15)!</p>
@@ -309,7 +304,7 @@ const PUZZLE_DEFS = {
         if (isSolved()) {
           const elapsed = Math.floor((Date.now()-startTime)/1000);
           const pts = Math.max(50, 350 - moves * 3 - elapsed);
-          setTimeout(() => { showToast('🎉 Gelöst in ' + moves + ' Zügen!', 'success'); onComplete(pts); }, 300);
+          setTimeout(() => { showToast('Gelöst in ' + moves + ' Zügen!', 'success'); onComplete(pts); }, 300);
         }
       }
 
@@ -322,7 +317,7 @@ const PUZZLE_DEFS = {
   // ── DAY 5: GEO QUIZ ──────────────────────────────────────
   5: {
     type: 'geo',
-    title: 'Weihnachts-Geografie 🌍',
+    title: 'Weihnachts-Geografie',
     maxPts: 300,
     render(container, onComplete) {
       const questions = [
@@ -338,7 +333,7 @@ const PUZZLE_DEFS = {
         container.innerHTML = `
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${(idx/questions.length)*100}%"></div></div>
           <div class="panel">
-            <p style="font-size:1rem;font-weight:800;margin-bottom:14px;line-height:1.4;">🌍 ${q.q}</p>
+            <p style="font-size:1rem;font-weight:800;margin-bottom:14px;line-height:1.4;">${q.q}</p>
             <div class="geo-options">
               ${q.opts.map((o,i)=>`<button class="quiz-option" style="font-size:0.88rem;" data-i="${i}">${o}</button>`).join('')}
             </div>
@@ -354,7 +349,7 @@ const PUZZLE_DEFS = {
             });
             if (chosen === q.ans) {
               pts += 75;
-              showToast('Richtig! +75 ⭐', 'success');
+              showToast('Richtig! +75 Punkte', 'success');
             } else {
               showToast('Falsch! ' + q.fact, '');
             }
@@ -369,7 +364,7 @@ const PUZZLE_DEFS = {
   // ── DAY 6: NONOGRAM (LOGIC) ───────────────────────────────
   6: {
     type: 'logic',
-    title: 'Nonogramm 🧩',
+    title: 'Nonogramm',
     maxPts: 450,
     render(container, onComplete) {
       // 5x5 nonogram - Christmas tree
@@ -411,7 +406,7 @@ const PUZZLE_DEFS = {
             `).join('')}
           </table>
           </div>
-          <p style="text-align:center;margin-top:12px;font-size:0.8rem;color:var(--text-muted);">🎄 Hinweis: Das Bild ist ein Weihnachtsbaum!</p>
+          <p style="text-align:center;margin-top:12px;font-size:0.8rem;color:var(--text-muted);">Hinweis: Das Bild ist ein Weihnachtsbaum.</p>
         `;
         container.querySelectorAll('.logic-cell').forEach(cell => {
           cell.addEventListener('click', () => toggle(parseInt(cell.dataset.r), parseInt(cell.dataset.c), false));
@@ -434,7 +429,7 @@ const PUZZLE_DEFS = {
         if (correct) {
           const elapsed = Math.floor((Date.now()-startTime)/1000);
           const pts = Math.max(100, 450 - elapsed * 2);
-          showToast('🎄 Gelöst!', 'success');
+          showToast('Gelöst!', 'success');
           onComplete(pts);
         }
       }
@@ -446,7 +441,7 @@ const PUZZLE_DEFS = {
   // ── DAY 7: WINTER QUIZ ───────────────────────────────────
   7: {
     type: 'quiz',
-    title: 'Winter-Quiz ⭐',
+    title: 'Winter-Quiz',
     maxPts: 300,
     render(container, onComplete) {
       const questions = [
@@ -473,8 +468,8 @@ const PUZZLE_DEFS = {
               if (bi === q.ans) b.classList.add('correct');
               else if (bi === chosen && chosen !== q.ans) b.classList.add('wrong');
             });
-            if (chosen === q.ans) { pts += 100; showToast('Richtig! +100 ⭐', 'success'); }
-            else showToast('Leider falsch! ❌', 'error');
+            if (chosen === q.ans) { pts += 100; showToast('Richtig! +100 Punkte', 'success'); }
+            else showToast('Leider falsch!', 'error');
             setTimeout(() => { idx++; showQ(); }, 1400);
           });
         });
@@ -486,7 +481,7 @@ const PUZZLE_DEFS = {
   // ── DAY 8: MINI SUDOKU ──────────────────────────────────
   8: {
     type: 'sudoku',
-    title: 'Mini-Sudoku 📊',
+    title: 'Mini-Sudoku',
     maxPts: 500,
     render(container, onComplete) {
       // 6x6 Sudoku (easier for mobile)
@@ -557,16 +552,16 @@ const PUZZLE_DEFS = {
             if (n === '✕') { userGrid[r][c] = 0; render(); return; }
             const num = parseInt(n);
             userGrid[r][c] = num;
-            if (num !== validSolution[r][c]) {
-              errors++;
-              showToast('Falsche Zahl! (' + errors + '/3)', 'error');
-              if (errors >= 3) { showToast('Zu viele Fehler! 😅', 'error'); onComplete(50); return; }
+              if (num !== validSolution[r][c]) {
+                errors++;
+                showToast('Falsche Zahl! (' + errors + '/3)', 'error');
+              if (errors >= 3) { showToast('Zu viele Fehler!', 'error'); onComplete(50); return; }
             }
             render();
             if (userGrid.every((row,ri) => row.every((cell,ci) => cell === validSolution[ri][ci]))) {
               const elapsed = Math.floor((Date.now()-startTime)/1000);
               const pts = Math.max(100, 500 - errors * 80 - Math.floor(elapsed/30)*20);
-              showToast('Sudoku gelöst! 🎉', 'success');
+              showToast('Sudoku gelöst!', 'success');
               onComplete(pts);
             }
           });
@@ -579,9 +574,9 @@ const PUZZLE_DEFS = {
   // ── DAYS 9-24: Placeholder versions (quiz variations) ───
   ...[9,10,11,12,13,14,15,16,17,18,19,20,21,22,23].reduce((acc, day) => {
     const templates = [
-      { type:'quiz', icon:'🎅', title:'Nikolaus-Quiz', maxPts: 300 },
-      { type:'math', icon:'🧮', title:'Rechen-Rätsel', maxPts: 400 },
-      { type:'wordle', icon:'📝', title:'Wort-Rätsel', maxPts: 500 },
+      { type:'quiz', icon:'circle-help', title:'Nikolaus-Quiz', maxPts: 300 },
+      { type:'math', icon:'calculator', title:'Rechen-Rätsel', maxPts: 400 },
+      { type:'wordle', icon:'type', title:'Wort-Rätsel', maxPts: 500 },
     ];
     const t = templates[day % 3];
     acc[day] = {
@@ -618,8 +613,8 @@ const PUZZLE_DEFS = {
                 if(bi===q.ans)b.classList.add('correct');
                 else if(bi===ch&&ch!==q.ans)b.classList.add('wrong');
               });
-              if(ch===q.ans){pts+=100;showToast('Richtig! +100 ⭐','success');}
-              else showToast('Falsch! ❌','error');
+              if(ch===q.ans){pts+=100;showToast('Richtig! +100 Punkte','success');}
+              else showToast('Falsch!','error');
               setTimeout(()=>{idx++;showQ();},1400);
             });
           });
@@ -633,37 +628,36 @@ const PUZZLE_DEFS = {
   // ── DAY 24: SPECIAL CHALLENGE ────────────────────────────
   24: {
     type: 'special',
-    title: 'Heiligabend-Challenge 🎉',
+    title: 'Heiligabend-Challenge',
     maxPts: 1000,
     render(container, onComplete) {
       const rounds = [
-        { q: '🎄 Was ist 12 × 12?', ans: '144', pts: 200 },
-        { q: '⭐ "Silent Night" auf Deutsch?', ans: 'STILLE NACHT', pts: 200 },
-        { q: '🎅 Wie heißt das Rentier mit der roten Nase?', ans: 'RUDOLPH', pts: 200 },
-        { q: '❄️ Wieviele Tage hat der Advent?', ans: '24', pts: 200 },
-        { q: '🎁 Was bedeutet "Weihnachten" wörtlich?', ans: 'GEWEIHTE NACHT', pts: 200 },
+        { q: 'Was ist 12 x 12?', ans: '144', pts: 200 },
+        { q: '"Silent Night" auf Deutsch?', ans: 'STILLE NACHT', pts: 200 },
+        { q: 'Wie heißt das Rentier mit der roten Nase?', ans: 'RUDOLPH', pts: 200 },
+        { q: 'Wieviele Tage hat der Advent?', ans: '24', pts: 200 },
+        { q: 'Was bedeutet "Weihnachten" wörtlich?', ans: 'GEWEIHTE NACHT', pts: 200 },
       ];
       let idx=0, pts=0;
       function showRound() {
         if(idx>=rounds.length){
-          launchConfetti();
           onComplete(pts);
           return;
         }
         const r=rounds[idx];
         container.innerHTML=`
           <div style="text-align:center;margin-bottom:8px;">
-            <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);">🏆 Runde ${idx+1}/5 — ${r.pts} Punkte möglich</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);">Runde ${idx+1}/5 - ${r.pts} Punkte möglich</div>
           </div>
           <div class="math-display" style="font-size:1.4rem;min-height:80px;display:flex;align-items:center;justify-content:center;">${r.q}</div>
           <input class="input-field" id="specialInput" placeholder="Antwort..." style="text-transform:uppercase;" />
-          <button class="btn btn-primary" id="specialCheck">Antworten ✓</button>
+          <button class="btn btn-primary" id="specialCheck">Antworten</button>
         `;
         const check=()=>{
           const val=document.getElementById('specialInput').value.trim().toUpperCase();
           if(val===r.ans){
             pts+=r.pts;
-            showToast('🎉 Richtig! +'+r.pts+' Punkte!','success');
+            showToast('Richtig! +'+r.pts+' Punkte!','success');
           } else {
             showToast('Antwort: '+r.ans,'');
           }

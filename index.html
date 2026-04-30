@@ -26,14 +26,8 @@
   <div class="nav-actions">
     <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
     <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
-    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
-      <span class="theme-switch-knob"></span>
-    </button>
   </div>
 </nav>
-
-<!-- COUNTDOWN -->
-<div class="countdown-bar" id="countdownBar"></div>
 
 <!-- MAIN CONTENT -->
 <div class="page-content">
@@ -96,7 +90,6 @@
 <script>
   // Init
   applyTheme();
-  initSnow(6);
   updateThemeSwitch();
   renderIcons();
 
@@ -152,18 +145,6 @@
   document.querySelectorAll('#authUsername, #authPassword').forEach(input => {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
   });
-
-  // Countdown
-  function updateCountdown() {
-    const days = getDaysUntilChristmas();
-    const bar = document.getElementById('countdownBar');
-    if (days === 0) {
-      bar.textContent = 'Heute ist Heiligabend! Frohe Weihnachten!';
-    } else {
-      bar.innerHTML = `Noch <span>${days}</span> ${days === 1 ? 'Tag' : 'Tage'} bis Weihnachten!`;
-    }
-  }
-  updateCountdown();
 
   // Update badges
   async function updateBadges() {

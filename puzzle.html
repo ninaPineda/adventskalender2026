@@ -67,7 +67,6 @@
 <script>
 async function initPuzzlePage() {
   applyTheme();
-  initSnow(4);
   renderIcons();
   if (!requireLogin()) return;
 
@@ -117,7 +116,6 @@ async function initPuzzlePage() {
     document.getElementById('resultTitle').textContent = score >= (meta?.maxPts * 0.8) ? 'Ausgezeichnet!' : score >= (meta?.maxPts * 0.5) ? 'Gut gemacht!' : 'Geschafft!';
     if (isNew) {
       document.getElementById('newHighscoreMsg').style.display = 'block';
-      launchConfetti();
     }
     document.getElementById('resultModal').classList.add('open');
     renderIcons(document.getElementById('resultModal'));
