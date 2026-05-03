@@ -477,7 +477,10 @@ function showToast(msg, type = '') {
 
 // ── CONFETTI ──────────────────────────────────────────────
 function launchConfetti() {
-  const colors = ['#58CC02', '#FF6B35', '#FFD54F', '#EF5350', '#FFFFFF'];
+  const styles = getComputedStyle(document.documentElement);
+  const colors = ['--accent', '--tile', '--tile-light', '--paper', '--paper-soft']
+    .map(name => styles.getPropertyValue(name).trim())
+    .filter(Boolean);
   const container = document.createElement('div');
   container.className = 'confetti-container';
   document.body.appendChild(container);

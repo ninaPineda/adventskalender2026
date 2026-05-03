@@ -16,15 +16,37 @@
 </div>
 
 <nav class="top-nav">
-  <div class="logo"><i data-lucide="circle-help" class="logo-icon" aria-hidden="true"></i> Anleitung</div>
+  <div class="logo"><i data-lucide="tree-pine" class="logo-icon" aria-hidden="true"></i> Advent</div>
+  <div class="top-tabs" data-active="none" aria-label="Hauptnavigation">
+    <span class="tab-indicator" aria-hidden="true"></span>
+    <a class="top-tab" data-tab="calendar" href="index.html">
+      <i data-lucide="calendar-days" aria-hidden="true"></i>
+      <span>Kalender</span>
+    </a>
+    <a class="top-tab" data-tab="highscore" href="highscore.html">
+      <i data-lucide="trophy" aria-hidden="true"></i>
+      <span>Highscore</span>
+    </a>
+    <a class="top-tab" data-tab="profile" href="profile.html">
+      <i data-lucide="user" aria-hidden="true"></i>
+      <span>Profil</span>
+    </a>
+  </div>
+  <div class="nav-actions">
+    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
+      <span class="theme-switch-knob"></span>
+    </button>
+  </div>
 </nav>
 
 <div class="page-content">
 
   <div style="text-align:center;margin:16px 0 24px;">
-    <div style="margin:0 auto 8px;width:48px;height:48px;color:var(--green-bright);animation:bounce 2s infinite;"><i data-lucide="tree-pine" style="width:48px;height:48px;" aria-hidden="true"></i></div>
-    <div style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:var(--green-bright);">Wie funktioniert's?</div>
-    <div style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">Alle Infos zum Adventskalender</div>
+    <div style="margin:0 auto 8px;width:48px;height:48px;color:var(--accent);animation:bounce 2s infinite;"><i data-lucide="tree-pine" style="width:48px;height:48px;" aria-hidden="true"></i></div>
+    <div style="font-size:1.6rem;color:var(--accent);">Wie funktioniert's?</div>
+    <div style="color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.9rem;margin-top:4px;">Alle Infos zum Adventskalender</div>
   </div>
 
   <!-- How it works -->
@@ -79,32 +101,32 @@
   <div class="section-label">Punktesystem</div>
   <div class="panel">
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border-radius:12px;padding:12px;">
-        <div style="width:28px;height:28px;color:var(--green-bright);"><i data-lucide="zap" style="width:28px;height:28px;" aria-hidden="true"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--paper-soft);border-radius:12px;padding:12px;">
+        <div style="width:28px;height:28px;color:var(--accent);"><i data-lucide="zap" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Schnelligkeit</div>
-          <div style="font-size:0.82rem;color:var(--text-muted);">Schnellere Lösungen geben mehr Punkte</div>
+          <div style="font-size:0.82rem;color:color-mix(in srgb, var(--ink) 72%, transparent);">Schnellere Lösungen geben mehr Punkte</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border-radius:12px;padding:12px;">
-        <div style="width:28px;height:28px;color:var(--green-bright);"><i data-lucide="target" style="width:28px;height:28px;" aria-hidden="true"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--paper-soft);border-radius:12px;padding:12px;">
+        <div style="width:28px;height:28px;color:var(--accent);"><i data-lucide="target" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Genauigkeit</div>
-          <div style="font-size:0.82rem;color:var(--text-muted);">Weniger Fehler = mehr Punkte</div>
+          <div style="font-size:0.82rem;color:color-mix(in srgb, var(--ink) 72%, transparent);">Weniger Fehler = mehr Punkte</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border-radius:12px;padding:12px;">
-        <div style="width:28px;height:28px;color:var(--green-bright);"><i data-lucide="refresh-cw" style="width:28px;height:28px;" aria-hidden="true"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--paper-soft);border-radius:12px;padding:12px;">
+        <div style="width:28px;height:28px;color:var(--accent);"><i data-lucide="refresh-cw" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Wiederholungen</div>
-          <div style="font-size:0.82rem;color:var(--text-muted);">Versuche alle vergangenen Rätsel, um deinen Highscore zu verbessern!</div>
+          <div style="font-size:0.82rem;color:color-mix(in srgb, var(--ink) 72%, transparent);">Versuche alle vergangenen Rätsel, um deinen Highscore zu verbessern!</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;background:var(--warm-bg);border:2px solid var(--gold);border-radius:12px;padding:12px;">
-        <div style="width:28px;height:28px;color:var(--gold);"><i data-lucide="trophy" style="width:28px;height:28px;" aria-hidden="true"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--paper-soft);border:2px solid var(--accent);border-radius:12px;padding:12px;">
+        <div style="width:28px;height:28px;color:var(--accent);"><i data-lucide="trophy" style="width:28px;height:28px;" aria-hidden="true"></i></div>
         <div>
           <div style="font-weight:800;">Gesamtsieger</div>
-          <div style="font-size:0.82rem;color:var(--text-muted);">Am Ende gewinnt, wer die meisten Gesamtpunkte hat!</div>
+          <div style="font-size:0.82rem;color:color-mix(in srgb, var(--ink) 72%, transparent);">Am Ende gewinnt, wer die meisten Gesamtpunkte hat!</div>
         </div>
       </div>
     </div>
@@ -125,9 +147,9 @@
   <!-- About -->
   <div class="section-label">Info</div>
   <div class="panel" style="text-align:center;">
-    <div style="width:36px;height:36px;margin:0 auto 8px;color:var(--green-bright);"><i data-lucide="tree-pine" style="width:36px;height:36px;" aria-hidden="true"></i></div>
+    <div style="width:36px;height:36px;margin:0 auto 8px;color:var(--accent);"><i data-lucide="tree-pine" style="width:36px;height:36px;" aria-hidden="true"></i></div>
     <div style="font-weight:800;margin-bottom:6px;">Weihnachts-Adventskalender 2026</div>
-    <div style="color:var(--text-muted);font-size:0.85rem;line-height:1.5;">
+    <div style="color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.85rem;line-height:1.5;">
       Für Freunde & Familie gemacht.<br>Viel Spaß und frohe Weihnachten!
     </div>
     <div style="margin-top:16px;">
@@ -139,27 +161,21 @@
 
 </div>
 
-<nav class="bottom-nav">
-  <a class="nav-item" data-page="home" href="index.html">
-    <span class="nav-icon"><i data-lucide="home" aria-hidden="true"></i></span><span class="nav-label">Kalender</span>
-  </a>
-  <a class="nav-item" data-page="highscore" href="highscore.html">
-    <span class="nav-icon"><i data-lucide="trophy" aria-hidden="true"></i></span><span class="nav-label">Highscore</span>
-  </a>
-  <a class="nav-item" data-page="profile" href="profile.html">
-    <span class="nav-icon"><i data-lucide="user" aria-hidden="true"></i></span><span class="nav-label">Profil</span>
-  </a>
-  <a class="nav-item active" data-page="howto" href="howto.html">
-    <span class="nav-icon"><i data-lucide="circle-help" aria-hidden="true"></i></span><span class="nav-label">Anleitung</span>
-  </a>
-</nav>
-
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/core.js"></script>
 <script>
   applyTheme();
+  initSnow(6);
   updateThemeSwitch();
   renderIcons();
+  if (isLoggedIn()) {
+    Promise.all([getStreak(), getTotalPoints()]).then(([streak, points]) => {
+      document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')} ${streak.count}`;
+      document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')} ${points}`;
+      renderIcons(document.getElementById('streakBadge'));
+      renderIcons(document.getElementById('pointsBadge'));
+    });
+  }
 </script>
 </body>
 </html>

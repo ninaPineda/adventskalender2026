@@ -16,44 +16,38 @@
 </div>
 
 <nav class="top-nav">
-  <div class="logo"><i data-lucide="trophy" class="logo-icon" aria-hidden="true"></i> Highscore</div>
+  <div class="logo"><i data-lucide="tree-pine" class="logo-icon" aria-hidden="true"></i> Advent</div>
+  <div class="top-tabs" data-active="highscore" aria-label="Hauptnavigation">
+    <span class="tab-indicator" aria-hidden="true"></span>
+    <a class="top-tab" data-tab="calendar" href="index.html">
+      <i data-lucide="calendar-days" aria-hidden="true"></i>
+      <span>Kalender</span>
+    </a>
+    <a class="top-tab active" data-tab="highscore" href="highscore.html">
+      <i data-lucide="trophy" aria-hidden="true"></i>
+      <span>Highscore</span>
+    </a>
+    <a class="top-tab" data-tab="profile" href="profile.html">
+      <i data-lucide="user" aria-hidden="true"></i>
+      <span>Profil</span>
+    </a>
+  </div>
   <div class="nav-actions">
     <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
+      <span class="theme-switch-knob"></span>
+    </button>
   </div>
 </nav>
 
 <div class="page-content">
 
-  <!-- My Stats -->
-  <div class="section-label">Deine Statistiken</div>
-  <div class="panel">
-    <div class="stat-row">
-      <div class="stat-box">
-        <div class="stat-val" id="myTotalPts">–</div>
-        <div class="stat-label">Gesamtpunkte</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="mySolvedCount">–</div>
-        <div class="stat-label">Gelöst</div>
-      </div>
-    </div>
-    <div class="stat-row">
-      <div class="stat-box">
-        <div class="stat-val" id="myStreak">–</div>
-        <div class="stat-label">Streak</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="myBestDay">–</div>
-        <div class="stat-label">Bester Tag</div>
-      </div>
-    </div>
-  </div>
-
   <!-- Global Leaderboard -->
   <div class="section-label">Gesamtrangliste</div>
   <div class="panel" id="leaderboardPanel">
-    <div style="text-align:center;padding:20px;color:var(--text-muted);">
-      <div style="width:28px;height:28px;margin:0 auto 8px;color:var(--green-bright);"><i data-lucide="loader-circle" style="width:28px;height:28px;" aria-hidden="true"></i></div>
+    <div style="text-align:center;padding:20px;color:color-mix(in srgb, var(--ink) 72%, transparent);">
+      <div style="width:28px;height:28px;margin:0 auto 8px;color:var(--accent);"><i data-lucide="loader-circle" style="width:28px;height:28px;" aria-hidden="true"></i></div>
       Lade Rangliste...
     </div>
   </div>
@@ -64,92 +58,86 @@
 
 </div>
 
-<nav class="bottom-nav">
-  <a class="nav-item" data-page="home" href="index.html">
-    <span class="nav-icon"><i data-lucide="home" aria-hidden="true"></i></span><span class="nav-label">Kalender</span>
-  </a>
-  <a class="nav-item active" data-page="highscore" href="highscore.html">
-    <span class="nav-icon"><i data-lucide="trophy" aria-hidden="true"></i></span><span class="nav-label">Highscore</span>
-  </a>
-  <a class="nav-item" data-page="profile" href="profile.html">
-    <span class="nav-icon"><i data-lucide="user" aria-hidden="true"></i></span><span class="nav-label">Profil</span>
-  </a>
-  <a class="nav-item" data-page="howto" href="howto.html">
-    <span class="nav-icon"><i data-lucide="circle-help" aria-hidden="true"></i></span><span class="nav-label">Anleitung</span>
-  </a>
-</nav>
-
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="js/core.js"></script>
 <script>
 async function initHighscorePage() {
   applyTheme();
+  initSnow(6);
   if (!requireLogin()) return;
   updateThemeSwitch();
   renderIcons();
 
-  // My stats
   const scores = await getScores();
   const streak = await getStreak();
-  const solved = Object.values(scores).filter(s => s.solved);
   const total = await getTotalPoints();
-  const bestDay = Object.entries(scores).sort((a,b) => b[1].pts-a[1].pts)[0];
 
-  document.getElementById('myTotalPts').textContent = total;
-  document.getElementById('mySolvedCount').textContent = solved.length + '/24';
-  document.getElementById('myStreak').textContent = streak.count;
-  document.getElementById('myBestDay').textContent = bestDay ? bestDay[0] : '–';
   document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')} ${streak.count}`;
+  document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')} ${total}`;
   renderIcons(document.getElementById('streakBadge'));
+  renderIcons(document.getElementById('pointsBadge'));
 
   // Day Records (local + from sheet)
   function buildDayRecords(sheetData) {
     const panel = document.getElementById('dayRecordsPanel');
-    // Process sheet data into { day -> { name, pts } }
-    const dayBest = {};
+    const dayScores = {};
+    const addDayScore = (day, name, pts) => {
+      const d = Number(day);
+      if (!d || !name) return;
+      if (!dayScores[d]) dayScores[d] = {};
+      if (!dayScores[d][name] || pts > dayScores[d][name]) {
+        dayScores[d][name] = pts;
+      }
+    };
+
     if (Array.isArray(sheetData)) {
       sheetData.forEach(row => {
         const d = getRowDay(row);
         const p = getRowPoints(row);
-        if (!d) return;
-        if (!dayBest[d] || p > dayBest[d].pts) {
-          dayBest[d] = { name: getRowName(row), pts: p };
-        }
+        addDayScore(d, getRowName(row), p);
       });
     }
 
-    // Also include local scores
     Object.entries(scores).forEach(([day, s]) => {
-      const d = parseInt(day);
-      if (!dayBest[d] || s.pts > dayBest[d].pts) {
-        dayBest[d] = { name: getUserName(), pts: s.pts };
-      }
+      addDayScore(day, getUserName(), s.pts);
     });
 
-    const today = getCurrentAdventDay();
     panel.innerHTML = '';
-    for (let d = 1; d <= Math.min(today, 24); d++) {
+    const table = document.createElement('div');
+    table.className = 'panel records-table';
+    table.innerHTML = `
+      <div class="records-row">
+        <div>Tag</div>
+        <div>Rätsel</div>
+        <div class="records-score">Top 3</div>
+      </div>
+    `;
+
+    for (let d = 1; d <= 24; d++) {
       const meta = PUZZLES.find(p => p.day === d);
-      const best = dayBest[d];
+      const topThree = Object.entries(dayScores[d] || {})
+        .map(([name, pts]) => ({ name, pts }))
+        .sort((a, b) => b.pts - a.pts)
+        .slice(0, 3);
       const div = document.createElement('div');
-      div.className = 'panel';
-      div.style.marginBottom = '10px';
+      div.className = 'records-row';
       div.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div class="day-record-icon">${iconHtml(meta?.icon || 'tree-pine')}</div>
-          <div style="flex:1;">
-            <div style="font-weight:800;font-size:0.9rem;">Tag ${d} – ${meta?.title || 'Rätsel'}</div>
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">
-              ${best ? `${iconHtml('trophy', 'badge-icon')} ${best.name}: <strong>${best.pts}</strong> Punkte` : 'Noch kein Rekord'}
+        <div class="record-cover" style="background-image:url(assets/covers/${d}.png);">
+        </div>
+        <div class="records-title">${meta?.title || 'Rätsel'}</div>
+        <div class="records-podium">
+          ${topThree.length ? topThree.map((entry, index) => `
+            <div class="records-place">
+              <span>${index + 1}</span>
+              <strong>${entry.name}</strong>
+              <em>${entry.pts}</em>
             </div>
-          </div>
-          <a href="puzzle.html?day=${d}" style="text-decoration:none;">
-            <button class="btn btn-ghost" style="width:auto;padding:8px 12px;font-size:0.78rem;">${iconHtml(scores[d] ? 'refresh-cw' : 'play', 'badge-icon')}</button>
-          </a>
+          `).join('') : '<div class="records-empty">Offen</div>'}
         </div>
       `;
-      panel.appendChild(div);
+      table.appendChild(div);
     }
+    panel.appendChild(table);
     renderIcons(panel);
   }
 
@@ -196,7 +184,7 @@ async function initHighscorePage() {
     const panel = document.getElementById('leaderboardPanel');
 
     if (sorted.length === 0) {
-      panel.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:16px;">Noch keine Einträge - sei der Erste!</p>`;
+      panel.innerHTML = `<p style="text-align:center;color:color-mix(in srgb, var(--ink) 72%, transparent);padding:16px;">Noch keine Einträge - sei der Erste!</p>`;
     } else {
       panel.innerHTML = sorted.slice(0, 20).map(([name, info], i) => `
         <div class="leaderboard-item rank-${i+1}">

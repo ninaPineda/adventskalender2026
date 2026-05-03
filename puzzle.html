@@ -8,7 +8,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body class="puzzle-page">
 
 <div class="desktop-block">
   <div class="icon"><i data-lucide="smartphone" aria-hidden="true"></i></div>
@@ -26,19 +26,19 @@
     </div>
     <div style="margin-left:auto;text-align:right;">
       <div style="font-size:0.7rem;opacity:0.75;">Max. Punkte</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;display:flex;align-items:center;justify-content:flex-end;gap:4px;" id="maxPtsDisplay">–</div>
+      <div style="font-size:1.3rem;display:flex;align-items:center;justify-content:flex-end;gap:4px;" id="maxPtsDisplay">–</div>
     </div>
   </div>
   <!-- Best score chip -->
-  <div id="bestScoreChip" style="display:none;background:rgba(255,255,255,0.2);border-radius:12px;padding:6px 12px;font-size:0.8rem;font-weight:700;text-align:center;margin-top:4px;">
+  <div id="bestScoreChip" style="display:none;background:color-mix(in srgb, var(--paper-soft) 72%, transparent);border-radius:12px;padding:6px 12px;font-size:0.8rem;font-weight:700;text-align:center;margin-top:4px;">
     Dein Rekord: <span id="bestScoreVal">0</span> Punkte - Versuch es zu schlagen!
   </div>
 </div>
 
 <!-- PUZZLE CONTAINER -->
 <div class="page-content" style="padding-top:0;" id="puzzleContainer">
-  <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
-    <div style="width:32px;height:32px;margin:0 auto 8px;color:var(--green-bright);"><i data-lucide="loader-circle" style="width:32px;height:32px;" aria-hidden="true"></i></div>
+  <div style="text-align:center;padding:40px 20px;color:color-mix(in srgb, var(--ink) 72%, transparent);">
+    <div style="width:32px;height:32px;margin:0 auto 8px;color:var(--accent);"><i data-lucide="loader-circle" style="width:32px;height:32px;" aria-hidden="true"></i></div>
     Lade Rätsel...
   </div>
 </div>
@@ -52,7 +52,7 @@
       <div class="result-title" id="resultTitle">Geschafft!</div>
       <div class="result-pts" id="resultPts">0</div>
       <div class="result-pts-label">Punkte</div>
-      <div id="newHighscoreMsg" style="display:none;background:var(--warm-bg);border-radius:12px;padding:8px 16px;margin:12px 0;color:var(--gold);font-weight:800;">Neuer Rekord!</div>
+      <div id="newHighscoreMsg" style="display:none;background:var(--paper-soft);border-radius:12px;padding:8px 16px;margin:12px 0;color:var(--accent);font-weight:800;">Neuer Rekord!</div>
       <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
         <button class="btn btn-primary" onclick="window.location.href='index.html'">Zurück zum Kalender</button>
         <button class="btn btn-ghost" onclick="retryPuzzle()">Nochmal versuchen</button>
@@ -99,8 +99,8 @@ async function initPuzzlePage() {
   } else {
     document.getElementById('puzzleContainer').innerHTML = `
       <div class="panel" style="text-align:center;padding:40px 20px;">
-        <div style="width:48px;height:48px;margin:0 auto 12px;color:var(--green-bright);">${iconHtml(meta?.icon || 'tree-pine')}</div>
-        <p style="font-weight:700;color:var(--text-muted);">Dieses Rätsel kommt bald!</p>
+        <div style="width:48px;height:48px;margin:0 auto 12px;color:var(--accent);">${iconHtml(meta?.icon || 'tree-pine')}</div>
+        <p style="font-weight:700;color:color-mix(in srgb, var(--ink) 72%, transparent);">Dieses Rätsel kommt bald!</p>
       </div>
     `;
   }

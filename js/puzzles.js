@@ -26,7 +26,7 @@ const PUZZLE_DEFS = {
         const q = questions[current];
         container.innerHTML = `
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${(current/questions.length)*100}%"></div></div>
-          <p style="font-size:0.8rem;color:var(--text-muted);font-weight:700;margin-bottom:8px;">Frage ${current+1} von ${questions.length}</p>
+          <p style="font-size:0.8rem;color:color-mix(in srgb, var(--ink) 72%, transparent);font-weight:700;margin-bottom:8px;">Frage ${current+1} von ${questions.length}</p>
           <div class="panel">
             <p style="font-weight:800;font-size:1.05rem;line-height:1.4;margin-bottom:16px;">${q.q}</p>
             ${q.opts.map((o,i) => `<button class="quiz-option" data-idx="${i}">${o}</button>`).join('')}
@@ -75,13 +75,13 @@ const PUZZLE_DEFS = {
           <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${(qIdx/qs.length)*100}%"></div></div>
           <div class="math-display">${q.q}</div>
           <div class="panel">
-            <p style="font-weight:700;margin-bottom:8px;color:var(--text-muted);">Deine Antwort:</p>
+            <p style="font-weight:700;margin-bottom:8px;color:color-mix(in srgb, var(--ink) 72%, transparent);">Deine Antwort:</p>
             <input class="input-field" type="number" id="mathInput" placeholder="Zahl eingeben..." />
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
               <button class="btn btn-ghost" id="hintBtn">Tipp</button>
               <button class="btn btn-primary" id="checkBtn">Prüfen</button>
             </div>
-            <p id="hintText" style="color:var(--gold);font-size:0.85rem;margin-top:8px;display:none;">${q.hint}</p>
+            <p id="hintText" style="color:var(--accent);font-size:0.85rem;margin-top:8px;display:none;">${q.hint}</p>
           </div>
         `;
         document.getElementById('hintBtn').onclick = () => {
@@ -137,9 +137,9 @@ const PUZZLE_DEFS = {
 
       function renderAll() {
         container.innerHTML = `
-          <p style="text-align:center;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Errate das ${WORD_LEN}-Buchstaben Weihnachtswort!</p>
+          <p style="text-align:center;font-weight:700;color:color-mix(in srgb, var(--ink) 72%, transparent);margin-bottom:8px;">Errate das ${WORD_LEN}-Buchstaben Weihnachtswort!</p>
           <div class="letter-grid" style="grid-template-rows:repeat(${MAX_GUESSES},1fr);" id="wordleGrid"></div>
-          <div style="margin:12px 0;text-align:center;font-size:0.8rem;color:var(--text-muted);">
+          <div style="margin:12px 0;text-align:center;font-size:0.8rem;color:color-mix(in srgb, var(--ink) 72%, transparent);">
             🟩 Richtige Stelle &nbsp; 🟨 Falscher Platz &nbsp; ⬜ Nicht dabei
           </div>
           <div class="keyboard" id="kb"></div>
@@ -279,11 +279,11 @@ const PUZZLE_DEFS = {
       function render() {
         container.innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
-            <span style="font-weight:700;color:var(--text-muted);">Züge: <strong style="color:var(--text)">${moves}</strong></span>
+            <span style="font-weight:700;color:color-mix(in srgb, var(--ink) 72%, transparent);">Züge: <strong style="color:var(--ink)">${moves}</strong></span>
             <button class="btn btn-ghost" style="width:auto;padding:8px 14px;font-size:0.85rem;" onclick="window.slideShuffle()">Neu mischen</button>
           </div>
           <div class="slide-grid" id="slideGrid"></div>
-          <p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-top:8px;">Schiebe die Zahlen in die richtige Reihenfolge (1–15)!</p>
+          <p style="text-align:center;color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.8rem;margin-top:8px;">Schiebe die Zahlen in die richtige Reihenfolge (1–15)!</p>
         `;
         const grid = document.getElementById('slideGrid');
         tiles.forEach((t, i) => {
@@ -383,7 +383,7 @@ const PUZZLE_DEFS = {
       function render() {
         const SIZE = 5;
         container.innerHTML = `
-          <p style="text-align:center;color:var(--text-muted);font-size:0.82rem;margin-bottom:8px;">Tippen=Füllen, Gedrückt halten=X (ausschließen)</p>
+          <p style="text-align:center;color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.82rem;margin-bottom:8px;">Tippen=Füllen, Gedrückt halten=X (ausschließen)</p>
           <div style="overflow-x:auto;display:flex;justify-content:center;">
           <table style="border-collapse:collapse;">
             <tr>
@@ -406,7 +406,7 @@ const PUZZLE_DEFS = {
             `).join('')}
           </table>
           </div>
-          <p style="text-align:center;margin-top:12px;font-size:0.8rem;color:var(--text-muted);">Hinweis: Das Bild ist ein Weihnachtsbaum.</p>
+          <p style="text-align:center;margin-top:12px;font-size:0.8rem;color:color-mix(in srgb, var(--ink) 72%, transparent);">Hinweis: Das Bild ist ein Weihnachtsbaum.</p>
         `;
         container.querySelectorAll('.logic-cell').forEach(cell => {
           cell.addEventListener('click', () => toggle(parseInt(cell.dataset.r), parseInt(cell.dataset.c), false));
@@ -526,12 +526,12 @@ const PUZZLE_DEFS = {
 
       function render() {
         container.innerHTML = `
-          <p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-bottom:8px;">Fülle das 6×6 Raster! Jede Zahl 1–6 nur einmal pro Zeile, Spalte und Block.</p>
+          <p style="text-align:center;color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.8rem;margin-bottom:8px;">Fülle das 6×6 Raster! Jede Zahl 1–6 nur einmal pro Zeile, Spalte und Block.</p>
           <div class="number-grid" style="grid-template-columns:repeat(6,1fr);max-width:280px;margin:0 auto 12px;" id="sudokuGrid"></div>
           <div class="numpad">
             ${[1,2,3,4,5,6,'✕'].map(n=>`<button class="numpad-btn" data-n="${n}">${n}</button>`).join('')}
           </div>
-          <p style="text-align:center;font-size:0.8rem;color:var(--red-light);margin-top:8px;">Fehler: ${errors}/3</p>
+          <p style="text-align:center;font-size:0.8rem;color:var(--tile);margin-top:8px;">Fehler: ${errors}/3</p>
         `;
         const grid = document.getElementById('sudokuGrid');
         userGrid.forEach((row,r) => {
@@ -647,7 +647,7 @@ const PUZZLE_DEFS = {
         const r=rounds[idx];
         container.innerHTML=`
           <div style="text-align:center;margin-bottom:8px;">
-            <div style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);">Runde ${idx+1}/5 - ${r.pts} Punkte möglich</div>
+            <div style="font-size:1.1rem;color:var(--accent);">Runde ${idx+1}/5 - ${r.pts} Punkte möglich</div>
           </div>
           <div class="math-display" style="font-size:1.4rem;min-height:80px;display:flex;align-items:center;justify-content:center;">${r.q}</div>
           <input class="input-field" id="specialInput" placeholder="Antwort..." style="text-transform:uppercase;" />
