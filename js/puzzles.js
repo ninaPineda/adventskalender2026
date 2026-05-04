@@ -3,53 +3,143 @@
 
 const PUZZLE_DEFS = {
 
-  // ── DAY 1: CHRISTMAS QUIZ ────────────────────────────────
+  // ── DAY 1: MAP QUIZ ──────────────────────────────────────
   1: {
-    type: 'quiz',
-    title: 'Weihnachts-Quiz',
-    maxPts: 300,
+    type: 'map',
+    title: 'Christmas Market Guessr',
+    maxPts: 10,
     render(container, onComplete) {
-      const questions = [
-        { q: 'Wann wird in Deutschland Weihnachten gefeiert?', opts: ['24. Dezember', '25. Dezember', '6. Januar', '31. Dezember'], ans: 0 },
-        { q: 'Welches Tier zieht den Schlitten des Weihnachtsmanns?', opts: ['Pferde', 'Rentiere', 'Elche', 'Bären'], ans: 1 },
-        { q: 'Was ist das bekannteste Weihnachtslied auf Englisch?', opts: ['Frosty the Snowman', 'Jingle Bells', 'Silent Night', 'Rudolph'], ans: 2 },
-      ];
-      let current = 0, pts = 0, answered = false;
-      const maxPtsPerQ = Math.floor(300 / questions.length);
+      const target = {
+        lat: 51.5050468,
+        lng: -0.1180041,
+        name: 'Southbank Centre Winter Market'
+      };
+      const streetViewEmbedUrl = 'https://www.google.com/maps?layer=c&cbll=51.5050468,-0.1180041&cbp=12,356.4,,0,49.23&output=svembed';
+      let guess = null;
+      let map = null;
+      let guessMarker = null;
 
-      function showQuestion() {
-        if (current >= questions.length) {
-          onComplete(pts);
-          return;
-        }
-        answered = false;
-        const q = questions[current];
+      showStreetView();
+
+      function showStreetView() {
         container.innerHTML = `
-          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${(current/questions.length)*100}%"></div></div>
-          <p style="font-size:0.8rem;color:color-mix(in srgb, var(--ink) 72%, transparent);font-weight:700;margin-bottom:8px;">Frage ${current+1} von ${questions.length}</p>
-          <div class="panel">
-            <p style="font-weight:800;font-size:1.05rem;line-height:1.4;margin-bottom:16px;">${q.q}</p>
-            ${q.opts.map((o,i) => `<button class="quiz-option" data-idx="${i}">${o}</button>`).join('')}
-          </div>
+          <section class="panel map-guess-panel">
+            <div class="map-guess-streetview">
+              <iframe title="Street View Rätsel" src="${streetViewEmbedUrl}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <button class="streetview-bubble" type="button">Schau dich um!</button>
+              <div class="streetview-mask streetview-mask-top" aria-hidden="true"></div>
+              <div class="streetview-mask streetview-mask-bottom" aria-hidden="true"></div>
+              <div class="streetview-mask streetview-mask-left" aria-hidden="true"></div>
+              <div class="streetview-mask streetview-mask-right" aria-hidden="true"></div>
+            </div>
+            <div class="map-guess-copy">
+              <h2>Wo stehst du?</h2>
+              <p>Schau dich um. Wenn du glaubst, die Location zu kennen, wechsel zur Karte und setz deinen Pin.</p>
+              <button class="btn btn-primary" id="openGuessMap">${iconHtml('map-pin', 'badge-icon')} Raten</button>
+            </div>
+          </section>
         `;
-        container.querySelectorAll('.quiz-option').forEach(btn => {
-          btn.addEventListener('click', () => {
-            if (answered) return;
-            answered = true;
-            const idx = parseInt(btn.dataset.idx);
-            const correct = idx === q.ans;
-            container.querySelectorAll('.quiz-option').forEach((b, bi) => {
-              b.disabled = true;
-              if (bi === q.ans) b.classList.add('correct');
-              else if (bi === idx && !correct) b.classList.add('wrong');
-            });
-            if (correct) { pts += maxPtsPerQ; showToast('Richtig! +' + maxPtsPerQ + ' Punkte', 'success'); }
-            else showToast('Falsch! Die Antwort war: ' + q.opts[q.ans], 'error');
-            setTimeout(() => { current++; showQuestion(); }, 1400);
-          });
+        renderIcons(container);
+        const bubble = container.querySelector('.streetview-bubble');
+        bubble.addEventListener('pointerdown', () => bubble.classList.add('hidden'), { once: true });
+        document.getElementById('openGuessMap').onclick = showGuessMap;
+      }
+
+      function showGuessMap() {
+        container.innerHTML = `
+          <section class="panel map-guess-panel">
+            <div class="map-guess-toolbar">
+              <button class="btn btn-ghost" id="backToStreetView">${iconHtml('arrow-left', 'badge-icon')} Zurück</button>
+              <button class="btn btn-primary" id="submitGuess" disabled>${iconHtml('send', 'badge-icon')} Tipp abgeben</button>
+            </div>
+            <div class="guess-map" id="guessMap">
+              <div class="map-loading">Karte lädt...</div>
+            </div>
+            <p class="map-guess-hint" id="guessHint">Klicke auf die Karte, um deinen Tipp zu setzen.</p>
+          </section>
+        `;
+        renderIcons(container);
+        guess = null;
+        guessMarker = null;
+        document.getElementById('backToStreetView').onclick = showStreetView;
+        document.getElementById('submitGuess').onclick = submitGuess;
+        loadLeaflet().then(initMap).catch(() => {
+          document.getElementById('guessMap').innerHTML = '<div class="map-loading">Die Karte konnte nicht geladen werden. Prüfe kurz deine Verbindung und versuch es nochmal.</div>';
         });
       }
-      showQuestion();
+
+      function loadLeaflet() {
+        if (window.L) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          if (!document.querySelector('link[data-leaflet]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            link.dataset.leaflet = 'true';
+            document.head.appendChild(link);
+          }
+          const existing = document.querySelector('script[data-leaflet]');
+          if (existing) {
+            existing.addEventListener('load', resolve, { once: true });
+            existing.addEventListener('error', reject, { once: true });
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          script.dataset.leaflet = 'true';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      function initMap() {
+        const mapEl = document.getElementById('guessMap');
+        mapEl.innerHTML = '';
+        map = L.map(mapEl, { zoomControl: true }).setView([54, 12], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+        map.on('click', e => {
+          guess = e.latlng;
+          if (guessMarker) guessMarker.setLatLng(guess);
+          else guessMarker = L.marker(guess).addTo(map);
+          document.getElementById('submitGuess').disabled = false;
+          document.getElementById('guessHint').textContent = 'Pin gesetzt. Du kannst ihn durch erneutes Klicken verschieben.';
+        });
+        setTimeout(() => map.invalidateSize(), 80);
+      }
+
+      function submitGuess() {
+        if (!guess) return;
+        const distance = getDistanceMeters(guess.lat, guess.lng, target.lat, target.lng);
+        const pts = Math.max(0, Math.ceil(10 * (1 - Math.min(distance, 1200000) / 1200000)));
+        showResult(distance, pts);
+      }
+
+      function showResult(distance, pts) {
+        const distanceText = distance >= 1000 ? `${(distance / 1000).toFixed(2)} km` : `${Math.round(distance)} m`;
+        if (map) {
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          L.marker([target.lat, target.lng]).addTo(map).bindPopup(target.name).openPopup();
+          L.polyline([[guess.lat, guess.lng], [target.lat, target.lng]], { color: accent, weight: 3 }).addTo(map);
+          map.fitBounds([[guess.lat, guess.lng], [target.lat, target.lng]], { padding: [40, 40] });
+        }
+        document.getElementById('guessHint').innerHTML = `Du warst <strong>${distanceText}</strong> entfernt. Das gibt <strong>${pts}/10</strong> Punkte.`;
+        document.getElementById('submitGuess').textContent = 'Weiter';
+        document.getElementById('submitGuess').disabled = false;
+        document.getElementById('submitGuess').onclick = () => onComplete(pts);
+      }
+
+      function getDistanceMeters(lat1, lon1, lat2, lon2) {
+        const toRad = deg => deg * Math.PI / 180;
+        const r = 6371000;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+        return r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      }
     }
   },
 
@@ -57,7 +147,7 @@ const PUZZLE_DEFS = {
   2: {
     type: 'math',
     title: 'Zahlen-Rätsel',
-    maxPts: 400,
+    maxPts: 10,
     render(container, onComplete) {
       const qs = [
         { q: 'Wenn A = 5 ist, was ergibt A x A + A?', ans: '30', hint: '5 x 5 + 5 = 30' },
@@ -120,7 +210,7 @@ const PUZZLE_DEFS = {
   3: {
     type: 'wordle',
     title: 'Weihnachts-Wordle',
-    maxPts: 500,
+    maxPts: 10,
     render(container, onComplete) {
       const words = ['STERN', 'SCHNEE', 'ADVENT', 'KERZEN', 'ENGEL'];
       const targetWord = words[new Date().getDate() % words.length];
@@ -245,7 +335,7 @@ const PUZZLE_DEFS = {
   4: {
     type: 'slide',
     title: 'Schiebe-Puzzle',
-    maxPts: 350,
+    maxPts: 10,
     render(container, onComplete) {
       const SIZE = 4;
       let tiles, moves, startTime;
@@ -318,7 +408,7 @@ const PUZZLE_DEFS = {
   5: {
     type: 'geo',
     title: 'Weihnachts-Geografie',
-    maxPts: 300,
+    maxPts: 10,
     render(container, onComplete) {
       const questions = [
         { q: 'In welchem Land hat der Weihnachtsmann (Santa Claus) offiziell seinen Wohnsitz?', opts: ['Schweden', 'Norwegen', 'Finnland', 'Island'], ans: 2, fact: 'Rovaniemi in Finnland gilt als Heimat des Weihnachtsmanns!' },
@@ -365,7 +455,7 @@ const PUZZLE_DEFS = {
   6: {
     type: 'logic',
     title: 'Nonogramm',
-    maxPts: 450,
+    maxPts: 10,
     render(container, onComplete) {
       // 5x5 nonogram - Christmas tree
       const solution = [
@@ -442,7 +532,7 @@ const PUZZLE_DEFS = {
   7: {
     type: 'quiz',
     title: 'Winter-Quiz',
-    maxPts: 300,
+    maxPts: 10,
     render(container, onComplete) {
       const questions = [
         { q: 'Bei welcher Temperatur friert Wasser?', opts: ['0°C', '-4°C', '4°C', '-1°C'], ans: 0 },
@@ -482,7 +572,7 @@ const PUZZLE_DEFS = {
   8: {
     type: 'sudoku',
     title: 'Mini-Sudoku',
-    maxPts: 500,
+    maxPts: 10,
     render(container, onComplete) {
       // 6x6 Sudoku (easier for mobile)
       const puzzle = [
@@ -574,9 +664,9 @@ const PUZZLE_DEFS = {
   // ── DAYS 9-24: Placeholder versions (quiz variations) ───
   ...[9,10,11,12,13,14,15,16,17,18,19,20,21,22,23].reduce((acc, day) => {
     const templates = [
-      { type:'quiz', icon:'circle-help', title:'Nikolaus-Quiz', maxPts: 300 },
-      { type:'math', icon:'calculator', title:'Rechen-Rätsel', maxPts: 400 },
-      { type:'wordle', icon:'type', title:'Wort-Rätsel', maxPts: 500 },
+      { type:'quiz', icon:'circle-help', title:'Nikolaus-Quiz', maxPts: 10 },
+      { type:'math', icon:'calculator', title:'Rechen-Rätsel', maxPts: 10 },
+      { type:'wordle', icon:'type', title:'Wort-Rätsel', maxPts: 10 },
     ];
     const t = templates[day % 3];
     acc[day] = {
@@ -629,7 +719,7 @@ const PUZZLE_DEFS = {
   24: {
     type: 'special',
     title: 'Heiligabend-Challenge',
-    maxPts: 1000,
+    maxPts: 10,
     render(container, onComplete) {
       const rounds = [
         { q: 'Was ist 12 x 12?', ans: '144', pts: 200 },

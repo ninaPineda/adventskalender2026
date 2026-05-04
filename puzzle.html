@@ -106,6 +106,7 @@ async function initPuzzlePage() {
   }
 
   async function handleComplete(pts) {
+    pts = normalizePuzzlePoints(pts);
     const isNew = await saveScore(day, pts);
 
     // Show result modal

@@ -15,30 +15,30 @@ let jsonpCounter = 0;
 
 // ── PUZZLE METADATA ──────────────────────────────────────
 const PUZZLES = [
-  { day: 1,  type: 'quiz',    icon: 'tree-pine',       label: 'Quiz',    title: 'Weihnachts-Quiz',        maxPts: 300 },
-  { day: 2,  type: 'math',    icon: 'calculator',      label: 'Mathe',   title: 'Zahlen-Rätsel',          maxPts: 400 },
-  { day: 3,  type: 'wordle',  icon: 'type',            label: 'Wörter',  title: 'Weihnachts-Wordle',      maxPts: 500 },
-  { day: 4,  type: 'slide',   icon: 'gift',            label: 'Puzzle',  title: 'Schiebe-Puzzle',         maxPts: 350 },
-  { day: 5,  type: 'geo',     icon: 'globe-2',         label: 'Geo',     title: 'Weihnachts-Geografie',   maxPts: 300 },
-  { day: 6,  type: 'logic',   icon: 'puzzle',          label: 'Logik',   title: 'Nonogramm',              maxPts: 450 },
-  { day: 7,  type: 'quiz',    icon: 'sparkle',         label: 'Quiz',    title: 'Winter-Quiz',            maxPts: 300 },
-  { day: 8,  type: 'sudoku',  icon: 'grid-3x3',        label: 'Sudoku',  title: 'Mini-Sudoku',            maxPts: 500 },
-  { day: 9,  type: 'math',    icon: 'plus',            label: 'Mathe',   title: 'Nikolaus-Rechnen',       maxPts: 400 },
-  { day: 10, type: 'wordle',  icon: 'text-cursor-input', label: 'Wörter', title: 'Rentier-Wordle',         maxPts: 500 },
-  { day: 11, type: 'quiz',    icon: 'snowflake',       label: 'Quiz',    title: 'Schnee-Quiz',            maxPts: 300 },
-  { day: 12, type: 'slide',   icon: 'star',            label: 'Puzzle',  title: 'Stern-Puzzle',           maxPts: 350 },
-  { day: 13, type: 'geo',     icon: 'map',             label: 'Geo',     title: 'Welt-Hauptstädte',       maxPts: 300 },
-  { day: 14, type: 'logic',   icon: 'music-2',         label: 'Logik',   title: 'Melodie-Muster',         maxPts: 450 },
-  { day: 15, type: 'math',    icon: 'circle-dot',      label: 'Mathe',   title: 'Plätzchen-Rechnen',      maxPts: 400 },
-  { day: 16, type: 'sudoku',  icon: 'bell',            label: 'Sudoku',  title: 'Glocken-Sudoku',         maxPts: 500 },
-  { day: 17, type: 'quiz',    icon: 'circle-help',     label: 'Quiz',    title: 'Advent-Quiz',            maxPts: 300 },
-  { day: 18, type: 'wordle',  icon: 'flame',           label: 'Wörter',  title: 'Kerzen-Wordle',          maxPts: 500 },
-  { day: 19, type: 'geo',     icon: 'mountain-snow',   label: 'Geo',     title: 'Weihnachts-Länder',      maxPts: 300 },
-  { day: 20, type: 'slide',   icon: 'shapes',          label: 'Puzzle',  title: 'Winter-Puzzle',          maxPts: 350 },
-  { day: 21, type: 'logic',   icon: 'blocks',          label: 'Logik',   title: 'Spielzeug-Logik',        maxPts: 450 },
-  { day: 22, type: 'math',    icon: 'percent',         label: 'Mathe',   title: 'Weihnachts-Mathe',       maxPts: 400 },
-  { day: 23, type: 'quiz',    icon: 'house',           label: 'Quiz',    title: 'Traditions-Quiz',        maxPts: 300 },
-  { day: 24, type: 'special', icon: 'party-popper',    label: 'Special', title: 'Heiligabend-Challenge',  maxPts: 1000 },
+  { day: 1,  type: 'map',     icon: 'map-pin',         label: 'Map',     title: 'Christmas Market Guessr', maxPts: 10 },
+  { day: 2,  type: 'math',    icon: 'calculator',      label: 'Mathe',   title: 'Zahlen-Rätsel',          maxPts: 10 },
+  { day: 3,  type: 'wordle',  icon: 'type',            label: 'Wörter',  title: 'Weihnachts-Wordle',      maxPts: 10 },
+  { day: 4,  type: 'slide',   icon: 'gift',            label: 'Puzzle',  title: 'Schiebe-Puzzle',         maxPts: 10 },
+  { day: 5,  type: 'geo',     icon: 'globe-2',         label: 'Geo',     title: 'Weihnachts-Geografie',   maxPts: 10 },
+  { day: 6,  type: 'logic',   icon: 'puzzle',          label: 'Logik',   title: 'Nonogramm',              maxPts: 10 },
+  { day: 7,  type: 'quiz',    icon: 'sparkle',         label: 'Quiz',    title: 'Winter-Quiz',            maxPts: 10 },
+  { day: 8,  type: 'sudoku',  icon: 'grid-3x3',        label: 'Sudoku',  title: 'Mini-Sudoku',            maxPts: 10 },
+  { day: 9,  type: 'math',    icon: 'plus',            label: 'Mathe',   title: 'Nikolaus-Rechnen',       maxPts: 10 },
+  { day: 10, type: 'wordle',  icon: 'text-cursor-input', label: 'Wörter', title: 'Rentier-Wordle',         maxPts: 10 },
+  { day: 11, type: 'quiz',    icon: 'snowflake',       label: 'Quiz',    title: 'Schnee-Quiz',            maxPts: 10 },
+  { day: 12, type: 'slide',   icon: 'star',            label: 'Puzzle',  title: 'Stern-Puzzle',           maxPts: 10 },
+  { day: 13, type: 'geo',     icon: 'map',             label: 'Geo',     title: 'Welt-Hauptstädte',       maxPts: 10 },
+  { day: 14, type: 'logic',   icon: 'music-2',         label: 'Logik',   title: 'Melodie-Muster',         maxPts: 10 },
+  { day: 15, type: 'math',    icon: 'circle-dot',      label: 'Mathe',   title: 'Plätzchen-Rechnen',      maxPts: 10 },
+  { day: 16, type: 'sudoku',  icon: 'bell',            label: 'Sudoku',  title: 'Glocken-Sudoku',         maxPts: 10 },
+  { day: 17, type: 'quiz',    icon: 'circle-help',     label: 'Quiz',    title: 'Advent-Quiz',            maxPts: 10 },
+  { day: 18, type: 'wordle',  icon: 'flame',           label: 'Wörter',  title: 'Kerzen-Wordle',          maxPts: 10 },
+  { day: 19, type: 'geo',     icon: 'mountain-snow',   label: 'Geo',     title: 'Weihnachts-Länder',      maxPts: 10 },
+  { day: 20, type: 'slide',   icon: 'shapes',          label: 'Puzzle',  title: 'Winter-Puzzle',          maxPts: 10 },
+  { day: 21, type: 'logic',   icon: 'blocks',          label: 'Logik',   title: 'Spielzeug-Logik',        maxPts: 10 },
+  { day: 22, type: 'math',    icon: 'percent',         label: 'Mathe',   title: 'Weihnachts-Mathe',       maxPts: 10 },
+  { day: 23, type: 'quiz',    icon: 'house',           label: 'Quiz',    title: 'Traditions-Quiz',        maxPts: 10 },
+  { day: 24, type: 'special', icon: 'party-popper',    label: 'Special', title: 'Heiligabend-Challenge',  maxPts: 10 },
 ];
 
 // ── USER DATA ────────────────────────────────────────────
@@ -247,7 +247,7 @@ function getRowPoints(row) {
   const raw = getRowValue(row, ['points', 'pts', 'punkte', 'score']);
   const normalized = String(raw).replace(',', '.').replace(/[^\d.-]/g, '');
   const points = Number(normalized);
-  return Number.isFinite(points) ? points : 0;
+  return Number.isFinite(points) ? normalizePuzzlePoints(points) : 0;
 }
 
 function getRowTimestamp(row) {
@@ -344,6 +344,7 @@ async function getScores() {
 }
 
 async function saveScore(day, pts) {
+  pts = normalizePuzzlePoints(pts);
   const scores = await getScores();
   const prev = scores[day]?.pts || 0;
 
@@ -356,8 +357,14 @@ async function saveScore(day, pts) {
 }
 
 async function isNewHighscore(day, pts) {
+  pts = normalizePuzzlePoints(pts);
   const scores = await getScores();
   return pts > (scores[day]?.pts || 0);
+}
+
+function normalizePuzzlePoints(pts) {
+  const value = Math.round(Number(pts) || 0);
+  return Math.max(0, Math.min(10, value));
 }
 
 async function getTotalPoints() {
@@ -371,6 +378,7 @@ async function isSolved(day) {
 }
 
 function logToSheet(day, pts) {
+  pts = normalizePuzzlePoints(pts);
   const name = getUserName();
   const timestamp = new Date().toISOString();
   const params = new URLSearchParams({
