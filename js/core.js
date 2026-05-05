@@ -462,11 +462,61 @@ function getDaysUntilChristmas() {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+function getMissingPreviousDays(scores, day) {
+  const missing = [];
+  for (let d = 1; d < day; d++) {
+    if (!scores[d]?.solved) missing.push(d);
+  }
+  return missing;
+}
+
+function formatDayList(days) {
+  if (!days.length) return '';
+  const ranges = [];
+  let start = days[0];
+  let prev = days[0];
+
+  for (let i = 1; i <= days.length; i++) {
+    const current = days[i];
+    if (current === prev + 1) {
+      prev = current;
+      continue;
+    }
+    ranges.push(start === prev ? String(start) : `${start}-${prev}`);
+    start = current;
+    prev = current;
+  }
+
+  return ranges.join(', ');
+}
+
+function getPuzzleUnlockState(day, scores = {}) {
+  const today = getCurrentAdventDay();
+  if (day > today) {
+    return {
+      unlocked: false,
+      reason: 'future',
+      message: today === 0
+        ? 'Der Adventskalender startet am 1. Dezember.'
+        : `Tag ${day} liegt in der Zukunft.`
+    };
+  }
+
+  const missing = getMissingPreviousDays(scores, day);
+  if (missing.length) {
+    return {
+      unlocked: false,
+      reason: 'previous',
+      missing,
+      message: `Löse erst Rätsel ${formatDayList(missing)}, bevor du Tag ${day} öffnen darfst.`
+    };
+  }
+
+  return { unlocked: true, reason: 'available', message: 'Freigeschaltet' };
+}
+
 function isUnlocked(day) {
-  // For testing: always unlock all days. 
-  // Remove the line below to use real date locking:
-  return true;
-  //return day <= getCurrentAdventDay();
+  return day <= getCurrentAdventDay();
 }
 
 // ── TOAST ─────────────────────────────────────────────────

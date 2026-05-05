@@ -27,14 +27,21 @@
       <i data-lucide="trophy" aria-hidden="true"></i>
       <span>Highscore</span>
     </a>
+    <a class="top-tab today-tab" href="index.html" aria-label="Zum Kalender">
+      <i data-lucide="rotate-cw" aria-hidden="true"></i>
+    </a>
     <a class="top-tab" data-tab="profile" href="profile.html">
       <i data-lucide="user" aria-hidden="true"></i>
       <span>Profil</span>
     </a>
+    <a class="top-tab" data-tab="howto" href="howto.html">
+      <i data-lucide="circle-help" aria-hidden="true"></i>
+      <span>Anleitung</span>
+    </a>
   </div>
   <div class="nav-actions">
-    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
-    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
+    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
     <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
       <span class="theme-switch-knob"></span>
     </button>
@@ -42,12 +49,22 @@
 </nav>
 
 <div class="page-content">
+  <div class="panel score-hero">
+    <div class="avatar-circle"><i data-lucide="trophy" aria-hidden="true"></i></div>
+    <div class="profile-name">Highscore</div>
+    <div class="profile-subline">Ränge, Tagesrekorde und dein Platz im Advent.</div>
+    <div class="reward-strip">
+      <div class="reward-pill"><strong id="myRank">–</strong><span>Dein Rang</span></div>
+      <div class="reward-pill"><strong id="playersCount">–</strong><span>Spieler</span></div>
+      <div class="reward-pill"><strong id="recordsCount">–</strong><span>Rekorde</span></div>
+    </div>
+  </div>
 
   <!-- Global Leaderboard -->
   <div class="section-label">Gesamtrangliste</div>
   <div class="panel" id="leaderboardPanel">
-    <div style="text-align:center;padding:20px;color:color-mix(in srgb, var(--ink) 72%, transparent);">
-      <div style="width:28px;height:28px;margin:0 auto 8px;color:var(--accent);"><i data-lucide="loader-circle" style="width:28px;height:28px;" aria-hidden="true"></i></div>
+    <div class="compact-loading">
+      <div class="compact-loading-icon"><i data-lucide="loader-circle" aria-hidden="true"></i></div>
       Lade Rangliste...
     </div>
   </div>
@@ -63,7 +80,7 @@
 <script>
 async function initHighscorePage() {
   applyTheme();
-  initSnow(6);
+  initSnow(18);
   if (!requireLogin()) return;
   updateThemeSwitch();
   renderIcons();
@@ -72,8 +89,8 @@ async function initHighscorePage() {
   const streak = await getStreak();
   const total = await getTotalPoints();
 
-  document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')} ${streak.count}`;
-  document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')} ${total}`;
+  document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
+  document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${total}</span>`;
   renderIcons(document.getElementById('streakBadge'));
   renderIcons(document.getElementById('pointsBadge'));
 
@@ -113,12 +130,14 @@ async function initHighscorePage() {
       </div>
     `;
 
+    let recordsCount = 0;
     for (let d = 1; d <= 24; d++) {
       const meta = PUZZLES.find(p => p.day === d);
       const topThree = Object.entries(dayScores[d] || {})
         .map(([name, pts]) => ({ name, pts }))
         .sort((a, b) => b.pts - a.pts)
         .slice(0, 3);
+      if (topThree.length) recordsCount++;
       const div = document.createElement('div');
       div.className = 'records-row';
       div.innerHTML = `
@@ -139,6 +158,7 @@ async function initHighscorePage() {
     }
     panel.appendChild(table);
     renderIcons(panel);
+    return recordsCount;
   }
 
   // Global leaderboard from sheet
@@ -180,11 +200,14 @@ async function initHighscorePage() {
     });
 
     const sorted = Object.entries(byName).sort((a,b) => b[1].pts - a[1].pts);
+    const myRankIndex = sorted.findIndex(([name]) => name === myName);
     const medals = ['1', '2', '3'];
     const panel = document.getElementById('leaderboardPanel');
+    document.getElementById('myRank').textContent = myRankIndex >= 0 ? myRankIndex + 1 : '–';
+    document.getElementById('playersCount').textContent = sorted.length;
 
     if (sorted.length === 0) {
-      panel.innerHTML = `<p style="text-align:center;color:color-mix(in srgb, var(--ink) 72%, transparent);padding:16px;">Noch keine Einträge - sei der Erste!</p>`;
+      panel.innerHTML = `<p class="empty-state">Noch keine Einträge - sei der Erste!</p>`;
     } else {
       panel.innerHTML = sorted.slice(0, 20).map(([name, info], i) => `
         <div class="leaderboard-item rank-${i+1}">
@@ -196,7 +219,8 @@ async function initHighscorePage() {
     }
     renderIcons(panel);
 
-    buildDayRecords(data);
+    const recordsCount = buildDayRecords(data);
+    document.getElementById('recordsCount').textContent = recordsCount;
   }
 
   loadLeaderboard();

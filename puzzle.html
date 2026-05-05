@@ -18,27 +18,27 @@
 
 <!-- PUZZLE HEADER (dynamic) -->
 <div class="puzzle-header" id="puzzleHeader">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-    <a href="index.html" style="color:white;text-decoration:none;display:flex;"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
+  <div class="puzzle-header-row">
+    <a class="puzzle-back-link" href="index.html" aria-label="Zurück zum Kalender"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
     <div>
-      <div style="font-size:0.8rem;opacity:0.75;font-weight:700;">TAG <span id="dayNum">?</span></div>
-      <h1 id="puzzleTitle" style="font-size:1.3rem;">Lade...</h1>
+      <div class="puzzle-kicker">TAG <span id="dayNum">?</span></div>
+      <h1 id="puzzleTitle">Lade...</h1>
     </div>
-    <div style="margin-left:auto;text-align:right;">
-      <div style="font-size:0.7rem;opacity:0.75;">Max. Punkte</div>
-      <div style="font-size:1.3rem;display:flex;align-items:center;justify-content:flex-end;gap:4px;" id="maxPtsDisplay">–</div>
+    <div class="puzzle-points">
+      <div class="puzzle-points-label">Max. Punkte</div>
+      <div class="puzzle-points-value" id="maxPtsDisplay">–</div>
     </div>
   </div>
   <!-- Best score chip -->
-  <div id="bestScoreChip" style="display:none;background:color-mix(in srgb, var(--paper-soft) 72%, transparent);border-radius:12px;padding:6px 12px;font-size:0.8rem;font-weight:700;text-align:center;margin-top:4px;">
+  <div id="bestScoreChip" class="best-score-chip">
     Dein Rekord: <span id="bestScoreVal">0</span> Punkte - Versuch es zu schlagen!
   </div>
 </div>
 
 <!-- PUZZLE CONTAINER -->
-<div class="page-content" style="padding-top:0;" id="puzzleContainer">
-  <div style="text-align:center;padding:40px 20px;color:color-mix(in srgb, var(--ink) 72%, transparent);">
-    <div style="width:32px;height:32px;margin:0 auto 8px;color:var(--accent);"><i data-lucide="loader-circle" style="width:32px;height:32px;" aria-hidden="true"></i></div>
+<div class="page-content puzzle-content" id="puzzleContainer">
+  <div class="loading-state">
+    <div class="loading-icon"><i data-lucide="loader-circle" aria-hidden="true"></i></div>
     Lade Rätsel...
   </div>
 </div>
@@ -52,8 +52,8 @@
       <div class="result-title" id="resultTitle">Geschafft!</div>
       <div class="result-pts" id="resultPts">0</div>
       <div class="result-pts-label">Punkte</div>
-      <div id="newHighscoreMsg" style="display:none;background:var(--paper-soft);border-radius:12px;padding:8px 16px;margin:12px 0;color:var(--accent);font-weight:800;">Neuer Rekord!</div>
-      <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+      <div id="newHighscoreMsg" class="new-highscore-msg">Neuer Rekord!</div>
+      <div class="result-actions">
         <button class="btn btn-primary" onclick="window.location.href='index.html'">Zurück zum Kalender</button>
         <button class="btn btn-ghost" onclick="retryPuzzle()">Nochmal versuchen</button>
       </div>
@@ -76,15 +76,31 @@ async function initPuzzlePage() {
   // Set header
   document.getElementById('dayNum').textContent = day;
   const meta = PUZZLES.find(p => p.day === day);
+  const scores = await getScores();
+  const unlockState = getPuzzleUnlockState(day, scores);
   if (meta) {
     document.title = `Tag ${day} – ${meta.title}`;
     document.getElementById('puzzleTitle').textContent = meta.title;
     document.getElementById('maxPtsDisplay').innerHTML = `${iconHtml('star', 'badge-icon')} ${meta.maxPts}`;
+    document.getElementById('puzzleHeader').style.setProperty('--puzzle-cover', `url(assets/covers/${day}.png)`);
     renderIcons(document.getElementById('maxPtsDisplay'));
   }
 
+  if (!unlockState.unlocked) {
+    const container = document.getElementById('puzzleContainer');
+    container.innerHTML = `
+      <div class="panel locked-panel">
+        <div class="locked-panel-icon">${iconHtml('lock')}</div>
+        <h2>Dieses Türchen bleibt noch zu.</h2>
+        <p>${unlockState.message}</p>
+        <a class="btn btn-primary" href="index.html">Zurück zum Kalender</a>
+      </div>
+    `;
+    renderIcons(container);
+    return;
+  }
+
   // Check for existing score
-  const scores = await getScores();
   const existingScore = scores[day];
   if (existingScore) {
     document.getElementById('bestScoreChip').style.display = 'block';
@@ -98,9 +114,9 @@ async function initPuzzlePage() {
     puzzleDef.render(container, (pts) => handleComplete(pts));
   } else {
     document.getElementById('puzzleContainer').innerHTML = `
-      <div class="panel" style="text-align:center;padding:40px 20px;">
-        <div style="width:48px;height:48px;margin:0 auto 12px;color:var(--accent);">${iconHtml(meta?.icon || 'tree-pine')}</div>
-        <p style="font-weight:700;color:color-mix(in srgb, var(--ink) 72%, transparent);">Dieses Rätsel kommt bald!</p>
+      <div class="panel empty-puzzle">
+        <div class="empty-puzzle-icon">${iconHtml(meta?.icon || 'tree-pine')}</div>
+        <p>Dieses Rätsel kommt bald!</p>
       </div>
     `;
   }

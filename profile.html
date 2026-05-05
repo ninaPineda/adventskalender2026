@@ -27,14 +27,21 @@
       <i data-lucide="trophy" aria-hidden="true"></i>
       <span>Highscore</span>
     </a>
+    <a class="top-tab today-tab" href="index.html" aria-label="Zum Kalender">
+      <i data-lucide="rotate-cw" aria-hidden="true"></i>
+    </a>
     <a class="top-tab active" data-tab="profile" href="profile.html">
       <i data-lucide="user" aria-hidden="true"></i>
       <span>Profil</span>
     </a>
+    <a class="top-tab" data-tab="howto" href="howto.html">
+      <i data-lucide="circle-help" aria-hidden="true"></i>
+      <span>Anleitung</span>
+    </a>
   </div>
   <div class="nav-actions">
-    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
-    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
+    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
     <button class="theme-switch" id="themeBtn" onclick="toggleThemeSwitch()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
       <span class="theme-switch-knob"></span>
     </button>
@@ -44,11 +51,16 @@
 <div class="page-content">
 
   <!-- Avatar & Name -->
-  <div class="panel" style="text-align:center;">
+  <div class="panel profile-hero">
     <div class="avatar-circle" id="avatarCircle"><i data-lucide="user-round" aria-hidden="true"></i></div>
-    <div style="font-size:1.5rem;" id="displayName">–</div>
-    <div style="color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.85rem;margin-top:4px;" id="displayStats">0 Punkte · 0 gelöst</div>
-    <button class="btn btn-ghost" style="margin-top:14px;width:auto;padding:10px 20px;" onclick="logout()">Abmelden</button>
+    <div class="profile-name" id="displayName">–</div>
+    <div class="profile-subline" id="displayStats">0 Punkte · 0 gelöst</div>
+    <div class="reward-strip">
+      <div class="reward-pill"><strong id="heroRank">–</strong><span>Rang</span></div>
+      <div class="reward-pill"><strong id="heroBest">–</strong><span>Bestwert</span></div>
+      <div class="reward-pill"><strong id="heroNext">–</strong><span>Nächstes Ziel</span></div>
+    </div>
+    <button class="btn btn-ghost profile-logout" onclick="logout()">Abmelden</button>
   </div>
 
   <!-- My Stats -->
@@ -79,14 +91,14 @@
   <!-- Streak Info -->
   <div class="section-label">Streak</div>
   <div class="panel">
-    <div style="display:flex;align-items:center;gap:14px;">
-      <div style="font-size:3rem;color:var(--tile);"><i data-lucide="flame" class="profile-stat-icon" aria-hidden="true"></i></div>
+    <div class="streak-feature">
+      <div class="streak-feature-icon"><i data-lucide="flame" class="profile-stat-icon" aria-hidden="true"></i></div>
       <div>
-        <div style="font-size:2rem;color:var(--tile);" id="streakCount">0</div>
-        <div style="color:color-mix(in srgb, var(--ink) 72%, transparent);font-size:0.85rem;">Tage in Folge aktiv</div>
+        <div class="streak-feature-count" id="streakCount">0</div>
+        <div class="streak-feature-copy">Tage in Folge aktiv</div>
       </div>
     </div>
-    <div style="margin-top:12px;background:var(--paper-soft);border-radius:10px;padding:10px;font-size:0.82rem;color:color-mix(in srgb, var(--ink) 72%, transparent);line-height:1.5;">
+    <div class="info-note">
       Letzter Besuch: <strong id="lastVisit">–</strong>
     </div>
   </div>
@@ -94,14 +106,14 @@
   <!-- Progress -->
   <div class="section-label">Fortschritt</div>
   <div class="panel">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-      <span style="font-weight:700;">Rätsel gelöst</span>
-      <span id="progressLabel" style="font-weight:800;color:var(--accent);">0/24</span>
+    <div class="progress-head">
+      <span class="progress-title">Rätsel gelöst</span>
+      <span id="progressLabel" class="progress-label">0/24</span>
     </div>
     <div class="progress-bar-wrap">
       <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
     </div>
-    <div id="dayChips" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:12px;"></div>
+    <div id="dayChips" class="profile-days-grid"></div>
   </div>
 
 </div>
@@ -111,7 +123,7 @@
 <script src="js/puzzles.js"></script>
 <script>
   applyTheme();
-  initSnow(6);
+  initSnow(18);
   const canShowProfile = requireLogin();
   renderIcons();
 
@@ -122,6 +134,8 @@
     const solved = Object.values(scores).filter(s=>s.solved).length;
     const total = await getTotalPoints();
     const bestDay = Object.entries(scores).sort((a,b) => b[1].pts-a[1].pts)[0];
+    const bestPts = bestDay ? bestDay[1].pts : 0;
+    const nextGoal = solved >= 24 ? 'Fertig' : `${solved + 1}/24`;
 
     document.getElementById('displayName').textContent = name;
     document.getElementById('displayStats').textContent = total + ' Punkte · ' + solved + ' gelöst';
@@ -130,8 +144,11 @@
     document.getElementById('mySolvedCount').textContent = solved + '/24';
     document.getElementById('myStreak').textContent = streak.count;
     document.getElementById('myBestDay').textContent = bestDay ? bestDay[0] : '–';
-    document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')} ${streak.count}`;
-    document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')} ${total}`;
+    document.getElementById('heroRank').textContent = solved ? 'Aktiv' : 'Start';
+    document.getElementById('heroBest').textContent = bestPts || '–';
+    document.getElementById('heroNext').textContent = nextGoal;
+    document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
+    document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${total}</span>`;
     document.getElementById('avatarCircle').innerHTML = iconHtml('user-round');
     renderIcons(document.getElementById('avatarCircle'));
     renderIcons(document.getElementById('streakBadge'));

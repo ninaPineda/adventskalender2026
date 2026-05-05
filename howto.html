@@ -17,7 +17,7 @@
 
 <nav class="top-nav">
   <div class="logo"><i data-lucide="tree-pine" class="logo-icon" aria-hidden="true"></i> Advent</div>
-  <div class="top-tabs" data-active="none" aria-label="Hauptnavigation">
+  <div class="top-tabs" data-active="howto" aria-label="Hauptnavigation">
     <span class="tab-indicator" aria-hidden="true"></span>
     <a class="top-tab" data-tab="calendar" href="index.html">
       <i data-lucide="calendar-days" aria-hidden="true"></i>
@@ -27,14 +27,21 @@
       <i data-lucide="trophy" aria-hidden="true"></i>
       <span>Highscore</span>
     </a>
+    <a class="top-tab today-tab" href="index.html" aria-label="Zum Kalender">
+      <i data-lucide="rotate-cw" aria-hidden="true"></i>
+    </a>
     <a class="top-tab" data-tab="profile" href="profile.html">
       <i data-lucide="user" aria-hidden="true"></i>
       <span>Profil</span>
     </a>
+    <a class="top-tab active" data-tab="howto" href="howto.html">
+      <i data-lucide="circle-help" aria-hidden="true"></i>
+      <span>Anleitung</span>
+    </a>
   </div>
   <div class="nav-actions">
-    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i> 0</div>
-    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i> 0</div>
+    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
+    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
     <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
       <span class="theme-switch-knob"></span>
     </button>
@@ -165,13 +172,13 @@
 <script src="js/core.js"></script>
 <script>
   applyTheme();
-  initSnow(6);
+  initSnow(18);
   updateThemeSwitch();
   renderIcons();
   if (isLoggedIn()) {
     Promise.all([getStreak(), getTotalPoints()]).then(([streak, points]) => {
-      document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')} ${streak.count}`;
-      document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')} ${points}`;
+      document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
+      document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${points}</span>`;
       renderIcons(document.getElementById('streakBadge'));
       renderIcons(document.getElementById('pointsBadge'));
     });
