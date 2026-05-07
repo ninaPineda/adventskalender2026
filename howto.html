@@ -176,12 +176,7 @@
   updateThemeSwitch();
   renderIcons();
   if (isLoggedIn()) {
-    Promise.all([getStreak(), getTotalPoints()]).then(([streak, points]) => {
-      document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
-      document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${points}</span>`;
-      renderIcons(document.getElementById('streakBadge'));
-      renderIcons(document.getElementById('pointsBadge'));
-    });
+    updateTopBadges();
   }
 </script>
 </body>

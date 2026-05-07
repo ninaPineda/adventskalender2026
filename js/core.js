@@ -7,6 +7,7 @@ const SHEET_CACHE_TTL = 60 * 1000;
 const USER_CACHE_TTL = 5 * 60 * 1000;
 const SHEET_CACHE_KEY = 'advent_sheet_cache_v1';
 const USER_CACHE_KEY = 'advent_user_cache_v1';
+const TEST_UNLOCK_ALL_PUZZLES = true;
 let leaderboardCache = null;
 let leaderboardPromise = null;
 let userCache = null;
@@ -491,6 +492,10 @@ function formatDayList(days) {
 }
 
 function getPuzzleUnlockState(day, scores = {}) {
+  if (TEST_UNLOCK_ALL_PUZZLES) {
+    return { unlocked: true, reason: 'test', message: 'Testmodus: alle Rätsel sind freigeschaltet.' };
+  }
+
   const today = getCurrentAdventDay();
   if (day > today) {
     return {
@@ -516,7 +521,27 @@ function getPuzzleUnlockState(day, scores = {}) {
 }
 
 function isUnlocked(day) {
-  return day <= getCurrentAdventDay();
+  return TEST_UNLOCK_ALL_PUZZLES || day <= getCurrentAdventDay();
+}
+
+function setTopBadges(streakCount, totalPoints) {
+  const streakBadge = document.getElementById('streakBadge');
+  const pointsBadge = document.getElementById('pointsBadge');
+
+  if (streakBadge) {
+    streakBadge.innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streakCount}</span>`;
+    renderIcons(streakBadge);
+  }
+  if (pointsBadge) {
+    pointsBadge.innerHTML = `${iconHtml('star', 'badge-icon')}<span>${totalPoints}</span>`;
+    renderIcons(pointsBadge);
+  }
+}
+
+async function updateTopBadges() {
+  const [streak, total] = await Promise.all([getStreak(), getTotalPoints()]);
+  setTopBadges(streak.count, total);
+  return { streak, total };
 }
 
 // ── TOAST ─────────────────────────────────────────────────

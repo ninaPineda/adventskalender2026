@@ -86,13 +86,7 @@ async function initHighscorePage() {
   renderIcons();
 
   const scores = await getScores();
-  const streak = await getStreak();
-  const total = await getTotalPoints();
-
-  document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
-  document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${total}</span>`;
-  renderIcons(document.getElementById('streakBadge'));
-  renderIcons(document.getElementById('pointsBadge'));
+  await updateTopBadges();
 
   // Day Records (local + from sheet)
   function buildDayRecords(sheetData) {

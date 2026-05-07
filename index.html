@@ -165,11 +165,7 @@
 
   // Update badges
   async function updateBadges() {
-    const streak = await getStreak();
-    document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
-    document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${await getTotalPoints()}</span>`;
-    renderIcons(document.getElementById('streakBadge'));
-    renderIcons(document.getElementById('pointsBadge'));
+    return updateTopBadges();
   }
   // Build calendar
   async function buildCalendar() {

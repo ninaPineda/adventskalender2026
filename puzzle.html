@@ -147,6 +147,8 @@ async function initPuzzlePage() {
       PUZZLE_DEFS[day].render(container, handleComplete);
     }
   }
+
+  window.retryPuzzle = retryPuzzle;
 }
 
 initPuzzlePage();

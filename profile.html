@@ -147,12 +147,9 @@
     document.getElementById('heroRank').textContent = solved ? 'Aktiv' : 'Start';
     document.getElementById('heroBest').textContent = bestPts || '–';
     document.getElementById('heroNext').textContent = nextGoal;
-    document.getElementById('streakBadge').innerHTML = `${iconHtml('flame', 'badge-icon')}<span>${streak.count}</span>`;
-    document.getElementById('pointsBadge').innerHTML = `${iconHtml('star', 'badge-icon')}<span>${total}</span>`;
+    setTopBadges(streak.count, total);
     document.getElementById('avatarCircle').innerHTML = iconHtml('user-round');
     renderIcons(document.getElementById('avatarCircle'));
-    renderIcons(document.getElementById('streakBadge'));
-    renderIcons(document.getElementById('pointsBadge'));
 
     const lastDay = streak.lastDay;
     document.getElementById('lastVisit').textContent = lastDay ? new Date(lastDay).toLocaleDateString('de-DE') : 'Noch nicht';
