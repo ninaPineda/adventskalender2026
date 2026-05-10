@@ -24,25 +24,21 @@ Ein interaktiver Adventskalender mit 24 täglichen Rätseln, gebaut für GitHub 
    - Branch: `main`, Folder: `/ (root)`
    - Speichern → Deine URL: `https://DEIN-USERNAME.github.io/advent-calendar/`
 
-## 📊 Google Sheets Setup
+## Supabase Setup
 
-Deine Tabelle braucht diese Spalten:
-| name | solved | points | timestamp |
-|------|--------|--------|-----------|
-| Max  | 3      | 250    | 2024-12-03T... |
+Die App nutzt Supabase Postgres fuer Username-Login, Sessions und Scores. Supabase Auth wird nicht verwendet, deshalb gibt es keine E-Mail-Adressen und keine E-Mail-Bestaetigung.
 
-`solved` enthält die Nummer des gelösten Tages. Die App kann zusätzlich auch alte `day`-Spalten lesen, falls noch ältere Einträge vorhanden sind.
+1. Lege ein Supabase-Projekt an.
+2. Fuehre `supabase/schema.sql` im Supabase SQL Editor aus.
+3. Kopiere Project URL und anon public key aus Project Settings -> API nach `js/supabase-config.js`.
 
-Wenn Punkte in der App nicht angezeigt werden, prüfe die Google-Apps-Script-Web-App: Sie muss beim Lesen auch `points` zurückgeben. Eine passende Vorlage liegt in `google-apps-script.js`.
+Das Schema erstellt:
 
-## 🔐 Login Setup
-
-Die User-Tabelle braucht diese Spalten:
-| username | passwordHash |
-|----------|--------------|
-| Max      | sha256...    |
-
-Die App hasht Passwörter im Browser mit SHA-256 und speichert nur den Hash. Eine passende Apps-Script-Vorlage liegt in `google-auth-apps-script.js`.
+- `app_users`: Username und Passwort-Hash
+- `app_sessions`: Login-Sessions fuer die statische App
+- `scores`: bester Score pro Spieler und Tag, mit `timestamp` fuer den letzten gespeicherten Bestwert
+- `public_users` und `leaderboard`: lesbare Views ohne Passwort-Hashes
+- RPC-Funktionen: `register_user`, `login_user`, `logout_user`, `submit_score`
 
 ## 🗂️ Dateistruktur
 ```
@@ -55,8 +51,11 @@ advent-calendar/
 ├── css/
 │   └── style.css       # Alle Styles (Light/Dark Theme)
 └── js/
-    ├── core.js         # Kern-Funktionen (Storage, Streak, API)
+    ├── core.js         # Kern-Funktionen (Supabase, Storage, Streak)
+    ├── supabase-config.js # Supabase URL und anon key
     └── puzzles.js      # Alle 24 Rätsel-Definitionen
+├── supabase/
+│   └── schema.sql      # Tabellen, RLS Policies und RPC-Funktion
 ```
 
 ## 🎮 Features
@@ -64,7 +63,7 @@ advent-calendar/
 - ✅ Tägliche Freischaltung (Datum-basiert)
 - ✅ Punktesystem mit Highscores pro Tag
 - ✅ Streak-System mit Flammen 🔥
-- ✅ Globale Rangliste via Google Sheets
+- ✅ Globale Rangliste via Supabase
 - ✅ Light / Dark Mode
 - ✅ Mobile-only (Desktop zeigt Hinweis)
 - ✅ Countdown bis Weihnachten

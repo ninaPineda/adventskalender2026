@@ -1,18 +1,15 @@
 // ── CONFIG ──────────────────────────────────────────────
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzewl84KjS__hMI7eeb1Upa-aQAQD-RtrfSS62CRvRXEUAbhibgdEvRhldODNfEeebGjA/exec';
-const READ_URL = SHEET_URL + '?callback=onScores';
-const AUTH_URL = 'https://script.google.com/macros/s/AKfycbzhDmg5P0cOmh0lQzL2LUplCdApUo96Y2rp62eLXOSUW105MNq6zC4BiQu5sR8CYjqx1A/exec';
-const AUTH_READ_URL = AUTH_URL + '?callback=onUsers';
-const SHEET_CACHE_TTL = 60 * 1000;
+const SCORE_CACHE_TTL = 60 * 1000;
 const USER_CACHE_TTL = 5 * 60 * 1000;
-const SHEET_CACHE_KEY = 'advent_sheet_cache_v1';
-const USER_CACHE_KEY = 'advent_user_cache_v1';
+const SCORE_CACHE_KEY = 'advent_supabase_score_cache_v1';
+const USER_CACHE_KEY = 'advent_supabase_user_cache_v1';
+const SESSION_TOKEN_KEY = 'advent_session_token_v1';
 const TEST_UNLOCK_ALL_PUZZLES = true;
 let leaderboardCache = null;
 let leaderboardPromise = null;
 let userCache = null;
 let userPromise = null;
-let jsonpCounter = 0;
+let supabaseClient = null;
 
 // ── PUZZLE METADATA ──────────────────────────────────────
 const PUZZLES = [
@@ -50,7 +47,10 @@ function setUserName(name) {
   localStorage.setItem('advent_name', normalizeUsername(name));
 }
 function clearUserName() {
+  const sessionToken = getSessionToken();
   localStorage.removeItem('advent_name');
+  localStorage.removeItem(SESSION_TOKEN_KEY);
+  if (sessionToken) logoutSession(sessionToken).catch(() => {});
 }
 function isLoggedIn() {
   return !!getUserName();
@@ -64,7 +64,31 @@ function normalizeUsername(name) {
   return String(name || '').trim();
 }
 function normalizeUsernameKey(name) {
-  return normalizeUsername(name).toLowerCase();
+  return normalizeUsername(name);
+}
+
+function getSessionToken() {
+  return localStorage.getItem(SESSION_TOKEN_KEY) || '';
+}
+
+function setSessionToken(token) {
+  if (token) localStorage.setItem(SESSION_TOKEN_KEY, String(token));
+}
+
+function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+  const config = window.ADVENT_SUPABASE || {};
+  const hasConfig = config.url
+    && config.anonKey
+    && !String(config.url).includes('YOUR-PROJECT-REF')
+    && !String(config.anonKey).includes('YOUR-SUPABASE-ANON-KEY');
+
+  if (!window.supabase || !hasConfig) {
+    throw new Error('Supabase ist noch nicht konfiguriert. Trage URL und anon key in js/supabase-config.js ein.');
+  }
+
+  supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+  return supabaseClient;
 }
 
 async function hashPassword(username, password) {
@@ -89,34 +113,16 @@ async function fetchUsers() {
   if (cached) return cached;
   if (userPromise) return userPromise;
 
-  userPromise = new Promise((resolve) => {
-    const id = createJsonpCallbackName('auth');
-    window[id] = (data) => {
-      delete window[id];
-      cleanupJsonpScript(id);
-      const rows = Array.isArray(data) ? data : [];
-      userCache = setSessionCache(USER_CACHE_KEY, rows);
+  userPromise = getSupabaseClient()
+    .from('public_users')
+    .select('username')
+    .order('username', { ascending: true })
+    .then(({ data, error }) => {
       userPromise = null;
-      resolve(rows);
-    };
-    const script = document.createElement('script');
-    script.dataset.jsonpId = id;
-    script.src = AUTH_READ_URL.replace('onUsers', id);
-    script.onerror = () => {
-      delete window[id];
-      cleanupJsonpScript(id);
-      userPromise = null;
-      resolve([]);
-    };
-    document.head.appendChild(script);
-    setTimeout(() => {
-      if (!window[id]) return;
-      delete window[id];
-      cleanupJsonpScript(id);
-      userPromise = null;
-      resolve([]);
-    }, 5000);
-  });
+      if (error) return getStaleSessionCache(USER_CACHE_KEY, userCache) || [];
+      userCache = setSessionCache(USER_CACHE_KEY, data || []);
+      return data || [];
+    });
 
   return userPromise;
 }
@@ -131,15 +137,23 @@ async function loginUser(username, password) {
   const cleanName = normalizeUsername(username);
   if (!cleanName || !password) return { ok: false, message: 'Bitte Username und Passwort eingeben.' };
 
-  const user = await findUser(cleanName);
-  if (!user) return { ok: false, message: 'Diesen Username gibt es noch nicht.' };
+  try {
+    const client = getSupabaseClient();
+    const passwordHash = await hashPassword(cleanName, password);
+    const { data, error } = await client.rpc('login_user', {
+      p_username: cleanName,
+      p_password_hash: passwordHash
+    });
 
-  const expectedHash = getUserRowHash(user);
-  const actualHash = await hashPassword(cleanName, password);
-  if (expectedHash !== actualHash) return { ok: false, message: 'Das Passwort stimmt nicht.' };
+    if (error) return { ok: false, message: 'Username oder Passwort stimmt nicht.' };
 
-  setUserName(getUserRowName(user) || cleanName);
-  return { ok: true, username: getUserName() };
+    const row = Array.isArray(data) ? data[0] : data;
+    setUserName(row?.username || cleanName);
+    setSessionToken(row?.session_token);
+    return { ok: true, username: getUserName() };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Login ist gerade nicht verfügbar.' };
+  }
 }
 
 async function registerUser(username, password) {
@@ -147,18 +161,33 @@ async function registerUser(username, password) {
   if (cleanName.length < 2) return { ok: false, message: 'Der Username ist zu kurz.' };
   if (password.length < 6) return { ok: false, message: 'Das Passwort braucht mindestens 6 Zeichen.' };
 
-  const existing = await findUser(cleanName);
-  if (existing) return { ok: false, message: 'Diesen Username gibt es schon.' };
-  const passwordhash = await hashPassword(cleanName, password);
-  const parameter = new URLSearchParams({
-    username: String(cleanName),
-    passwordhash: String(passwordhash)
-  });
+  try {
+    const existing = await findUser(cleanName);
+    if (existing) return { ok: false, message: 'Diesen Username gibt es schon.' };
 
-  fetch(AUTH_URL, { method: 'POST', mode: 'no-cors', body: parameter }).catch(() => {});
-  appendCachedUser({ username: cleanName, passwordhash });
-  setUserName(cleanName);
-  return { ok: true, username: cleanName };
+    const client = getSupabaseClient();
+    const passwordHash = await hashPassword(cleanName, password);
+    const { data, error } = await client.rpc('register_user', {
+      p_username: cleanName,
+      p_password_hash: passwordHash
+    });
+
+    if (error) return { ok: false, message: error.message || 'Account konnte nicht erstellt werden.' };
+
+    const row = Array.isArray(data) ? data[0] : data;
+    appendCachedUser({ username: row?.username || cleanName });
+    setUserName(row?.username || cleanName);
+    setSessionToken(row?.session_token);
+    return { ok: true, username: cleanName };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Registrierung ist gerade nicht verfügbar.' };
+  }
+}
+
+async function logoutSession(sessionToken) {
+  return getSupabaseClient().rpc('logout_user', {
+    p_session_token: sessionToken
+  });
 }
 function getTheme() {
   return document.documentElement.getAttribute('data-theme') || 'light';
@@ -184,7 +213,7 @@ function renderIcons() {
   });
 }
 
-// Streak aus Google-Sheet-Zeitstempeln berechnen
+// Streak aus gespeicherten Score-Zeitstempeln berechnen
 async function getStreak() {
   const name = getUserName();
   const rows = await fetchLeaderboard();
@@ -218,7 +247,7 @@ function checkStreakVisit() {
   return getStreak();
 }
 
-// ── GOOGLE SHEETS ────────────────────────────────────────
+// ── SCORE ROW HELPERS ────────────────────────────────────
 function getRowValue(row, names) {
   if (!row || typeof row !== 'object') return '';
   const normalized = {};
@@ -253,15 +282,6 @@ function getRowPoints(row) {
 
 function getRowTimestamp(row) {
   return getRowValue(row, ['timestamp', 'time', 'date', 'datum', 'zeit']);
-}
-
-function createJsonpCallbackName(prefix) {
-  jsonpCounter += 1;
-  return `${prefix}_${Date.now()}_${jsonpCounter}`;
-}
-
-function cleanupJsonpScript(id) {
-  document.querySelectorAll(`script[data-jsonp-id="${id}"]`).forEach(script => script.remove());
 }
 
 function getSessionCache(key, ttl, memoryCache) {
@@ -308,11 +328,14 @@ function appendCachedUser(row) {
 }
 
 function appendCachedScore(row) {
-  const cached = getStaleSessionCache(SHEET_CACHE_KEY, leaderboardCache) || [];
-  leaderboardCache = setSessionCache(SHEET_CACHE_KEY, [...cached, row]);
+  const cached = getStaleSessionCache(SCORE_CACHE_KEY, leaderboardCache) || [];
+  const withoutPrevious = cached.filter(entry => {
+    return !(getRowName(entry) === getRowName(row) && getRowDay(entry) === getRowDay(row));
+  });
+  leaderboardCache = setSessionCache(SCORE_CACHE_KEY, [...withoutPrevious, row]);
 }
 
-// Scores aus Google Sheets berechnen: { day: { pts, solved, timestamp } }
+// Scores aus Supabase berechnen: { day: { pts, solved, timestamp } }
 async function getScores() {
   const name = getUserName();
   const rows = await fetchLeaderboard();
@@ -350,8 +373,13 @@ async function saveScore(day, pts) {
   const prev = scores[day]?.pts || 0;
 
   if (pts > prev) {
-    logToSheet(day, pts);
-    return true; // new highscore
+    try {
+      await submitScore(day, pts);
+      return true; // new highscore
+    } catch (error) {
+      showToast('Score konnte nicht gespeichert werden.', 'error');
+      return false;
+    }
   }
 
   return false;
@@ -378,27 +406,31 @@ async function isSolved(day) {
   return !!scores[day]?.solved;
 }
 
-function logToSheet(day, pts) {
+async function submitScore(day, pts) {
   pts = normalizePuzzlePoints(pts);
   const name = getUserName();
-  const timestamp = new Date().toISOString();
-  const params = new URLSearchParams({
-    name,
-    day: String(day),
-    solved: String(day),
-    points: String(pts),
-    timestamp
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc('submit_score', {
+    p_session_token: getSessionToken(),
+    p_day: Number(day),
+    p_points: pts
   });
-  fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: params }).catch(() => {});
-  appendCachedScore({ name, day: String(day), solved: String(day), points: String(pts), timestamp });
+
+  if (error) throw error;
+
+  const saved = Array.isArray(data) ? data[0] : data;
+  const timestamp = saved?.submitted_at || saved?.timestamp || new Date().toISOString();
+  const points = saved?.points ?? pts;
+  appendCachedScore({ name, day: String(day), solved: String(day), points: String(points), timestamp });
+  return saved;
 }
 
 async function fetchLeaderboard(options = {}) {
   const force = options.force === true;
-  const cached = !force ? getSessionCache(SHEET_CACHE_KEY, SHEET_CACHE_TTL, leaderboardCache) : null;
+  const cached = !force ? getSessionCache(SCORE_CACHE_KEY, SCORE_CACHE_TTL, leaderboardCache) : null;
   if (cached) return cached;
 
-  const stale = !force ? getStaleSessionCache(SHEET_CACHE_KEY, leaderboardCache) : null;
+  const stale = !force ? getStaleSessionCache(SCORE_CACHE_KEY, leaderboardCache) : null;
   if (stale) {
     refreshLeaderboardCache();
     return stale;
@@ -410,35 +442,27 @@ async function fetchLeaderboard(options = {}) {
 function refreshLeaderboardCache() {
   if (leaderboardPromise) return leaderboardPromise;
 
-  leaderboardPromise = new Promise((resolve) => {
-    const stale = getStaleSessionCache(SHEET_CACHE_KEY, leaderboardCache) || [];
-    const id = createJsonpCallbackName('cb');
-    window[id] = (data) => {
-      delete window[id];
-      cleanupJsonpScript(id);
-      const rows = Array.isArray(data) ? data : [];
-      leaderboardCache = setSessionCache(SHEET_CACHE_KEY, rows);
+  const stale = getStaleSessionCache(SCORE_CACHE_KEY, leaderboardCache) || [];
+
+  leaderboardPromise = getSupabaseClient()
+    .from('leaderboard')
+    .select('name, day, solved, points, timestamp')
+    .order('points', { ascending: false })
+    .then(({ data, error }) => {
       leaderboardPromise = null;
-      resolve(rows);
-    };
-    const script = document.createElement('script');
-    script.dataset.jsonpId = id;
-    script.src = READ_URL.replace('onScores', id);
-    script.onerror = () => {
-      delete window[id];
-      cleanupJsonpScript(id);
-      leaderboardPromise = null;
-      resolve(stale);
-    };
-    document.head.appendChild(script);
-    setTimeout(() => {
-      if (!window[id]) return;
-      delete window[id];
-      cleanupJsonpScript(id);
-      leaderboardPromise = null;
-      resolve(stale);
-    }, 5000);
-  });
+      if (error) return stale;
+
+      const rows = (data || []).map(row => ({
+        name: row.name || 'Anonym',
+        day: String(row.day),
+        solved: String(row.day),
+        points: String(row.points),
+        timestamp: row.timestamp
+      }));
+
+      leaderboardCache = setSessionCache(SCORE_CACHE_KEY, rows);
+      return rows;
+    });
 
   return leaderboardPromise;
 }
