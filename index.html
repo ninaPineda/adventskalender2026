@@ -1,309 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>Adventskalender 2026</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Adventskalender</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<!-- TOP NAV -->
-<nav class="top-nav">
-  <div class="logo"><i data-lucide="tree-pine" class="logo-icon" aria-hidden="true"></i> Advent</div>
-  <div class="top-tabs" data-active="calendar" aria-label="Hauptnavigation">
-    <span class="tab-indicator" aria-hidden="true"></span>
-    <a class="top-tab active" data-tab="calendar" href="index.html">
-      <i data-lucide="calendar-days" aria-hidden="true"></i>
-      <span>Kalender</span>
-    </a>
-    <a class="top-tab" data-tab="highscore" href="highscore.html">
-      <i data-lucide="trophy" aria-hidden="true"></i>
-      <span>Highscore</span>
-    </a>
-    <button class="top-tab today-tab" type="button" onclick="goToToday()" aria-label="Zu heute springen">
-      <i data-lucide="rotate-cw" aria-hidden="true"></i>
-    </button>
-    <a class="top-tab" data-tab="profile" href="profile.html">
-      <i data-lucide="user" aria-hidden="true"></i>
-      <span>Profil</span>
-    </a>
-    <a class="top-tab" data-tab="howto" href="howto.html">
-      <i data-lucide="circle-help" aria-hidden="true"></i>
-      <span>Anleitung</span>
-    </a>
-  </div>
-  <div class="nav-actions">
-    <div class="streak-badge" id="streakBadge"><i data-lucide="flame" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
-    <div class="points-badge" id="pointsBadge"><i data-lucide="star" class="badge-icon" aria-hidden="true"></i><span>0</span></div>
-    <button class="theme-switch" id="themeBtn" onclick="toggleTheme()" type="button" aria-label="Dunkles Design umschalten" aria-pressed="false">
-      <span class="theme-switch-knob"></span>
-    </button>
-  </div>
-</nav>
-
-<!-- MAIN CONTENT -->
-<div class="page-content">
-  <section class="calendar-stage" aria-label="Adventskalender">
-    <button class="carousel-arrow left-arrow" type="button" onclick="moveCalendar(-1)" aria-label="Vorheriger Tag">
-      <i data-lucide="chevron-left" aria-hidden="true"></i>
-    </button>
-    <div class="calendar-carousel" id="calendarGrid"></div>
-    <button class="carousel-arrow right-arrow" type="button" onclick="moveCalendar(1)" aria-label="Nächster Tag">
-      <i data-lucide="chevron-right" aria-hidden="true"></i>
-    </button>
-    <div class="calendar-progress" id="calendarProgress" aria-label="Tage"></div>
-  </section>
-</div>
-
-<!-- LOCKED MODAL -->
-<div class="modal-overlay" id="lockedModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title"><i data-lucide="lock" class="logo-icon" aria-hidden="true"></i> Noch gesperrt</div>
-    <p class="modal-copy" id="lockedMsg">
-      Dieses Rätsel ist noch nicht freigeschaltet!
-    </p>
-    <button class="btn btn-ghost" onclick="closeModal('lockedModal')">OK, ich warte</button>
-  </div>
-</div>
-
-<!-- AUTH MODAL -->
-<div class="modal-overlay" id="authModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="auth-hero-icon"><i data-lucide="sparkles" aria-hidden="true"></i></div>
-    <div class="modal-title" id="authTitle">Einloggen</div>
-    <p class="modal-copy">
-      Sammle Punkte, halte deine Streak und tauche jeden Tag ein neues Türchen auf.
-    </p>
-    <div class="auth-benefits" aria-label="Vorteile">
-      <span><i data-lucide="star" aria-hidden="true"></i>Punkte</span>
-      <span><i data-lucide="flame" aria-hidden="true"></i>Streak</span>
-      <span><i data-lucide="trophy" aria-hidden="true"></i>Highscore</span>
-    </div>
-    <div class="auth-tabs">
-      <button class="btn btn-primary" id="loginTab" onclick="setAuthMode('login')">Login</button>
-      <button class="btn btn-ghost" id="registerTab" onclick="setAuthMode('register')">Registrieren</button>
-    </div>
-    <input class="input-field" type="text" id="authUsername" placeholder="Username" maxlength="20" autocomplete="username" />
-    <input class="input-field" type="password" id="authPassword" placeholder="Passwort" maxlength="80" autocomplete="current-password" />
-    <p id="authMessage" class="form-message"></p>
-    <button class="btn btn-primary" id="authSubmit" onclick="submitAuth()">Einloggen</button>
-  </div>
-</div>
-
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-config.js"></script>
-<script src="js/core.js"></script>
-<script>
-  // Init
-  applyTheme();
-  initSnow(18);
-  updateThemeSwitch();
-  renderIcons();
-
-  let authMode = 'login';
-  let currentCalendarIndex = 0;
-  let calendarCards = [];
-  let calendarProgressItems = [];
-  let touchStartX = null;
-
-  if (isLoggedIn()) {
-    loadHome();
-  } else {
-    openModal('authModal');
-  }
-
-  function setAuthMode(mode) {
-    authMode = mode;
-    const isRegister = mode === 'register';
-    document.getElementById('authTitle').textContent = isRegister ? 'Account erstellen' : 'Einloggen';
-    document.getElementById('authSubmit').textContent = isRegister ? 'Account erstellen' : 'Einloggen';
-    document.getElementById('authPassword').autocomplete = isRegister ? 'new-password' : 'current-password';
-    document.getElementById('loginTab').className = isRegister ? 'btn btn-ghost' : 'btn btn-primary';
-    document.getElementById('registerTab').className = isRegister ? 'btn btn-primary' : 'btn btn-ghost';
-    document.getElementById('authMessage').textContent = '';
-  }
-
-  async function submitAuth() {
-    const username = document.getElementById('authUsername').value;
-    const password = document.getElementById('authPassword').value;
-    const message = document.getElementById('authMessage');
-    const submit = document.getElementById('authSubmit');
-    submit.disabled = true;
-    submit.textContent = authMode === 'register' ? 'Erstelle Account...' : 'Logge ein...';
-    message.textContent = '';
-
-    const result = authMode === 'register'
-      ? await registerUser(username, password)
-      : await loginUser(username, password);
-
-    submit.disabled = false;
-    submit.textContent = authMode === 'register' ? 'Account erstellen' : 'Einloggen';
-
-    if (!result.ok) {
-      message.textContent = result.message;
-      return;
-    }
-
-    closeModal('authModal');
-    showToast('Willkommen, ' + result.username + '!', 'success');
-    loadHome();
-  }
-
-  function loadHome() {
-    updateBadges();
-    buildCalendar();
-  }
-  document.querySelectorAll('#authUsername, #authPassword').forEach(input => {
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
-  });
-
-  // Update badges
-  async function updateBadges() {
-    return updateTopBadges();
-  }
-  // Build calendar
-  async function buildCalendar() {
-    const grid = document.getElementById('calendarGrid');
-    const progress = document.getElementById('calendarProgress');
-    const scores = await getScores();
-    const today = getCalendarTodayDay();
-    grid.innerHTML = '';
-    progress.innerHTML = '';
-
-    PUZZLES.forEach(p => {
-      const card = document.createElement('div');
-      const score = scores[p.day];
-      const solved = score?.solved;
-      const isToday = p.day === today;
-      const state = getPuzzleUnlockState(p.day, scores);
-      const status = solved ? 'Gelöst' : state.unlocked ? 'Freigeschaltet' : state.reason === 'future' ? 'Zukunft' : 'Erst vorher lösen';
-
-      card.className = 'day-card ' + (solved ? 'solved' : state.unlocked ? 'unlocked' : `locked ${state.reason}-locked`);
-      card.dataset.day = p.day;
-      card.style.backgroundImage = `url(assets/covers/${p.day}.png)`;
-      card.innerHTML = `
-        ${isToday && !solved ? '<div class="today-pulse"></div>' : ''}
-        ${solved ? `<div class="score-chip">${iconHtml('star', 'badge-icon')}<span>${score.pts}</span></div>` : ''}
-      `;
-
-      card.addEventListener('click', () => {
-        const cardIndex = p.day - 1;
-        if (cardIndex !== currentCalendarIndex) {
-          currentCalendarIndex = cardIndex;
-          updateCarousel();
-          return;
-        }
-        if (!state.unlocked) {
-          document.getElementById('lockedMsg').textContent = state.message;
-          openModal('lockedModal');
-        } else {
-          window.location.href = `puzzle.html?day=${p.day}`;
-        }
-      });
-
-      grid.appendChild(card);
-
-      const progressItem = document.createElement('button');
-      progressItem.className = 'calendar-progress-item ' + (solved ? 'solved' : state.unlocked ? 'unlocked' : 'locked');
-      progressItem.type = 'button';
-      progressItem.setAttribute('aria-label', `Tag ${p.day}: ${status}`);
-      progressItem.addEventListener('click', () => goToDay(p.day));
-      progress.appendChild(progressItem);
-    });
-    calendarCards = Array.from(grid.querySelectorAll('.day-card'));
-    calendarProgressItems = Array.from(progress.querySelectorAll('.calendar-progress-item'));
-    currentCalendarIndex = Math.max(0, Math.min(23, today - 1));
-    updateCarousel();
-    setupSwipe();
-    renderIcons(grid);
-    renderIcons(progress);
-  }
-
-  function getCalendarTodayDay() {
-    const adventDay = getCurrentAdventDay();
-    if (adventDay) return adventDay;
-    return 1;
-  }
-
-  function updateCarousel() {
-    const total = calendarCards.length;
-    calendarCards.forEach((card, index) => {
-      card.classList.remove('active', 'left', 'right', 'far-left', 'far-right');
-      if (index === currentCalendarIndex) {
-        card.classList.add('active');
-      } else if (index === (currentCalendarIndex - 1 + total) % total) {
-        card.classList.add('left');
-      } else if (index === (currentCalendarIndex + 1) % total) {
-        card.classList.add('right');
-      } else if (index === (currentCalendarIndex - 2 + total) % total) {
-        card.classList.add('far-left');
-      } else if (index === (currentCalendarIndex + 2) % total) {
-        card.classList.add('far-right');
-      }
-    });
-    calendarProgressItems.forEach((item, index) => {
-      item.classList.toggle('active', index === currentCalendarIndex);
-    });
-  }
-
-  function moveCalendar(direction) {
-    if (!calendarCards.length) return;
-    currentCalendarIndex = (currentCalendarIndex + direction + calendarCards.length) % calendarCards.length;
-    updateCarousel();
-  }
-
-  function goToDay(day) {
-    if (!calendarCards.length) return;
-    currentCalendarIndex = Math.max(0, Math.min(calendarCards.length - 1, day - 1));
-    updateCarousel();
-  }
-
-  function goToToday() {
-    goToDay(getCalendarTodayDay());
-  }
-
-  function setupSwipe() {
-    const stage = document.querySelector('.calendar-stage');
-    if (!stage || stage.dataset.swipeReady) return;
-    stage.dataset.swipeReady = 'true';
-    stage.addEventListener('pointerdown', e => {
-      touchStartX = e.clientX;
-    });
-    stage.addEventListener('pointerup', e => {
-      if (touchStartX === null) return;
-      const delta = e.clientX - touchStartX;
-      touchStartX = null;
-      if (Math.abs(delta) < 42) return;
-      moveCalendar(delta > 0 ? -1 : 1);
-    });
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft') moveCalendar(-1);
-    if (e.key === 'ArrowRight') moveCalendar(1);
-  });
-  function openModal(id) {
-    document.getElementById(id).classList.add('open');
-  }
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-  }
-  // Close modal on overlay click
-  document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => {
-      if (e.target !== m) return;
-      if (m.id === 'authModal' && !isLoggedIn()) return;
-      m.classList.remove('open');
-    });
-  });
-</script>
+  <header class="topbar"><span>Fortschritt <b class="progress-count">0/24</b></span> <span><a href="coins.html" class="coin-count"> 0 </a> 🪙</span></header>
+  <main>
+    <h1>Adventskalender</h1>
+    <ul class="day-list">
+      <li><a class="day-link" data-day="1" href="tage/template.html?tag=1"><span class="day-no">1</span><span>Tag 1</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="2" href="tage/template.html?tag=2"><span class="day-no">2</span><span>Tag 2</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="3" href="tage/template.html?tag=3"><span class="day-no">3</span><span>Tag 3</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="4" href="tage/template.html?tag=4"><span class="day-no">4</span><span>Tag 4</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="5" href="tage/template.html?tag=5"><span class="day-no">5</span><span>Tag 5</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="6" href="tage/template.html?tag=6"><span class="day-no">6</span><span>Tag 6</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="7" href="tage/template.html?tag=7"><span class="day-no">7</span><span>Tag 7</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="8" href="tage/template.html?tag=8"><span class="day-no">8</span><span>Tag 8</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="9" href="tage/template.html?tag=9"><span class="day-no">9</span><span>Tag 9</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="10" href="tage/template.html?tag=10"><span class="day-no">10</span><span>Tag 10</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="11" href="tage/template.html?tag=11"><span class="day-no">11</span><span>Tag 11</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="12" href="tage/template.html?tag=12"><span class="day-no">12</span><span>Tag 12</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="13" href="tage/template.html?tag=13"><span class="day-no">13</span><span>Tag 13</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="14" href="tage/template.html?tag=14"><span class="day-no">14</span><span>Tag 14</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="15" href="tage/template.html?tag=15"><span class="day-no">15</span><span>Tag 15</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="16" href="tage/template.html?tag=16"><span class="day-no">16</span><span>Tag 16</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="17" href="tage/template.html?tag=17"><span class="day-no">17</span><span>Tag 17</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="18" href="tage/template.html?tag=18"><span class="day-no">18</span><span>Tag 18</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="19" href="tage/template.html?tag=19"><span class="day-no">19</span><span>Tag 19</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="20" href="tage/template.html?tag=20"><span class="day-no">20</span><span>Tag 20</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="21" href="tage/template.html?tag=21"><span class="day-no">21</span><span>Tag 21</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="22" href="tage/template.html?tag=22"><span class="day-no">22</span><span>Tag 22</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="23" href="tage/template.html?tag=23"><span class="day-no">23</span><span>Tag 23</span><span class="day-status"></span></a></li>
+      <li><a class="day-link" data-day="24" href="tage/template.html?tag=24"><span class="day-no">24</span><span>Tag 24</span><span class="day-status"></span></a></li>
+    </ul>
+  </main>
+  <nav class="bottombar"><a href="highscores.html" data-slide="left">🏆</a><a href="index.html" aria-current="page">⌂</a><a href="profile.html" data-slide="right">👤</a></nav>
+  <script src="app.js"></script>
 </body>
 </html>

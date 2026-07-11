@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Coins</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><a href="../index.html">←</a><span>Fortschritt <b class="progress-count">0/24</b></span><span><b class="coin-count">0</b> 🪙</span></header>
+  <main>
+    <h1>Coins</h1>
+    <button class="btn" onclick="openExplanaition()">Wie spiele ich?</button>
+    <dialog id="hintDialog"><p>Tippe Coins an, bis das Muster oben stimmt. Alle 5 Level gibt es extra Coins.</p><button onclick="closeHint()">Ok</button></dialog>
+    <section class="question stats"><span id="moves"></span><b id="level"></b><span id="tries-display"></span></section>
+    <div class="field-container"><div id="target-field" class="target-field"></div><div id="play-field" class="play-field"></div><button class="btn" id="reset-btn">Neu starten</button></div>
+    <div id="overlay" class="hidden"><div class="overlay-content"><p id="overlay-text"></p></div></div>
+    <div id="failOverlay" class="hidden"></div>
+  </main>
+  <nav class="bottombar"><a href="highscores.html" data-slide="left">🏆</a><a href="index.html" aria-current="page">⌂</a><a href="profile.html" data-slide="right">👤</a></nav>
+  <script src="app.js"></script>
+  <script src="coinGame.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</body>
+</html>

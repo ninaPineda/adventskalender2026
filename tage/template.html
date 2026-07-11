@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Adventskalender</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header class="topbar"><a href="../index.html">←</a><span>Fortschritt <b class="progress-count">0/24</b></span><span><b class="coin-count">0</b> 🪙</span></header>
+  <main>
+    <h1 class="page-title">Tag</h1>
+    <button id="hint-button" class="btn" type="button" onclick="showCheckDialog()">Hinweis für 10 Coins</button>
+    <dialog id="hintDialog"><p id="hintText"></p><button class="btn" onclick="closeHint()">Ok</button></dialog>
+    <dialog id="checkDialog"><p>10 Coins für einen Hinweis ausgeben?</p><button onclick="openHint()">Ja</button><button onclick="closeCheckDialog()">Nein</button></dialog>
+    <dialog id="noCoinsDialog"><p>Du hast nicht genug Coins.</p><button onclick="closeNoCoinsDialog()">Ok</button></dialog>
+    <dialog id="noAnswerDialog"><p>Du hast nicht genug Coins zum Antworten.</p><button onclick="closeNoAnswerDialog()">Ok</button></dialog>
+    <div id="daySlot"></div>
+    <div id="failOverlay" class="hidden"></div>
+  </main>
+  <nav class="bottombar"><a href="../highscores.html" data-slide="left">🏆</a><a href="../index.html" aria-current="page">⌂</a><a href="../profile.html" data-slide="right">👤</a></nav>
+  <script src="../app.js"></script>
+  <script src="gamey.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</body>
+</html>

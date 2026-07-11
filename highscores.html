@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bestenliste</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><span>Fortschritt <b class="progress-count">0/24</b></span> <span><a href="coins.html" class="coin-count"> 0 </a> 🪙</span></header>
+  <main><h1>Leaderboard</h1><p class="subtitle">Advent 2026</p><div id="scoreList">Lade...</div></main>
+  <nav class="bottombar"><a href="highscores.html" aria-current="page">🏆</a><a href="index.html" data-slide="right">⌂</a><a href="profile.html" data-slide="right">👤</a></nav>
+    <script>
+    function onScores(data) {
+      const bestPerDay = new Map(), totals = {};
+      data.map((row) => {
+        const m = String(row.solved || "").match(/(?:Tag\s*)?(\d+)/i);
+        const date = new Date(row.timestamp);
+        return m && {
+          name: row.name || "Unbekannt",
+          tag: Number(m[1]),
+          points: Number(String(row.points || 0).replace(",", ".")) || 0,
+          time: date.getHours() * 60 + date.getMinutes(),
+        };
+      }).filter(Boolean).forEach((row) => {
+        const key = `${row.name}-${row.tag}`;
+        const old = bestPerDay.get(key);
+        if (!old || row.points > old.points || (row.points === old.points && row.time < old.time)) {
+          bestPerDay.set(key, row);
+        }
+      });
+      bestPerDay.forEach((row) => {
+        totals[row.name] ||= { points: 0, time: 0, count: 0 };
+        totals[row.name].points += row.points;
+        totals[row.name].time += row.time;
+        totals[row.name].count += 1;
+      });
+      const leaders = Object.entries(totals).sort((a, b) =>
+        b[1].points - a[1].points || (a[1].time / a[1].count) - (b[1].time / b[1].count)
+      );
+      const initial = (name) => name.trim().charAt(0).toUpperCase();
+      const card = ([name, data], rank) => `<div class="podium-card"><span class="avatar">${initial(name)}</span><b>${name}</b><span>🪙 ${data.points}</span><strong>${rank}</strong></div>`;
+      document.getElementById("scoreList").innerHTML = leaders.length
+        ? `<div class="podium">
+            ${leaders[1] ? card(leaders[1], 2) : ""}
+            ${leaders[0] ? card(leaders[0], 1) : ""}
+            ${leaders[2] ? card(leaders[2], 3) : ""}
+          </div>
+          <div class="rank-list">
+            ${leaders.slice(3).map(([name, data], i) => `<p class="rank-row"><b>${i + 4}</b><span>${name}</span><b>🪙 ${data.points}</b></p>`).join("")}
+          </div>`
+        : "Noch keine Einträge.";
+    }
+  </script>
+  <script src="https://script.google.com/macros/s/AKfycbzBXhZt7SykZXRvw5vUmxIMQixHFJXdD0ufDHI73kA1-qD-fev7YrWl81QFtBTnyNh1kA/exec?callback=onScores"></script>
+  <script src="app.js"></script>
+</body>
+</html>
