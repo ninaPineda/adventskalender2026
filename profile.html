@@ -7,13 +7,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar"><span>Fortschritt <b class="progress-count">0/24</b></span> <span><a href="coins.html" class="coin-count"> 0 </a> 🪙</span></header>
+  <header class="topbar"><b class="progress-count">0/24</b><span><a href="coins.html" class="coin-count">0</a> 🪙</span></header>
   <main>
     <h1>Profil</h1>
     <section class="question">Name: <b id="profileName"></b></section>
     <section class="question"><h2>Gelöste Tage</h2><div class="profile-days" id="profileDays"></div></section>
   </main>
-  <nav class="bottombar"><a href="highscores.html" data-slide="left">🏆</a><a href="index.html" data-slide="left">⌂</a><a href="profile.html" aria-current="page">👤</a></nav>
+  <nav class="bottombar">
+    <a href="highscores.html" data-slide="left" aria-label="Bestenliste"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20v-7h4v7"/><path d="M10 20V8h4v12"/><path d="M14 20v-5h4v5"/></svg></a>
+    <a href="index.html" data-slide="left" aria-label="Start"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M6 10.5V20h12v-9.5"/></svg></a>
+    <a href="profile.html" aria-current="page" aria-label="Profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+  </nav>
   <script src="app.js"></script>
 </body>
 </html>

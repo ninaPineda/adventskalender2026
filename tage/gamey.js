@@ -78,7 +78,6 @@ function checkAnswer(day) {
   const userAnswer = document
   .getElementById("answerInput")
   .value
-  .toLowerCase()
   .trim();
   let correctAnswers = [];
 
@@ -346,7 +345,10 @@ function checkAnswer(day) {
     ];
 }
 
-  if (correctAnswers.includes(userAnswer)) {
+  const exampleAnswer = document.querySelector("[data-answer]")?.dataset.answer;
+  if (exampleAnswer) correctAnswers = [exampleAnswer];
+
+  if (correctAnswers.map((answer) => normalize(String(answer))).includes(normalize(userAnswer))) {
     // Zwischensteps
     if ([31, 32, 33, 34, 51, 52, 53, 54, 151, 152, 221, 222, 223, 224].includes(day)) {
       // Nächsten Step berechnen
@@ -376,6 +378,6 @@ function checkAnswer(day) {
       rightSolution(day);
     }
   } else {
-    wrongSolution();
+    wrongSolution(day);
   }
 }
