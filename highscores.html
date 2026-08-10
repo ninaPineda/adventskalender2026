@@ -42,16 +42,34 @@
         b[1].points - a[1].points || solvedPerPlayer.get(b[0]).size - solvedPerPlayer.get(a[0]).size || a[1].timestamp - b[1].timestamp
       );
       const initial = (name) => name.trim().charAt(0).toUpperCase();
-      const card = ([name, data], rank) => `<div class="podium-card"><span class="avatar">${initial(name)}</span><b>${name}</b><span>🪙 ${data.points}</span><strong>${rank}</strong></div>`;
+      const card = ([name, data], rank) => `<div class="podium-card podium-${rank}">
+        <span class="crown" aria-hidden="true">♛</span>
+        <span class="podium-rank">${rank}</span>
+        <span class="avatar">${initial(name)}</span>
+        <b>${name}</b>
+        <span class="coin-pill">🪙 ${data.points}</span>
+        <strong>${rank}</strong>
+      </div>`;
+      const row = ([name, data], i) => `<p class="rank-row">
+        <b>${i + 4}</b>
+        <span class="avatar mini">${initial(name)}</span>
+        <span>${name}</span>
+        <b class="coin-pill">🪙 ${data.points}</b>
+      </p>`;
       document.getElementById("scoreList").innerHTML = leaders.length
-        ? `<div class="podium">
+        ? `<section class="leaderboard-card">
+          <div class="podium">
             ${leaders[1] ? card(leaders[1], 2) : ""}
             ${leaders[0] ? card(leaders[0], 1) : ""}
             ${leaders[2] ? card(leaders[2], 3) : ""}
           </div>
+        </section>
+        <section class="leaderboard-card leaderboard-table">
+          <div class="rank-head"><b>Rank</b><b>Player</b><b>Coins</b></div>
           <div class="rank-list">
-            ${leaders.slice(3).map(([name, data], i) => `<p class="rank-row"><b>${i + 4}</b><span>${name}</span><b>🪙 ${data.points}</b></p>`).join("")}
-          </div>`
+            ${leaders.slice(3).map(row).join("")}
+          </div>
+        </section>`
         : "Noch keine Einträge.";
     }
   </script>
