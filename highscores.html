@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bestenliste</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><b class="progress-count">0/24</b><span><a href="coins.html" class="coin-count">0</a> 🪙</span></header>
+  <main><h1>Leaderboard</h1><p class="subtitle">Advent 2026</p><div id="scoreList">Lade...</div></main>
+  <nav class="bottombar">
+    <a href="highscores.html" aria-current="page" aria-label="Bestenliste"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20v-7h4v7"/><path d="M10 20V8h4v12"/><path d="M14 20v-5h4v5"/></svg></a>
+    <a href="index.html" data-slide="right" aria-label="Start"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M6 10.5V20h12v-9.5"/></svg></a>
+    <a href="profile.html" data-slide="right" aria-label="Profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+  </nav>
+    <script>
+    function onScores(data) {
+      const latestPerPlayer = new Map();
+      const solvedPerPlayer = new Map();
+      data.map((row) => {
+        const m = String(row.solved || "").match(/(?:Tag\s*)?(\d+)/i);
+        const date = new Date(row.timestamp);
+        return m && {
+          name: row.name || "Unbekannt",
+          tag: Number(m[1]),
+          points: Number(String(row.points || 0).replace(",", ".")) || 0,
+          timestamp: date.getTime() || 0,
+        };
+      }).filter(Boolean).forEach((row) => {
+        if (!solvedPerPlayer.has(row.name)) solvedPerPlayer.set(row.name, new Set());
+        solvedPerPlayer.get(row.name).add(row.tag);
+        const old = latestPerPlayer.get(row.name);
+        if (!old || row.timestamp > old.timestamp) {
+          latestPerPlayer.set(row.name, {
+            points: row.points,
+            timestamp: row.timestamp,
+          });
+        }
+      });
+      const leaders = [...latestPerPlayer].sort((a, b) =>
+        b[1].points - a[1].points || solvedPerPlayer.get(b[0]).size - solvedPerPlayer.get(a[0]).size || a[1].timestamp - b[1].timestamp
+      );
+      const initial = (name) => name.trim().charAt(0).toUpperCase();
+      const card = ([name, data], rank) => `<div class="podium-card"><span class="avatar">${initial(name)}</span><b>${name}</b><span>🪙 ${data.points}</span><strong>${rank}</strong></div>`;
+      document.getElementById("scoreList").innerHTML = leaders.length
+        ? `<div class="podium">
+            ${leaders[1] ? card(leaders[1], 2) : ""}
+            ${leaders[0] ? card(leaders[0], 1) : ""}
+            ${leaders[2] ? card(leaders[2], 3) : ""}
+          </div>
+          <div class="rank-list">
+            ${leaders.slice(3).map(([name, data], i) => `<p class="rank-row"><b>${i + 4}</b><span>${name}</span><b>🪙 ${data.points}</b></p>`).join("")}
+          </div>`
+        : "Noch keine Einträge.";
+    }
+  </script>
+  <script src="https://script.google.com/macros/s/AKfycbzBXhZt7SykZXRvw5vUmxIMQixHFJXdD0ufDHI73kA1-qD-fev7YrWl81QFtBTnyNh1kA/exec?callback=onScores"></script>
+  <script src="app.js"></script>
+</body>
+</html>

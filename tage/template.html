@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Adventskalender</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header class="topbar"><a href="../index.html">←</a><b class="progress-count">0/24</b><span><b class="coin-count">0</b> 🪙</span></header>
+  <main>
+    <h1 class="page-title">Tag</h1>
+    <button id="hint-button" class="btn" type="button" onclick="showCheckDialog()">Hinweis für 5 Punkte</button>
+    <dialog id="hintDialog"><p id="hintText"></p><button class="btn" onclick="closeHint()">Ok</button></dialog>
+    <dialog id="checkDialog"><p>5 Punkte für einen Hinweis ausgeben?</p><button onclick="openHint()">Ja</button><button onclick="closeCheckDialog()">Nein</button></dialog>
+    <dialog id="noCoinsDialog"><p>Du hast nicht genug Punkte.</p><button onclick="closeNoCoinsDialog()">Ok</button></dialog>
+    <div id="daySlot"></div>
+    <div id="failOverlay" class="hidden"></div>
+  </main>
+  <nav class="bottombar">
+    <a href="../highscores.html" data-slide="left" aria-label="Bestenliste"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20v-7h4v7"/><path d="M10 20V8h4v12"/><path d="M14 20v-5h4v5"/></svg></a>
+    <a href="../index.html" aria-current="page" aria-label="Start"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M6 10.5V20h12v-9.5"/></svg></a>
+    <a href="../profile.html" data-slide="right" aria-label="Profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+  </nav>
+  <script src="../app.js"></script>
+  <script src="gamey.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</body>
+</html>
