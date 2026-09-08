@@ -1,11 +1,15 @@
 <section class="question geoguessr" data-target-lat="51.5050468" data-target-lng="-0.1180041">
   <p class="eyebrow">Weihnachts-GeoGuessr</p>
   <h2>Wo steht dieser Weihnachtsmarkt?</h2>
-  <img
-    class="streetview-frame"
-    alt="Street View Rätselbild von einem Weihnachtsmarkt"
-    loading="lazy"
-    src="https://lh3.googleusercontent.com/gpms-cs-s/AFP8RcOtntAuRzoY8e5gER4ka_3LBs1TpBeM2R2B189OPwkGgN5ygsw-XMnKq5AFiFfW0WVVzPb49gNtTd74mbn04KJgZvtTegA-sXN2IxqxvJBSUodKHFWMSCvsCmSr9eRZkApkPzj0Iw=w900-h600-k-no-pi31.844940426426128-ya59.13830649118894-ro0-fo100">
+  <div class="streetview-shell" aria-label="Interaktives Street View Rätsel">
+    <iframe
+      class="streetview-frame"
+      title="Street View Rätsel"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      src="https://maps.google.com/maps?q=&layer=c&cbll=51.5050468,-0.1180041&cbp=11,59.14,0,0,58.16&output=svembed">
+    </iframe>
+  </div>
   <p>Setze deinen Pin auf der Karte. Je näher du am echten Ort bist, desto mehr Punkte bekommst du.</p>
   <div id="guessMap" class="guess-map" role="application" aria-label="Karte zum Pin setzen"></div>
   <p id="geoGuessResult" class="guess-result">Noch kein Pin gesetzt.</p>

@@ -385,7 +385,7 @@ dialog {
   text-transform: uppercase;
 }
 
-.streetview-frame,
+.streetview-shell,
 .guess-map {
   width: 100%;
   border-top: 2px solid #9b8764;
@@ -395,11 +395,23 @@ dialog {
   border-radius: .7rem;
 }
 
+.streetview-shell {
+  position: relative;
+  height: 22rem;
+  overflow: hidden;
+  background: #d9dfd0;
+}
+
+.streetview-shell::before {
+  content: none;
+}
+
 .streetview-frame {
   display: block;
-  height: 22rem;
-  object-fit: cover;
-  object-position: center;
+  width: 100%;
+  height: calc(100% + 4.2rem);
+  margin-top: -4.2rem;
+  border: 0;
 }
 
 .guess-map {
@@ -751,7 +763,7 @@ img, svg, canvas, video {
     border-radius: .8rem;
   }
 
-  .streetview-frame {
+  .streetview-shell {
     height: 19rem;
   }
 
