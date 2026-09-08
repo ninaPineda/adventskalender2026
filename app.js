@@ -198,7 +198,7 @@ async function loadDayContent() {
   const day = dayFromURL();
   $(".page-title").textContent = `Tag ${day}`;
   try {
-    slot.innerHTML = await (await fetch(`./content/${day}.html`)).text();
+    slot.innerHTML = await (await fetch(`./content/${day}.html`, { cache: "no-store" })).text();
   } catch {
     slot.innerHTML = `<section class="question">Dieser Tag ist noch leer.</section>`;
   }
@@ -212,6 +212,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderShell();
   renderProfile();
   setupSlide();
-  loadDayContent();
+  await loadDayContent();
+  window.initDayGame?.(dayFromURL());
   updateHintButton();
 });
