@@ -1,7 +1,15 @@
-<section class="question" data-answer="RightAnswer">
-  <p>Examplequestion</p>
-  <p><b>RightAnswer</b> / WrongAnswer</p>
-  <input id="answerInput" class="answer-input" type="text" autocomplete="off" placeholder="Antwort">
+<section class="question piano-puzzle">
+  <div class="piano-heading">
+    <div>
+      <p class="eyebrow">Weihnachts-Piano</p>
+      <h2>Spiel „Oh Tannenbaum“ nach</h2>
+    </div>
+  </div>
+  <p class="piano-rules">Hör dir die Melodie an und spiel sie danach nach. Jeder Fehler kostet 1 Punkt.</p>
+  <p id="pianoStatus" class="piano-status">Tippe auf Play.</p>
+  <div id="pianoKeys" class="piano-keys" aria-label="Klavier"></div>
+  <div class="piano-actions">
+    <button id="playPianoDemo" class="btn piano-play-btn" type="button" aria-label="Melodie vorspielen">▶</button>
+  </div>
   <p id="attemptInfo"></p>
-  <button class="btn" type="button" onclick="checkAnswer(2)">Antwort prüfen</button>
 </section>

@@ -177,9 +177,11 @@ function showHintDirect() {
 function openHint() {
   closeCheckDialog();
   const day = dayFromURL();
+  if (hints.has(day)) return showHintDirect();
   if (!updatePoints(-5)) return $("#noCoinsDialog")?.showModal();
   hints.add(day);
   save();
+  logSolved(day);
   updateHintButton();
   showHintDirect();
 }

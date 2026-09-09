@@ -44,7 +44,6 @@
       const initial = (name) => name.trim().charAt(0).toUpperCase();
       const card = ([name, data], rank) => `<div class="podium-card podium-${rank}">
         <span class="crown" aria-hidden="true">♛</span>
-        <span class="podium-rank">${rank}</span>
         <span class="avatar">${initial(name)}</span>
         <b>${name}</b>
         <span class="coin-pill">🪙 ${data.points}</span>

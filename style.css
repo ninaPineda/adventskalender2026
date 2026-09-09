@@ -430,6 +430,143 @@ dialog {
   font-family: system-ui, sans-serif;
 }
 
+.piano-puzzle {
+  display: grid;
+  gap: .85rem;
+}
+
+.piano-puzzle h2,
+.piano-puzzle p {
+  margin: 0;
+}
+
+.piano-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: .8rem;
+}
+
+.piano-status {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.piano-rules {
+  color: var(--text);
+  font-size: .98rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+#attemptInfo {
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.piano-keys {
+  position: relative;
+  min-height: 13rem;
+  padding: .7rem .7rem .9rem;
+  background: var(--evergreen);
+  border-top: 2px solid #ffffff;
+  border-right: 2px solid #9b8764;
+  border-bottom: 2px solid #9b8764;
+  border-left: 2px solid #ffffff;
+  border-radius: .7rem;
+}
+
+.piano-white-keys {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  height: 11.4rem;
+  gap: .12rem;
+}
+
+.piano-key {
+  display: grid;
+  place-items: end center;
+  min-width: 0;
+  padding: .65rem .25rem;
+  color: var(--text);
+  border-top: 2px solid #ffffff;
+  border-right: 2px solid #9b8764;
+  border-bottom: 2px solid #9b8764;
+  border-left: 2px solid #ffffff;
+  font-family: Fredoka, system-ui, sans-serif;
+  font-weight: 900;
+}
+
+.white-key {
+  height: 100%;
+  background: var(--snow);
+  border-radius: .15rem .15rem .45rem .45rem;
+}
+
+.piano-key.black-key {
+  position: absolute;
+  top: .7rem;
+  left: calc((100% - 1.4rem) / 8 * var(--key-position) - ((100% - 1.4rem) / 8 * .27) + .7rem);
+  z-index: 2;
+  width: calc((100% - 1.4rem) / 8 * .54);
+  height: 7.1rem;
+  padding: .45rem .1rem;
+  color: var(--snow);
+  background: #243528;
+  border-top-color: #5f7b64;
+  border-right-color: #111a13;
+  border-bottom-color: #111a13;
+  border-left-color: #5f7b64;
+  border-radius: .1rem .1rem .32rem .32rem;
+  font-size: .72rem;
+}
+
+.piano-key.active,
+.piano-key:active {
+  color: var(--text);
+  background: var(--line);
+  border-top-color: #9b8764;
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
+  border-left-color: #9b8764;
+}
+
+.piano-key:disabled {
+  opacity: .74;
+}
+
+.piano-actions {
+  display: grid;
+  grid-template-columns: 3.2rem;
+  gap: .6rem;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.piano-play-btn {
+  min-height: 3.2rem;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn.secondary {
+  color: var(--text);
+  background: var(--surface);
+  border-top-color: #ffffff;
+  border-right-color: #9b8764;
+  border-bottom-color: #9b8764;
+  border-left-color: #ffffff;
+}
+
+.btn.secondary:active {
+  border-top-color: #9b8764;
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
+  border-left-color: #9b8764;
+}
+
 .profile-days { grid-template-columns: repeat(6, 1fr); text-align: center; }
 .profile-days span {
   color: var(--text);
@@ -769,6 +906,35 @@ img, svg, canvas, video {
 
   .guess-map {
     min-height: 16rem;
+  }
+
+  .piano-keys {
+    gap: .18rem;
+    min-height: 9.5rem;
+    padding: .35rem;
+  }
+
+  .piano-white-keys {
+    height: 9.2rem;
+  }
+
+  .piano-key {
+    min-height: 8.7rem;
+    padding: .5rem .15rem;
+    font-size: .92rem;
+  }
+
+  .piano-key.black-key {
+    top: .35rem;
+    left: calc((100% - .7rem) / 8 * var(--key-position) - ((100% - .7rem) / 8 * .27) + .35rem);
+    width: calc((100% - .7rem) / 8 * .54);
+    height: 5.8rem;
+    min-height: 0;
+    font-size: .62rem;
+  }
+
+  .piano-actions {
+    gap: .45rem;
   }
 
   .profile-days {

@@ -116,6 +116,10 @@ function scoreGeoGuess(distance) {
   return Math.max(0, Math.round((10 * (1 - (distance - 1) / 999)) * 10) / 10);
 }
 
+function pointsForPiano() {
+  return Math.max(10 - (Number(wrongAttempts[2]) || 0), 0);
+}
+
 async function initGeoGuessr() {
   const game = document.querySelector(".geoguessr");
   const mapEl = document.getElementById("guessMap");
@@ -168,8 +172,171 @@ async function initGeoGuessr() {
   });
 }
 
+function playTone(frequency, duration = 420) {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  const context = playTone.context || new AudioContext();
+  playTone.context = context;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+
+  oscillator.type = "triangle";
+  oscillator.frequency.value = frequency;
+  gain.gain.setValueAtTime(0.0001, context.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.28, context.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration / 1000);
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start();
+  oscillator.stop(context.currentTime + duration / 1000 + 0.03);
+}
+
+function launchSuccessConfetti() {
+  if (typeof confetti !== "function") return;
+  const style = getComputedStyle(document.documentElement);
+  confetti({
+    particleCount: 180,
+    spread: 85,
+    startVelocity: 45,
+    scalar: 1.2,
+    origin: { y: 0.78 },
+    colors: [
+      style.getPropertyValue("--accent").trim(),
+      style.getPropertyValue("--holly").trim(),
+      style.getPropertyValue("--evergreen").trim(),
+      style.getPropertyValue("--line").trim(),
+    ],
+    zIndex: 9999,
+  });
+}
+
+function initPianoPuzzle() {
+  const puzzle = document.querySelector(".piano-puzzle");
+  const keysEl = document.getElementById("pianoKeys");
+  const status = document.getElementById("pianoStatus");
+  const demoButton = document.getElementById("playPianoDemo");
+  const attemptInfo = document.getElementById("attemptInfo");
+  if (!puzzle || !keysEl || !status || !demoButton || !attemptInfo) return;
+
+  const notes = [
+    { id: "c", label: "C", frequency: 261.63, type: "white" },
+    { id: "cs", label: "Cis", frequency: 277.18, type: "black", position: 1 },
+    { id: "d", label: "D", frequency: 293.66, type: "white" },
+    { id: "ds", label: "Dis", frequency: 311.13, type: "black", position: 2 },
+    { id: "e", label: "E", frequency: 329.63, type: "white" },
+    { id: "f", label: "F", frequency: 349.23, type: "white" },
+    { id: "fs", label: "Fis", frequency: 369.99, type: "black", position: 4 },
+    { id: "g", label: "G", frequency: 392.00, type: "white" },
+    { id: "gs", label: "Gis", frequency: 415.30, type: "black", position: 5 },
+    { id: "a", label: "A", frequency: 440.00, type: "white" },
+    { id: "as", label: "Ais", frequency: 466.16, type: "black", position: 6 },
+    { id: "b", label: "B", frequency: 493.88, type: "white" },
+    { id: "c5", label: "C'", frequency: 523.25, type: "white" },
+  ];
+  const melody = ["c", "f", "f", "f", "g", "a", "a", "a", "a", "g", "a", "as", "e", "g", "f"];
+  let expectedIndex = 0;
+  let demoPlaying = false;
+  let demoHasPlayed = false;
+  const buttons = new Map();
+
+  const updatePianoPoints = () => {
+    attemptInfo.textContent = `Punkte: ${pointsForPiano()} / 10`;
+  };
+
+  const setKeysDisabled = (disabled) => {
+    buttons.forEach((button) => {
+      button.disabled = disabled;
+    });
+  };
+
+  const flashKey = (noteId) => {
+    const button = buttons.get(noteId);
+    if (!button) return;
+    button.classList.add("active");
+    playTone(notes.find((note) => note.id === noteId).frequency);
+    setTimeout(() => button.classList.remove("active"), 360);
+  };
+
+  const resetTry = (message = "Jetzt bist du dran.") => {
+    expectedIndex = 0;
+    status.textContent = message;
+    setKeysDisabled(!demoHasPlayed || demoPlaying);
+  };
+
+  const playDemo = async () => {
+    if (demoPlaying) return;
+    demoPlaying = true;
+    demoHasPlayed = true;
+    expectedIndex = 0;
+    status.textContent = "Schau auf die leuchtenden Tasten.";
+    demoButton.disabled = true;
+    setKeysDisabled(true);
+
+    for (const noteId of melody) {
+      flashKey(noteId);
+      await new Promise((resolve) => setTimeout(resolve, 470));
+    }
+
+    demoPlaying = false;
+    demoButton.disabled = false;
+    resetTry("Jetzt nachspielen.");
+  };
+
+  const failTry = () => {
+    wrongAttempts[2] = (Number(wrongAttempts[2]) || 0) + 1;
+    save();
+    updatePianoPoints();
+    setKeysDisabled(true);
+    status.textContent = "Nicht ganz. Erst nochmal anhören, dann weiter.";
+    demoHasPlayed = false;
+  };
+
+  const handleKey = (noteId) => {
+    if (!demoHasPlayed || demoPlaying) return;
+    flashKey(noteId);
+    if (noteId !== melody[expectedIndex]) {
+      failTry();
+      return;
+    }
+
+    expectedIndex += 1;
+    status.textContent = `${expectedIndex}/${melody.length} richtig`;
+    if (expectedIndex === melody.length) {
+      status.textContent = `Perfekt! Du bekommst ${pointsForPiano()} Punkte.`;
+      setKeysDisabled(true);
+      launchSuccessConfetti();
+      setTimeout(() => rightSolution(2, pointsForPiano()), 900);
+    }
+  };
+
+  const whiteKeys = notes.filter((note) => note.type === "white");
+  const blackKeys = notes.filter((note) => note.type === "black");
+  keysEl.innerHTML = `
+    <div class="piano-white-keys">
+      ${whiteKeys.map((note) => (
+        `<button class="piano-key white-key" type="button" data-note="${note.id}"><span>${note.label}</span></button>`
+      )).join("")}
+    </div>
+    <div class="piano-black-keys">
+      ${blackKeys.map((note) => (
+        `<button class="piano-key black-key" style="--key-position:${note.position}" type="button" data-note="${note.id}">${note.label}</button>`
+      )).join("")}
+    </div>
+  `;
+
+  keysEl.querySelectorAll(".piano-key").forEach((button) => {
+    buttons.set(button.dataset.note, button);
+    button.addEventListener("click", () => handleKey(button.dataset.note));
+  });
+
+  demoButton.addEventListener("click", playDemo);
+  updatePianoPoints();
+  setKeysDisabled(true);
+}
+
 function initDayGame(day) {
   if (day === 1) initGeoGuessr();
+  if (day === 2) initPianoPuzzle();
 }
 
 function checkAnswer(day) {
