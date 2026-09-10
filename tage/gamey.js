@@ -120,6 +120,10 @@ function pointsForPiano() {
   return Math.max(10 - (Number(wrongAttempts[2]) || 0), 0);
 }
 
+function pointsForMemory() {
+  return Math.max(10 - (Number(wrongAttempts[3]) || 0), 0);
+}
+
 async function initGeoGuessr() {
   const game = document.querySelector(".geoguessr");
   const mapEl = document.getElementById("guessMap");
@@ -334,9 +338,117 @@ function initPianoPuzzle() {
   setKeysDisabled(true);
 }
 
+function initMemoryPuzzle() {
+  const puzzle = document.querySelector(".memory-puzzle");
+  const field = document.getElementById("memoryField");
+  const cover = document.getElementById("memoryCover");
+  const memorizedButton = document.getElementById("memorizedButton");
+  const answerArea = document.getElementById("memoryAnswerArea");
+  const answerInput = document.getElementById("memoryAnswer");
+  const submitButton = document.getElementById("submitMemoryAnswer");
+  const status = document.getElementById("memoryStatus");
+  if (!puzzle || !field || !cover || !memorizedButton || !answerArea || !answerInput || !submitButton || !status) return;
+
+  const items = [
+    { id: "tree", emoji: "🌲", names: ["baum", "tannenbaum", "tanne", "weihnachtsbaum", "christbaum", "tree"] },
+    { id: "moon", emoji: "🌙", names: ["mond", "halbmond", "moon"] },
+    { id: "snowman", emoji: "⛄️", names: ["schneemann", "snowman"] },
+    { id: "ball", emoji: "⚽️", names: ["ball", "fussball", "fußball", "fussballball", "fußballball", "soccer ball"] },
+    { id: "scissors", emoji: "✂️", names: ["schere", "scheren", "scissors"] },
+    { id: "book", emoji: "📖", names: ["buch", "offenes buch", "buch offen", "lesen", "book"] },
+    { id: "star", emoji: "⭐️", names: ["stern", "star", "weihnachtsstern"] },
+  ];
+  const cells = 16;
+  let missingItem = null;
+
+  const normalizeAnswer = (value) => value
+    .toLowerCase()
+    .trim()
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9äöü ]/g, "")
+    .replace(/\s+/g, " ");
+
+  const shuffled = (array) => [...array].sort(() => Math.random() - 0.5);
+
+  const updateMemoryStatus = (message = "") => {
+    status.textContent = message || `Punkte: ${pointsForMemory()} / 10`;
+  };
+
+  const renderItems = (visibleItems) => {
+    const positions = shuffled(Array.from({ length: cells }, (_, i) => i)).slice(0, visibleItems.length);
+    field.innerHTML = "";
+
+    visibleItems.forEach((item, index) => {
+      const tile = document.createElement("div");
+      tile.className = "memory-item";
+      tile.dataset.item = item.id;
+      tile.style.gridArea = `pos-${positions[index]}`;
+      tile.textContent = item.emoji;
+      field.appendChild(tile);
+    });
+  };
+
+  const renderRound = () => {
+    missingItem = items[Math.floor(Math.random() * items.length)];
+    field.classList.remove("memory-hidden-mode");
+    cover.classList.add("hidden");
+    answerArea.classList.add("hidden");
+    memorizedButton.classList.remove("hidden");
+    memorizedButton.disabled = false;
+    answerInput.value = "";
+    updateMemoryStatus();
+    renderItems(items);
+  };
+
+  const hideOneItem = () => {
+    memorizedButton.disabled = true;
+    cover.classList.remove("hidden");
+    setTimeout(() => {
+      renderItems(items.filter((item) => item.id !== missingItem.id));
+      field.classList.add("memory-hidden-mode");
+      cover.classList.add("hidden");
+      memorizedButton.classList.add("hidden");
+      answerArea.classList.remove("hidden");
+      answerInput.focus();
+      updateMemoryStatus("Was fehlt?");
+    }, 650);
+  };
+
+  const failRound = () => {
+    wrongAttempts[3] = (Number(wrongAttempts[3]) || 0) + 1;
+    save();
+    updateMemoryStatus(`Nicht ganz. Punkte: ${pointsForMemory()} / 10`);
+    $("#failOverlay")?.classList.remove("hidden");
+    setTimeout(() => {
+      $("#failOverlay")?.classList.add("hidden");
+      renderRound();
+    }, 900);
+  };
+
+  const submitAnswer = () => {
+    const answer = normalizeAnswer(answerInput.value);
+    const correctAnswers = missingItem.names.map(normalizeAnswer);
+    if (correctAnswers.includes(answer)) {
+      updateMemoryStatus(`Richtig! Du bekommst ${pointsForMemory()} Punkte.`);
+      launchSuccessConfetti();
+      setTimeout(() => rightSolution(3, pointsForMemory()), 900);
+      return;
+    }
+    failRound();
+  };
+
+  memorizedButton.addEventListener("click", hideOneItem);
+  submitButton.addEventListener("click", submitAnswer);
+  answerInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") submitAnswer();
+  });
+  renderRound();
+}
+
 function initDayGame(day) {
   if (day === 1) initGeoGuessr();
   if (day === 2) initPianoPuzzle();
+  if (day === 3) initMemoryPuzzle();
 }
 
 function checkAnswer(day) {

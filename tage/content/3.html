@@ -1,7 +1,15 @@
-<section class="question" data-answer="RightAnswer">
-  <p>Examplequestion</p>
-  <p><b>RightAnswer</b> / WrongAnswer</p>
-  <input id="answerInput" class="answer-input" type="text" autocomplete="off" placeholder="Antwort">
-  <p id="attemptInfo"></p>
-  <button class="btn" type="button" onclick="checkAnswer(3)">Antwort prüfen</button>
+<section class="question memory-puzzle">
+  <p class="eyebrow">Weihnachts-Memory</p>
+  <h2>Was fehlt?</h2>
+  <p class="memory-rules">Merk dir die sieben Dinge. Danach verschwindet eins und du tippst ein, was fehlt.</p>
+  <div id="memoryField" class="memory-field" aria-label="Merkfeld mit sieben Gegenständen"></div>
+  <div id="memoryCover" class="memory-cover hidden" aria-hidden="true">?</div>
+  <button id="memorizedButton" class="btn memory-primary" type="button">Hab ich mir gemerkt</button>
+  <div id="memoryAnswerArea" class="memory-answer-area hidden">
+    <label class="name-field" for="memoryAnswer">Fehlender Gegenstand</label>
+    <input id="memoryAnswer" class="answer-input" type="text" autocomplete="off" placeholder="Was ist weg?">
+    <button id="submitMemoryAnswer" class="btn" type="button">Antwort prüfen</button>
+  </div>
+  <p id="memoryStatus" class="memory-status">Punkte: 10 / 10</p>
+  <p id="attemptInfo" class="hidden"></p>
 </section>

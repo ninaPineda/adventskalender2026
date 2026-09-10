@@ -5,7 +5,7 @@ const LS_NAME = "advent_user_name";
 const LS_RESET = "advent_reset_version";
 const LS_ATTEMPTS = "advent_wrong_attempts";
 const RESET = "2026-score-reset-2";
-const LOG_URL = "https://script.google.com/macros/s/AKfycbzBXhZt7SykZXRvw5vUmxIMQixHFJXdD0ufDHI73kA1-qD-fev7YrWl81QFtBTnyNh1kA/exec";
+const LOG_URL = "https://script.google.com/macros/s/AKfycbx4yiiDjuIbqZ2r0DlZVQHbTEXiknKmS0AnVCiMGVSnFhZrnyVW6j_3KjPH22eyM7WRJQ/exec";
 
 if (localStorage.getItem(LS_RESET) !== RESET) {
   localStorage.removeItem(LS_OPEN);
@@ -55,7 +55,7 @@ function renderShell() {
     link.classList.toggle("current", open && !opened.has(day));
     link.querySelector(".day-status").textContent = opened.has(day)
         ? "done"
-        : "open";
+        : open ? "open" : "closed";
     if (!open) link.removeAttribute("href");
   });
 
@@ -67,12 +67,107 @@ function renderShell() {
 
 function renderProfile() {
   if (!$("#profileName")) return;
-  $("#profileName").textContent = localStorage.getItem(LS_NAME) || "Noch kein Name gespeichert";
+  const savedName = localStorage.getItem(LS_NAME) || "";
+  $("#profileName").textContent = savedName || "Noch kein Name gespeichert";
+  const nameInput = $("#profileNameInput");
+  if (nameInput) nameInput.value = savedName;
   const solved = new Set(solvedDays());
   $("#profileDays").innerHTML = Array.from({ length: 24 }, (_, i) => {
     const day = i + 1;
     return `<span class="${solved.has(day) ? "done" : ""}">${day}</span>`;
   }).join("");
+  setupNameChange();
+}
+
+function normalizePlayerName(name) {
+  return name.trim().replace(/\s+/g, " ");
+}
+
+function nameKey(name) {
+  return normalizePlayerName(name).toLowerCase();
+}
+
+function loadTakenNames() {
+  return new Promise((resolve) => {
+    const callback = `onNameCheck_${Date.now()}_${Math.round(Math.random() * 100000)}`;
+    const script = document.createElement("script");
+    let finished = false;
+    const done = (names = []) => {
+      if (finished) return;
+      finished = true;
+      delete window[callback];
+      script.remove();
+      resolve(new Set(names.map(nameKey)));
+    };
+
+    window[callback] = (rows) => {
+      done((Array.isArray(rows) ? rows : []).map((row) => row.name).filter(Boolean));
+    };
+    script.src = `${LOG_URL}?callback=${callback}`;
+    script.onerror = () => done();
+    document.body.appendChild(script);
+    setTimeout(() => done(), 6000);
+  });
+}
+
+function logNameChange(oldName, newName) {
+  const days = solvedDays();
+  const lastSolved = days.length ? days[days.length - 1] : 0;
+  fetch(LOG_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: new URLSearchParams({
+      action: "rename",
+      oldName,
+      newName,
+      name: newName,
+      solved: `${lastSolved}`,
+      points: `${allPoints}`,
+    }),
+  }).catch(() => {});
+}
+
+function setupNameChange() {
+  const input = $("#profileNameInput");
+  const saveButton = $("#saveNameButton");
+  const pageStatus = $("#nameChangeStatus");
+  if (!input || !saveButton || !pageStatus) return;
+  if (saveButton.dataset.ready) return;
+  saveButton.dataset.ready = "true";
+
+  input.addEventListener("input", () => {
+    pageStatus.textContent = "";
+  });
+
+  saveButton.addEventListener("click", async () => {
+    const oldName = normalizePlayerName(localStorage.getItem(LS_NAME) || "");
+    const newName = normalizePlayerName(input.value);
+    if (newName.length < 2) {
+      pageStatus.textContent = "Der Name muss mindestens 2 Zeichen lang sein.";
+      return;
+    }
+    if (oldName && nameKey(newName) === nameKey(oldName)) {
+      input.value = oldName;
+      pageStatus.textContent = "Name ist unverändert.";
+      return;
+    }
+
+    saveButton.disabled = true;
+    pageStatus.textContent = "Prüfe Namen...";
+    const takenNames = await loadTakenNames();
+    if (takenNames.has(nameKey(newName))) {
+      saveButton.disabled = false;
+      pageStatus.textContent = "Der Name ist leider schon vergeben.";
+      return;
+    }
+
+    localStorage.setItem(LS_NAME, newName);
+    $("#profileName").textContent = newName;
+    input.value = newName;
+    logNameChange(oldName, newName);
+    pageStatus.textContent = "Name gespeichert.";
+    saveButton.disabled = false;
+  });
 }
 
 function setupSlide() {
@@ -190,7 +285,9 @@ function updateHintButton() {
   const btn = $("#hint-button");
   if (!btn) return;
   const day = dayFromURL();
-  btn.textContent = hints.has(day) ? "Hinweis anzeigen" : "Hinweis für 5 Punkte";
+  btn.innerHTML = hints.has(day)
+    ? "<span>Hinweis</span><b>gekauft</b>"
+    : "<span>Hinweis</span><b>5 ⭐</b>";
   btn.onclick = hints.has(day) ? showHintDirect : showCheckDialog;
 }
 

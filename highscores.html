@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Bestenliste</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=memory1">
 </head>
 <body>
-  <header class="topbar"><b class="progress-count">0/24</b><span><a href="coins.html" class="coin-count">0</a> 🪙</span></header>
+  <header class="topbar"><b class="progress-count">0/24</b><span><a href="coins.html" class="coin-count">0</a> ⭐</span></header>
   <main><h1>Leaderboard</h1><p class="subtitle">Advent 2026</p><div id="scoreList">Lade...</div></main>
   <nav class="bottombar">
     <a href="highscores.html" aria-current="page" aria-label="Bestenliste"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20v-7h4v7"/><path d="M10 20V8h4v12"/><path d="M14 20v-5h4v5"/></svg></a>
@@ -46,14 +46,14 @@
         <span class="crown" aria-hidden="true">♛</span>
         <span class="avatar">${initial(name)}</span>
         <b>${name}</b>
-        <span class="coin-pill">🪙 ${data.points}</span>
+        <span class="coin-pill">⭐ ${data.points}</span>
         <strong>${rank}</strong>
       </div>`;
       const row = ([name, data], i) => `<p class="rank-row">
         <b>${i + 4}</b>
         <span class="avatar mini">${initial(name)}</span>
         <span>${name}</span>
-        <b class="coin-pill">🪙 ${data.points}</b>
+        <b class="coin-pill">⭐ ${data.points}</b>
       </p>`;
       document.getElementById("scoreList").innerHTML = leaders.length
         ? `<section class="leaderboard-card">
@@ -72,7 +72,7 @@
         : "Noch keine Einträge.";
     }
   </script>
-  <script src="https://script.google.com/macros/s/AKfycbzBXhZt7SykZXRvw5vUmxIMQixHFJXdD0ufDHI73kA1-qD-fev7YrWl81QFtBTnyNh1kA/exec?callback=onScores"></script>
-  <script src="app.js"></script>
+  <script src="https://script.google.com/macros/s/AKfycbx4yiiDjuIbqZ2r0DlZVQHbTEXiknKmS0AnVCiMGVSnFhZrnyVW6j_3KjPH22eyM7WRJQ/exec?callback=onScores"></script>
+  <script src="app.js?v=name3"></script>
 </body>
 </html>
