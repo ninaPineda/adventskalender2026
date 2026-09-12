@@ -113,7 +113,7 @@ function distanceKm(a, b) {
 function scoreGeoGuess(distance) {
   if (distance < 1) return 10;
   if (distance >= 1000) return 0;
-  return Math.max(0, Math.round((10 * (1 - (distance - 1) / 999)) * 10) / 10);
+  return Math.max(0, Math.round(10 * (1 - (distance - 1) / 999) * 2) / 2);
 }
 
 function pointsForPiano() {
@@ -125,11 +125,18 @@ function pointsForMemory() {
 }
 
 async function initGeoGuessr() {
+  if (initGeoGuessr.ready) return;
   const game = document.querySelector(".geoguessr");
   const mapEl = document.getElementById("guessMap");
   const submit = document.getElementById("submitGeoGuess");
   const result = document.getElementById("geoGuessResult");
   if (!game || !mapEl || !submit || !result) return;
+  const dialog = document.getElementById("geoGuessDialog");
+  if (dialog && !dialog.open) {
+    document.addEventListener("geoGuessr:open", initGeoGuessr, { once: true });
+    return;
+  }
+  initGeoGuessr.ready = true;
 
   const target = {
     lat: Number(game.dataset.targetLat),
@@ -170,9 +177,18 @@ async function initGeoGuessr() {
     const readableDistance = distance < 10 ? distance.toFixed(1) : Math.round(distance);
     result.textContent = `Du warst ${readableDistance} km entfernt und bekommst ${points} Punkte.`;
     submit.disabled = true;
+    document.dispatchEvent(new CustomEvent("geoGuessr:submitted", {
+      detail: {
+        lat: guess.lat,
+        lng: guess.lng,
+        distance: readableDistance,
+        points,
+      },
+    }));
     L.marker([target.lat, target.lng]).addTo(map).bindPopup("Richtiger Ort").openPopup();
     L.polyline([[guess.lat, guess.lng], [target.lat, target.lng]], { color: "#b3261e" }).addTo(map);
-    setTimeout(() => rightSolution(1, points), 1800);
+    setTimeout(() => dialog?.close(), 700);
+    setTimeout(() => rightSolution(1, points), 2400);
   });
 }
 
@@ -341,13 +357,15 @@ function initPianoPuzzle() {
 function initMemoryPuzzle() {
   const puzzle = document.querySelector(".memory-puzzle");
   const field = document.getElementById("memoryField");
-  const cover = document.getElementById("memoryCover");
+  const missingField = document.getElementById("memoryMissingField");
+  const originalMessage = document.getElementById("memoryOriginalMessage");
+  const deletedOriginal = document.getElementById("memoryDeletedOriginal");
+  const promptMessage = document.getElementById("memoryPromptMessage");
+  const missingMessage = document.getElementById("memoryMissingMessage");
+  const deletedMissing = document.getElementById("memoryDeletedMissing");
   const memorizedButton = document.getElementById("memorizedButton");
-  const answerArea = document.getElementById("memoryAnswerArea");
-  const answerInput = document.getElementById("memoryAnswer");
-  const submitButton = document.getElementById("submitMemoryAnswer");
   const status = document.getElementById("memoryStatus");
-  if (!puzzle || !field || !cover || !memorizedButton || !answerArea || !answerInput || !submitButton || !status) return;
+  if (!puzzle || !field || !missingField || !originalMessage || !deletedOriginal || !promptMessage || !missingMessage || !deletedMissing || !memorizedButton || !status) return;
 
   const items = [
     { id: "tree", emoji: "🌲", names: ["baum", "tannenbaum", "tanne", "weihnachtsbaum", "christbaum", "tree"] },
@@ -360,6 +378,8 @@ function initMemoryPuzzle() {
   ];
   const cells = 16;
   let missingItem = null;
+  let awaitingAnswer = false;
+  let firstRound = true;
 
   const normalizeAnswer = (value) => value
     .toLowerCase()
@@ -374,9 +394,29 @@ function initMemoryPuzzle() {
     status.textContent = message || `Punkte: ${pointsForMemory()} / 10`;
   };
 
-  const renderItems = (visibleItems) => {
+  const showChatMessage = (message) => {
+    if (window.santaChat?.revealElement) {
+      window.santaChat.revealElement(message, { immediate: window.santaChat.historyMode });
+    } else {
+      message.classList.remove("hidden");
+      requestAnimationFrame(() => message.classList.add("visible"));
+    }
+    document.getElementById("daySlot")?.scrollTo({
+      top: document.getElementById("daySlot").scrollHeight,
+      behavior: "smooth",
+    });
+  };
+
+  const hideChatMessage = (message, deletedMessage) => {
+    message.classList.add("hidden");
+    message.classList.remove("visible");
+    document.getElementById("daySlot")?.append(deletedMessage);
+    showChatMessage(deletedMessage);
+  };
+
+  const renderItems = (target, visibleItems) => {
     const positions = shuffled(Array.from({ length: cells }, (_, i) => i)).slice(0, visibleItems.length);
-    field.innerHTML = "";
+    target.innerHTML = "";
 
     visibleItems.forEach((item, index) => {
       const tile = document.createElement("div");
@@ -384,33 +424,44 @@ function initMemoryPuzzle() {
       tile.dataset.item = item.id;
       tile.style.gridArea = `pos-${positions[index]}`;
       tile.textContent = item.emoji;
-      field.appendChild(tile);
+      target.appendChild(tile);
     });
   };
 
   const renderRound = () => {
     missingItem = items[Math.floor(Math.random() * items.length)];
-    field.classList.remove("memory-hidden-mode");
-    cover.classList.add("hidden");
-    answerArea.classList.add("hidden");
+    awaitingAnswer = false;
+    if (!firstRound) {
+      document.getElementById("daySlot")?.append(originalMessage, promptMessage);
+    }
+    showChatMessage(originalMessage);
+    showChatMessage(promptMessage);
+    missingMessage.classList.add("hidden");
+    missingMessage.classList.remove("visible");
+    if (firstRound) {
+      deletedOriginal.classList.add("hidden");
+      deletedOriginal.classList.remove("visible");
+      deletedMissing.classList.add("hidden");
+      deletedMissing.classList.remove("visible");
+    }
     memorizedButton.classList.remove("hidden");
     memorizedButton.disabled = false;
-    answerInput.value = "";
     updateMemoryStatus();
-    renderItems(items);
+    renderItems(field, items);
+    firstRound = false;
   };
 
   const hideOneItem = () => {
     memorizedButton.disabled = true;
-    cover.classList.remove("hidden");
     setTimeout(() => {
-      renderItems(items.filter((item) => item.id !== missingItem.id));
-      field.classList.add("memory-hidden-mode");
-      cover.classList.add("hidden");
+      hideChatMessage(originalMessage, deletedOriginal);
       memorizedButton.classList.add("hidden");
-      answerArea.classList.remove("hidden");
-      answerInput.focus();
-      updateMemoryStatus("Was fehlt?");
+      promptMessage.classList.add("hidden");
+      promptMessage.classList.remove("visible");
+      renderItems(missingField, items.filter((item) => item.id !== missingItem.id));
+      showChatMessage(missingMessage);
+      awaitingAnswer = true;
+      updateMemoryStatus("Schreib in den Chat, was fehlt.");
     }, 650);
   };
 
@@ -421,33 +472,38 @@ function initMemoryPuzzle() {
     $("#failOverlay")?.classList.remove("hidden");
     setTimeout(() => {
       $("#failOverlay")?.classList.add("hidden");
+      hideChatMessage(missingMessage, deletedMissing);
+    }, 850);
+    setTimeout(() => {
       renderRound();
-    }, 900);
+    }, 1350);
   };
 
-  const submitAnswer = () => {
-    const answer = normalizeAnswer(answerInput.value);
+  const submitAnswer = (value) => {
+    if (!awaitingAnswer) return false;
+    const answer = normalizeAnswer(value);
     const correctAnswers = missingItem.names.map(normalizeAnswer);
     if (correctAnswers.includes(answer)) {
+      awaitingAnswer = false;
       updateMemoryStatus(`Richtig! Du bekommst ${pointsForMemory()} Punkte.`);
       launchSuccessConfetti();
       setTimeout(() => rightSolution(3, pointsForMemory()), 900);
-      return;
+      return true;
     }
     failRound();
+    return true;
   };
 
   memorizedButton.addEventListener("click", hideOneItem);
-  submitButton.addEventListener("click", submitAnswer);
-  answerInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") submitAnswer();
-  });
+  window.memoryPuzzle = {
+    isAwaitingAnswer: () => awaitingAnswer,
+    submitAnswer,
+  };
   renderRound();
 }
 
 function initDayGame(day) {
   if (day === 1) initGeoGuessr();
-  if (day === 2) initPianoPuzzle();
   if (day === 3) initMemoryPuzzle();
 }
 

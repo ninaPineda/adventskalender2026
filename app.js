@@ -4,6 +4,7 @@ const LS_POINTS = "advent_points";
 const LS_NAME = "advent_user_name";
 const LS_RESET = "advent_reset_version";
 const LS_ATTEMPTS = "advent_wrong_attempts";
+const LS_CHAT = "advent_chat_log";
 const RESET = "2026-score-reset-2";
 const LOG_URL = "https://script.google.com/macros/s/AKfycbx4yiiDjuIbqZ2r0DlZVQHbTEXiknKmS0AnVCiMGVSnFhZrnyVW6j_3KjPH22eyM7WRJQ/exec";
 
@@ -291,6 +292,273 @@ function updateHintButton() {
   btn.onclick = hints.has(day) ? showHintDirect : showCheckDialog;
 }
 
+function setupSantaChat() {
+  const chat = $(".santa-chat");
+  const scroll = $("#daySlot");
+  const composer = $("#chatComposer");
+  const input = $("#chatInput");
+  const locationButton = $("#sendLocationButton");
+  const script = $(".santa-chat-script");
+  if (!chat || !scroll || !composer || !input || !locationButton) return;
+  if (chat.dataset.ready) return;
+  chat.dataset.ready = "true";
+  const day = dayFromURL();
+  const storageKey = `${LS_CHAT}_${day}`;
+
+  const fallbackReplies = [
+    "Aaargh, mein Kopf... 🥴",
+    "Ich bin mir gerade wirklich keine große Hilfe. 🎄",
+    "Kannst du das nochmal anders versuchen? ✨",
+    "Ho ho... oh nein. 🎅",
+  ];
+  let replies = fallbackReplies;
+  try {
+    replies = JSON.parse(script?.dataset.replies || "[]");
+    if (!Array.isArray(replies) || !replies.length) replies = fallbackReplies;
+  } catch {
+    replies = fallbackReplies;
+  }
+
+  if (!$("#geoGuessDialog")) {
+    locationButton.hidden = true;
+    composer.classList.add("text-only");
+  }
+  const isTravelQuiz = day === 2 && script?.classList.contains("travel-quiz");
+
+  const loadSavedChat = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{"messages":[],"geoOpen":false,"pendingHint":false}');
+      if (script?.dataset.chatVersion && saved.version !== script.dataset.chatVersion) {
+        return { messages: [], geoOpen: false, pendingHint: false, version: script.dataset.chatVersion };
+      }
+      return saved;
+    } catch {
+      return { messages: [], geoOpen: false, pendingHint: false, version: script?.dataset.chatVersion };
+    }
+  };
+  const chatLog = loadSavedChat();
+  const revealExistingImmediately = opened.has(day) || chatLog.introShown || Boolean(chatLog.messages?.length);
+  const chatMessageGap = 950;
+  let nextSantaMessageAt = Date.now();
+
+  const saveChat = () => {
+    localStorage.setItem(storageKey, JSON.stringify(chatLog));
+  };
+
+  const scrollToBottom = (behavior = "smooth") => {
+    scroll.scrollTo({ top: scroll.scrollHeight, behavior });
+  };
+
+  const revealChatElement = (element, immediate = revealExistingImmediately) => {
+    if (!element) return;
+    element.classList.remove("hidden");
+    element.classList.remove("visible");
+    element.classList.remove("will-animate");
+
+    if (immediate) {
+      element.classList.add("visible");
+      scrollToBottom("auto");
+      return;
+    }
+
+    element.classList.add("will-animate");
+    const wait = Math.max(0, nextSantaMessageAt - Date.now());
+    nextSantaMessageAt = Date.now() + wait + chatMessageGap;
+    setTimeout(() => {
+      element.classList.add("visible");
+      scrollToBottom();
+    }, wait);
+  };
+
+  const appendBubble = (text, sender = "user", persist = true, animate = true) => {
+    const bubble = document.createElement("div");
+    bubble.className = `chat-message ${sender === "user" ? "user-message" : "santa-message"}`;
+    const p = document.createElement("p");
+    p.textContent = text;
+    bubble.appendChild(p);
+    scroll.appendChild(bubble);
+    if (sender === "santa" && animate) {
+      revealChatElement(bubble, false);
+    } else if (animate) {
+      requestAnimationFrame(() => bubble.classList.add("visible"));
+    } else {
+      bubble.classList.add("visible");
+    }
+    if (persist) {
+      chatLog.messages.push({ sender, text });
+      saveChat();
+    }
+    scrollToBottom(animate ? "smooth" : "auto");
+  };
+
+  scroll.querySelectorAll(".santa-chat-script > .chat-message:not(.hidden)").forEach((bubble) => {
+    revealChatElement(bubble);
+  });
+  if (!chatLog.introShown) {
+    chatLog.introShown = true;
+    saveChat();
+  }
+
+  chatLog.messages.forEach((message) => {
+    appendBubble(message.text, message.sender, false, false);
+  });
+
+  window.santaChat = {
+    appendBubble,
+    revealElement: (element, options = {}) => revealChatElement(element, Boolean(options.immediate)),
+    historyMode: revealExistingImmediately,
+  };
+
+  const openGeoPanel = () => {
+    const dialog = $("#geoGuessDialog");
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    requestAnimationFrame(() => {
+      document.dispatchEvent(new CustomEvent("geoGuessr:open"));
+    });
+  };
+
+  const sendHintInChat = () => {
+    chatLog.pendingHint = false;
+    saveChat();
+    const hint = getHintForDay(day);
+    if (!hint) {
+      appendBubble("Ich hab gerade leider keinen hilfreichen Hinweis parat. 🕯️", "santa");
+      return;
+    }
+    if (!hints.has(day)) {
+      if (!updatePoints(-5)) {
+        appendBubble("Du hast leider nicht genug Sterne für einen Hinweis. ⭐", "santa");
+        return;
+      }
+      hints.add(day);
+      save();
+      logSolved(day);
+    }
+    appendBubble(`${hint.replace(/<[^>]+>/g, "")} ✨`, "santa");
+  };
+
+  const normalizeQuizAnswer = (value) => normalize(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const pointsForTravelQuiz = () => Math.max(10 - (Number(wrongAttempts[2]) || 0), 0);
+
+  const travelQuestions = [
+    {
+      answers: ["eurostar", "euro star"],
+      correct: "Genau, der Eurostar! 🚄",
+      next: "Und welches Meer unterfahre ich mit dem noch gleich? 🌊",
+    },
+    {
+      answers: ["aermelkanal", "armelkanal", "aermel kanal", "armel kanal", "englischer kanal", "english channel", "kanal", "channel", "la manche"],
+      correct: "Jaaa, der Ärmelkanal. Ein Zug unter dem Meer bleibt absurd. 🚇🌊",
+      next: "Und von wo aus könnte ich stattdessen mit dem Schiff fahren? ⛴️",
+    },
+    {
+      answers: ["dover", "hafen dover", "hafen von dover", "port dover", "port of dover"],
+      correct: "Dover, natürlich! Du hast meinen Reiseplan gerettet. 🎅✨",
+      next: "",
+    },
+  ];
+
+  const answerMatches = (answer, acceptedAnswers) => {
+    const normalizedAnswer = normalizeQuizAnswer(answer);
+    return acceptedAnswers.some((accepted) => normalizedAnswer.includes(normalizeQuizAnswer(accepted)));
+  };
+
+  const handleTravelQuizAnswer = (text) => {
+    if (!isTravelQuiz || chatLog.quizDone) return false;
+    chatLog.quizIndex = Number(chatLog.quizIndex) || 0;
+    const step = travelQuestions[chatLog.quizIndex];
+    if (!step) return false;
+
+    if (answerMatches(text, step.answers)) {
+      chatLog.quizIndex += 1;
+      saveChat();
+      setTimeout(() => {
+        appendBubble(step.correct, "santa");
+        if (step.next) {
+          setTimeout(() => appendBubble(step.next, "santa"), 850);
+          return;
+        }
+        chatLog.quizDone = true;
+        saveChat();
+        launchSuccessConfetti?.();
+        setTimeout(() => rightSolution(2, pointsForTravelQuiz()), 1000);
+      }, 720);
+      return true;
+    }
+
+    wrongAttempts[2] = (Number(wrongAttempts[2]) || 0) + 1;
+    save();
+    setTimeout(() => {
+      appendBubble(`Nicht ganz. Versuch es nochmal. Punkte: ${pointsForTravelQuiz()} / 10 🎄`, "santa");
+    }, 720);
+    return true;
+  };
+
+  composer.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    appendBubble(text, "user");
+    input.value = "";
+    const normalizedText = normalize(text);
+    if (chatLog.pendingHint) {
+      if (["ja", "jap", "yes", "klar", "okay", "ok"].includes(normalizedText)) {
+        setTimeout(sendHintInChat, 720);
+        return;
+      }
+      if (["nein", "nee", "no", "nö", "nope"].includes(normalizedText)) {
+        chatLog.pendingHint = false;
+        saveChat();
+        setTimeout(() => appendBubble("Alles klar, dann behalte ich den Tipp erstmal. 🎁", "santa"), 720);
+        return;
+      }
+      setTimeout(() => appendBubble("Meinst du ja oder nein? Der Tipp kostet 5 Sterne. ⭐", "santa"), 720);
+      return;
+    }
+    if (["hilfe", "hilf", "tipp", "hint", "hinweis"].includes(normalizedText)) {
+      if (hints.has(day)) {
+        setTimeout(sendHintInChat, 720);
+        return;
+      }
+      chatLog.pendingHint = true;
+      saveChat();
+      setTimeout(() => {
+        appendBubble("Soll ich dir wirklich einen Hinweis schicken? Das kostet 5 Sterne. Antworte mit „Ja“ oder „Nein“. ⭐", "santa");
+      }, 720);
+      return;
+    }
+    if (handleTravelQuizAnswer(text)) return;
+    if (window.memoryPuzzle?.isAwaitingAnswer?.()) {
+      window.memoryPuzzle.submitAnswer(text);
+      return;
+    }
+    setTimeout(() => {
+      const answer = replies[Math.floor(Math.random() * replies.length)];
+      appendBubble(answer, "santa");
+    }, 850);
+  });
+
+  locationButton.addEventListener("click", () => {
+    openGeoPanel();
+  });
+
+  document.addEventListener("geoGuessr:submitted", (event) => {
+    const { lat, lng, distance, points } = event.detail;
+    appendBubble(`📍 Standort gesendet\n${lat.toFixed(4)}, ${lng.toFixed(4)}`, "user");
+    setTimeout(() => {
+      appendBubble(`Ich prüfe das... du warst ${distance} km entfernt und bekommst ${points} Punkte. ✨`, "santa");
+    }, 620);
+  });
+}
+
 async function loadDayContent() {
   const slot = $("#daySlot");
   if (!slot) return;
@@ -312,6 +580,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderProfile();
   setupSlide();
   await loadDayContent();
+  setupSantaChat();
   window.initDayGame?.(dayFromURL());
   updateHintButton();
 });

@@ -1,17 +1,42 @@
-<section class="question geoguessr" data-target-lat="51.5050468" data-target-lng="-0.1180041">
-  <p class="eyebrow">Weihnachts-GeoGuessr</p>
-  <h2>Wo steht dieser Weihnachtsmarkt?</h2>
-  <div class="streetview-shell" aria-label="Interaktives Street View Rätsel">
-    <iframe
-      class="streetview-frame"
-      title="Street View Rätsel"
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade"
-      src="https://maps.google.com/maps?q=&layer=c&cbll=51.5050468,-0.1180041&cbp=11,59.14,0,0,58.16&output=svembed">
-    </iframe>
+<section
+  class="santa-chat-script geoguessr"
+  data-target-lat="51.5050468"
+  data-target-lng="-0.1180041"
+  data-replies='["Aaargh, mein Kopf macht Jingle Bells. 🥴","Mir ist ein bisschen schlecht, ehrlich gesagt. 🫠","Wo bin ich nur gelandet? 🎄","Ich rieche gebrannte Mandeln. Hilft das? ✨","Mein Mantel ist weg. Mein Zauberhut auch. Super Tag. 🧥","Bitte sag Rudolf nichts davon. 🦌","Ich sehe Lichter, Buden und viel zu viele Menschen. 💡","Ich brauche dringend Wasser. Oder Kakao. Nein, Wasser. ☕","Das war bestimmt der Glühweinstand links von mir. 🍷","Wenn ich wüsste, wo Norden ist, wäre ich nicht Santa. 🧭"]'
+>
+  <div class="chat-message santa-message">
+    <p>Ey, ich hab mich irgendwie total besoffen hier auf dem Weihnachtsmarkt. 🥴</p>
   </div>
-  <p>Setze deinen Pin auf der Karte. Je näher du am echten Ort bist, desto mehr Punkte bekommst du.</p>
-  <div id="guessMap" class="guess-map" role="application" aria-label="Karte zum Pin setzen"></div>
-  <p id="geoGuessResult" class="guess-result">Noch kein Pin gesetzt.</p>
-  <button id="submitGeoGuess" class="btn" type="button" disabled>Pin abgeben</button>
+  <div class="chat-message santa-message">
+    <p>Ich hab meinen Zauberhut und meinen Mantel nicht mehr und weiß gar nicht, wo ich bin. 🎩🧥</p>
+  </div>
+  <div class="chat-message santa-message">
+    <p>Hier ist einmal eine 3D View von meinem Standort. Kannst du mir sagen, wo ich bin? 📍</p>
+  </div>
+  <div class="chat-message santa-message media-message">
+    <div class="streetview-shell" aria-label="Interaktives Street View Rätsel">
+      <iframe
+        class="streetview-frame"
+        title="Street View Rätsel"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        src="https://maps.google.com/maps?q=&layer=c&cbll=51.5050468,-0.1180041&cbp=11,59.14,0,0,58.16&output=svembed">
+      </iframe>
+    </div>
+  </div>
+  <div class="chat-message santa-message">
+    <p>Wenn du Hilfe brauchst, schreib einfach „Hilfe“. Dann kostet dich das fünf Sterne und ich schreibe dir einen Hinweis. ⭐</p>
+  </div>
+  <dialog id="geoGuessDialog" class="geo-guess-dialog">
+    <form method="dialog" class="geo-dialog-bar">
+      <b>Standort senden</b>
+      <button class="chat-icon-button" type="submit" aria-label="Schließen">×</button>
+    </form>
+    <div class="geo-answer-panel">
+    <p>Setz deinen Pin auf die Karte. Je näher du dran bist, desto mehr Punkte bekommst du.</p>
+    <div id="guessMap" class="guess-map" role="application" aria-label="Karte zum Pin setzen"></div>
+    <p id="geoGuessResult" class="guess-result">Noch kein Pin gesetzt.</p>
+    <button id="submitGeoGuess" class="btn" type="button" disabled>Pin abgeben</button>
+    </div>
+  </dialog>
 </section>

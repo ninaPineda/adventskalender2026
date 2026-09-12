@@ -1,15 +1,30 @@
-<section class="question memory-puzzle">
-  <p class="eyebrow">Weihnachts-Memory</p>
-  <h2>Was fehlt?</h2>
-  <p class="memory-rules">Merk dir die sieben Dinge. Danach verschwindet eins und du tippst ein, was fehlt.</p>
-  <div id="memoryField" class="memory-field" aria-label="Merkfeld mit sieben Gegenständen"></div>
-  <div id="memoryCover" class="memory-cover hidden" aria-hidden="true">?</div>
-  <button id="memorizedButton" class="btn memory-primary" type="button">Hab ich mir gemerkt</button>
-  <div id="memoryAnswerArea" class="memory-answer-area hidden">
-    <label class="name-field" for="memoryAnswer">Fehlender Gegenstand</label>
-    <input id="memoryAnswer" class="answer-input" type="text" autocomplete="off" placeholder="Was ist weg?">
-    <button id="submitMemoryAnswer" class="btn" type="button">Antwort prüfen</button>
+<section
+  class="santa-chat-script memory-puzzle"
+  data-replies='["Ich hab gerade etwas verlegt. Schon wieder. 🎁","Ich schwöre, hier war eben noch was. 👀","Mein Gedächtnis ist heute nur Dekoration. 🎄","Kannst du dir Dinge besser merken als ich? 🧠","Ich zähle sieben Sachen. Oder sechs? Hm. ⭐","Irgendwas fehlt. Vielleicht meine Würde. 🥴","Ich blinzle einmal und alles ist anders. ✨","Bitte sag nicht, dass der Stern weg ist. ⭐","Okay, Konzentration. Keine Glühwein-Gedanken. 🍷","Ich vertraue dir mehr als meinem Kopf. 🎅"]'
+>
+  <div class="chat-message santa-message">
+    <p>Ich versuche gerade, meine Sachen zu sortieren. 🎁</p>
   </div>
-  <p id="memoryStatus" class="memory-status">Punkte: 10 / 10</p>
+  <div class="chat-message santa-message">
+    <p>Aber jedes Mal, wenn ich kurz wegsehe, fehlt irgendwas. Kannst du aufpassen? 👀</p>
+  </div>
+  <div id="memoryOriginalMessage" class="chat-message santa-message memory-chat-card memory-board-message hidden">
+    <div id="memoryField" class="memory-field" aria-label="Merkfeld mit sieben Gegenständen"></div>
+  </div>
+  <div id="memoryDeletedOriginal" class="chat-message santa-message deleted-chat-message hidden">
+    <p>diese nachricht wurde gelöscht</p>
+  </div>
+  <div id="memoryPromptMessage" class="chat-message santa-message memory-chat-card hidden">
+    <p>Merk dir das hier. Wenn du bereit bist, drück auf den Button. 🎄</p>
+    <button id="memorizedButton" class="btn memory-primary" type="button">Hab ich mir gemerkt</button>
+    <p id="memoryStatus" class="memory-status">Punkte: 10 / 10</p>
+  </div>
+  <div id="memoryMissingMessage" class="chat-message santa-message memory-chat-card memory-board-message hidden">
+    <div id="memoryMissingField" class="memory-field memory-hidden-mode" aria-label="Merkfeld mit fehlendem Gegenstand"></div>
+    <p>Was fehlt? Schreib deine Antwort einfach hier in den Chat. ✨</p>
+  </div>
+  <div id="memoryDeletedMissing" class="chat-message santa-message deleted-chat-message hidden">
+    <p>diese nachricht wurde gelöscht</p>
+  </div>
   <p id="attemptInfo" class="hidden"></p>
 </section>

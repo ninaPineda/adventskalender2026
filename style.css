@@ -52,7 +52,7 @@ main {
 }
 
 body.day-page {
-  padding: calc(4.9rem + env(safe-area-inset-top)) .9rem calc(1.5rem + env(safe-area-inset-bottom));
+  padding: 0;
   color: var(--snow);
   background: var(--bg);
 }
@@ -185,38 +185,33 @@ button, input { font: inherit; }
   display: none;
 }
 
-.day-header {
+.chat-header {
   position: fixed;
   top: 0;
   right: 0;
   left: 0;
-  width: min(100%, 46rem);
+  width: min(100%, 48rem);
   margin: auto;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: .75rem;
-  padding: calc(.75rem + env(safe-area-inset-top)) .9rem .7rem;
-  pointer-events: none;
+  gap: .55rem;
+  padding: calc(.65rem + env(safe-area-inset-top)) .7rem .65rem;
+  color: var(--text);
+  background: rgba(247, 248, 249, .94);
+  border-bottom: 1px solid rgba(13, 36, 23, .14);
+  box-shadow: 0 .12rem .4rem rgba(13, 36, 23, .18);
+  backdrop-filter: blur(10px);
   z-index: 999;
 }
 
 .day-back,
-.day-coin-counter,
-.hint-fab {
+.day-coin-counter {
   color: var(--text);
-  background: var(--snow);
-  border-top: 2px solid #ffffff;
-  border-right: 2px solid #8b6f43;
-  border-bottom: 2px solid #5a4226;
-  border-left: 2px solid #ffffff;
-  border-radius: .8rem;
-  box-shadow: .18rem .18rem 0 rgba(13, 36, 23, .26);
 }
 
 .day-back,
-.day-coin-counter,
-.hint-fab {
+.day-coin-counter {
   pointer-events: auto;
   min-height: 2.65rem;
 }
@@ -224,8 +219,13 @@ button, input { font: inherit; }
 .day-back {
   display: grid;
   place-items: center;
-  width: 2.9rem;
-  font-size: 1.5rem;
+  width: 2.1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  color: var(--evergreen);
+  font-size: 1.9rem;
   font-weight: 900;
 }
 
@@ -233,13 +233,23 @@ button, input { font: inherit; }
   display: inline-flex;
   align-items: center;
   gap: .25rem;
-  padding: .45rem .75rem;
+  padding: .42rem .7rem;
+  background: var(--snow);
+  border-top: 2px solid #ffffff;
+  border-right: 2px solid #8b6f43;
+  border-bottom: 2px solid #5a4226;
+  border-left: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: .12rem .12rem 0 rgba(13, 36, 23, .18);
   font-family: Fredoka, system-ui, sans-serif;
   font-weight: 900;
 }
 
 .day-main {
-  width: min(100%, 46rem);
+  width: min(100%, 48rem);
+  height: 100svh;
+  margin: 0 auto;
+  padding: calc(4.7rem + env(safe-area-inset-top)) .65rem calc(4.8rem + env(safe-area-inset-bottom));
 }
 
 .day-main .page-title {
@@ -251,7 +261,8 @@ button, input { font: inherit; }
   white-space: nowrap;
 }
 
-.day-main > #daySlot > .question {
+.chat-scroll > .question,
+.chat-scroll > .santa-chat-script {
   color: var(--snow);
   background: transparent;
   border: 0;
@@ -260,6 +271,230 @@ button, input { font: inherit; }
   padding: 0;
   margin-top: 0;
   margin-bottom: 1.5rem;
+}
+
+.santa-chat-script {
+  display: contents;
+}
+
+.santa-chat {
+  height: 100%;
+  min-height: 0;
+}
+
+.chat-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1.45rem .1rem .8rem;
+  scroll-behavior: smooth;
+}
+
+.chat-contact {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr);
+  align-items: center;
+  gap: .55rem;
+  min-width: 0;
+  color: var(--text);
+  font-family: Fredoka, system-ui, sans-serif;
+  font-weight: 900;
+}
+
+.chat-avatar,
+.chat-avatar-fallback {
+  display: grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  background: var(--snow);
+  border-top: 2px solid #ffffff;
+  border-right: 2px solid #8b6f43;
+  border-bottom: 2px solid #5a4226;
+  border-left: 2px solid #ffffff;
+  border-radius: 50%;
+  object-fit: cover;
+  font-size: 1.35rem;
+}
+
+.chat-contact span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-message {
+  width: fit-content;
+  max-width: min(88%, 33rem);
+  padding: .68rem .82rem;
+  color: var(--text);
+  background: var(--snow);
+  border-radius: 1rem;
+  box-shadow: .12rem .12rem 0 rgba(13, 36, 23, .22);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .24s ease, transform .24s ease;
+}
+
+.chat-message.will-animate {
+  opacity: 0;
+  transform: translateY(.45rem);
+}
+
+.chat-message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chat-message p {
+  margin: 0;
+}
+
+.day-main .chat-message p,
+.day-main .chat-message .piano-rules,
+.day-main .chat-message .memory-rules {
+  color: inherit;
+}
+
+.santa-message {
+  align-self: flex-start;
+  border-bottom-left-radius: .25rem;
+}
+
+.user-message {
+  align-self: flex-end;
+  color: var(--snow);
+  background: var(--evergreen);
+  border-bottom-right-radius: .25rem;
+}
+
+.media-message {
+  width: min(100%, 42rem);
+  max-width: 100%;
+  padding: .45rem;
+}
+
+.geo-guess-dialog {
+  width: min(calc(100vw - 1rem), 46rem);
+  height: min(calc(100svh - 1rem), 48rem);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  color: var(--text);
+  background: var(--snow);
+  border-top: 2px solid #ffffff;
+  border-right: 2px solid #8b6f43;
+  border-bottom: 2px solid #5a4226;
+  border-left: 2px solid #ffffff;
+  border-radius: 1.1rem;
+  box-shadow: .32rem .32rem 0 rgba(13, 36, 23, .42);
+  overflow: hidden;
+  z-index: 1400;
+}
+
+.geo-guess-dialog::backdrop {
+  background: rgba(16, 39, 31, .72);
+  backdrop-filter: blur(3px);
+}
+
+.geo-dialog-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  gap: .7rem;
+  padding: .75rem;
+  color: var(--text);
+  background: rgba(247, 248, 249, .96);
+  border-bottom: 1px solid rgba(13, 36, 23, .14);
+}
+
+.geo-answer-panel {
+  display: grid;
+  grid-template-rows: auto minmax(18rem, 1fr) auto auto;
+  gap: .65rem;
+  height: calc(100% - 4.25rem);
+  padding: .75rem;
+}
+
+.geo-answer-panel .guess-map {
+  min-height: 18rem;
+  height: auto;
+}
+
+.chat-composer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: min(100%, 48rem);
+  margin: auto;
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  gap: .5rem;
+  padding: .65rem .7rem calc(.65rem + env(safe-area-inset-bottom));
+  background: rgba(16, 39, 31, .94);
+  border-top: 2px solid var(--bar-light);
+  z-index: 999;
+}
+
+.chat-composer.text-only {
+  grid-template-columns: minmax(0, 1fr) 2.75rem;
+}
+
+.chat-composer.text-only .chat-icon-button {
+  display: none;
+}
+
+.chat-input {
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0 1rem;
+  color: var(--text);
+  background: var(--snow);
+  border: 2px solid #ffffff;
+  border-right-color: #8b6f43;
+  border-bottom-color: #5a4226;
+  border-radius: 999px;
+}
+
+.chat-icon-button,
+.chat-send-button {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 2.75rem;
+  color: var(--snow);
+  background: var(--accent);
+  border-top: 2px solid #e65b4e;
+  border-right: 2px solid #6f1712;
+  border-bottom: 2px solid #6f1712;
+  border-left: 2px solid #e65b4e;
+  border-radius: 50%;
+  font-family: Fredoka, system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.piano-chat-card,
+.memory-chat-card {
+  display: grid;
+  gap: .85rem;
+  width: min(100%, 42rem);
+  max-width: 100%;
+}
+
+.memory-board-message {
+  padding: .45rem;
+}
+
+.deleted-chat-message {
+  color: rgba(255, 253, 248, .74);
+  background: rgba(255, 253, 248, .12);
+  border: 1px solid rgba(255, 253, 248, .22);
+  box-shadow: none;
+  font-style: italic;
 }
 
 .day-main .eyebrow,
@@ -272,7 +507,6 @@ button, input { font: inherit; }
 }
 
 .day-main .piano-rules,
-.day-main .geoguessr p,
 .day-main .memory-rules {
   color: var(--snow);
 }
@@ -773,7 +1007,7 @@ dialog {
     "pos-12 pos-13 pos-14 pos-15";
   gap: .55rem;
   aspect-ratio: 1;
-  width: min(100%, 24rem);
+  width: min(100%, 22rem);
   margin: .2rem auto;
   padding: .7rem;
   background: var(--evergreen);
@@ -818,11 +1052,6 @@ dialog {
   font-size: 5rem;
   font-weight: 900;
   z-index: 1100;
-}
-
-.memory-answer-area {
-  display: grid;
-  gap: .65rem;
 }
 
 .memory-status {
@@ -1134,6 +1363,30 @@ img, svg, canvas, video {
   .bottombar svg {
     width: 1.75rem;
     height: 1.75rem;
+  }
+
+  .chat-header {
+    grid-template-columns: 1.9rem minmax(0, 1fr) auto;
+    gap: .35rem;
+    padding-right: .55rem;
+    padding-left: .55rem;
+  }
+
+  .day-back {
+    width: 1.9rem;
+  }
+
+  .chat-contact {
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: .35rem;
+    font-size: .9rem;
+  }
+
+  .chat-avatar,
+  .chat-avatar-fallback {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.15rem;
   }
 
   .profile-name-row {
