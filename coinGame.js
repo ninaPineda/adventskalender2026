@@ -254,10 +254,10 @@ colors: [cssColor("--accent"), cssColor("--muted"), cssColor("--surface")],
     levelManager.levelUp();
     resetFieldGame();
       const level = levelManager.getLevel();
-  const coinsToGive = Math.floor((level - 1) / 5) + 1;
+  const starsToGive = Math.floor((level - 1) / 5) + 1;
 
-  for (let i = 0; i < coinsToGive; i++) {
-    addCoin();
+  for (let i = 0; i < starsToGive; i++) {
+    updatePoints(1);
   }
   }, 1500);
 

@@ -1,5 +1,122 @@
 {
-  "1": "Der gesuchte Weihnachtsmarkt liegt an einem bekannten Fluss in einer Hauptstadt. Achte auf Hinweise, die nach London und zur South Bank aussehen.",
-  "2": "Der Zug fährt durch den Eurotunnel. Der Schiffs-Ort, den Santa sucht, liegt an der englischen Küste.",
-  "3": "Konzentriere dich nicht nur auf die Gegenstände, sondern auch auf ungewöhnliche Positionen. Benenne das fehlende Emoji möglichst einfach, zum Beispiel Baum, Mond, Schneemann, Ball, Schere, Buch oder Stern."
+  "1": [
+    "Achte auf den Fluss neben dem Weihnachtsmarkt. 🌊",
+    "Santa ist in London unterwegs. 🇬🇧",
+    "Suche an der South Bank, am Südufer der Themse. 📍"
+  ],
+  "2": [
+    "Weihnachtliche Weisheit Nummer 2: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "3": [
+    "Der gesuchte Zug verbindet London mit Frankreich durch den Eurotunnel. 🚄",
+    "Das Gewässer heißt auf Französisch „La Manche“. 🌊",
+    "Der englische Fährhafen ist für seine weißen Kreidefelsen bekannt: Dover. ⛴️"
+  ],
+  "4": [
+    "Weihnachtliche Weisheit Nummer 4: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "5": [
+    "Weihnachtliche Weisheit Nummer 5: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "6": [
+    "Weihnachtliche Weisheit Nummer 6: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "7": [
+    "Weihnachtliche Weisheit Nummer 7: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "8": [
+    "Weihnachtliche Weisheit Nummer 8: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "9": [
+    "Weihnachtliche Weisheit Nummer 9: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "10": [
+    "Weihnachtliche Weisheit Nummer 10: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "11": [
+    "Weihnachtliche Weisheit Nummer 11: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "12": [
+    "Weihnachtliche Weisheit Nummer 12: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "13": [
+    "Weihnachtliche Weisheit Nummer 13: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "14": [
+    "Weihnachtliche Weisheit Nummer 14: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "15": [
+    "Weihnachtliche Weisheit Nummer 15: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "16": [
+    "Weihnachtliche Weisheit Nummer 16: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "17": [
+    "Weihnachtliche Weisheit Nummer 17: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "18": [
+    "Weihnachtliche Weisheit Nummer 18: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "19": [
+    "Weihnachtliche Weisheit Nummer 19: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "20": [
+    "Weihnachtliche Weisheit Nummer 20: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "21": [
+    "Weihnachtliche Weisheit Nummer 21: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "22": [
+    "Weihnachtliche Weisheit Nummer 22: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "23": [
+    "Weihnachtliche Weisheit Nummer 23: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ],
+  "24": [
+    "Weihnachtliche Weisheit Nummer 24: Auch ein Keks braucht mal eine Krümelpause. 🍪",
+    "Mein zweiter Tipp: Wenn nichts mehr geht, frag den Schneemann. Der bleibt immer cool. ☃️",
+    "Letzter Geheimtipp: Das Test-Passwort lautet „Lösung“. Mein Bart hat es dir nicht verraten. 🤫"
+  ]
 }
