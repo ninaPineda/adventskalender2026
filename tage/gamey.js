@@ -116,8 +116,8 @@ function setupSantaChat(setupDay) {
     }
   };
   const chatLog = loadSavedChat();
-  const revealExistingImmediately = opened.has(day) || chatLog.introShown || Boolean(chatLog.messages?.length);
-  const chatMessageGap = 950;
+  const revealExistingImmediately = opened.has(day) || Boolean(chatLog.messages?.length);
+  const chatMessageGap = 700;
   let nextSantaMessageAt = Date.now();
 
   const saveChat = () => {
@@ -140,13 +140,37 @@ function setupSantaChat(setupDay) {
       return;
     }
 
+    element.hidden = true;
     element.classList.add("will-animate");
+    const typing = document.createElement("div");
+    typing.className = "chat-message santa-message typing-indicator";
+    typing.hidden = true;
+    typing.setAttribute("role", "status");
+    typing.setAttribute("aria-label", "Santa schreibt …");
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement("span");
+      dot.setAttribute("aria-hidden", "true");
+      typing.appendChild(dot);
+    }
+    element.before(typing);
     const wait = Math.max(0, nextSantaMessageAt - Date.now());
-    nextSantaMessageAt = Date.now() + wait + chatMessageGap;
+    const typingDuration = Math.min(4200, Math.max(1600, (element.textContent || "").length * 16));
+    nextSantaMessageAt = Date.now() + wait + typingDuration + chatMessageGap;
     setTimeout(() => {
-      element.classList.add("visible");
+      typing.hidden = false;
       scrollToBottom();
     }, wait);
+    setTimeout(() => {
+      typing.remove();
+      element.hidden = false;
+      requestAnimationFrame(() => element.classList.add("visible"));
+      scrollToBottom();
+    }, wait + typingDuration);
+  };
+
+  // Leave enough time to read the last queued reply before leaving the chat.
+  const completeAfterMessages = (points) => {
+    setTimeout(() => rightSolution(day, points), Math.max(0, nextSantaMessageAt - Date.now()) + 1400);
   };
 
   const appendBubble = (text, sender = "user", persist = true, animate = true) => {
@@ -214,7 +238,7 @@ function setupSantaChat(setupDay) {
     solutions,
     answerMatches,
     locationButton,
-    complete: (points) => rightSolution(day, points),
+    complete: completeAfterMessages,
     celebrate: launchSuccessConfetti,
   }) || {};
   composer.classList.toggle("text-only", locationButton.hidden);
@@ -269,7 +293,7 @@ function setupSantaChat(setupDay) {
         if (chatLog.solutionIndex === solutions.length) {
           appendBubble("Richtig! Wieder ein Weihnachtsproblem weniger. Deine Sterne kommen sofort. 🎅⭐", "santa");
           launchSuccessConfetti();
-          setTimeout(() => rightSolution(day), 1800);
+          completeAfterMessages();
         } else {
           appendBubble("Richtig! Jetzt fehlt noch die nächste Antwort. 🎁", "santa");
         }
@@ -283,6 +307,74 @@ function setupSantaChat(setupDay) {
       appendBubble(answer, "santa");
     }, 850);
   });
+}
+
+function setupChatGallery() {
+  const links = [...document.querySelectorAll(".santa-chat-script .media-message a")]
+    .filter(link => link.querySelector("img"));
+  if (!links.length) return;
+  const dialog = document.createElement("dialog");
+  dialog.className = "chat-gallery";
+  dialog.setAttribute("aria-label", "Bilder aus dem Chat");
+  dialog.innerHTML = `
+    <div class="gallery-toolbar">
+      <span class="gallery-counter" aria-live="polite"></span>
+      <button type="button" class="gallery-close" aria-label="Bildvorschau schließen" autofocus>×</button>
+    </div>
+    <div class="gallery-stage">
+      <button type="button" class="gallery-prev" aria-label="Vorheriges Bild">‹</button>
+      <img class="gallery-image" alt="" draggable="false">
+      <button type="button" class="gallery-next" aria-label="Nächstes Bild">›</button>
+    </div>
+    <p class="gallery-caption"></p>`;
+  document.body.appendChild(dialog);
+  const image = dialog.querySelector(".gallery-image");
+  const counter = dialog.querySelector(".gallery-counter");
+  const caption = dialog.querySelector(".gallery-caption");
+  let index = 0;
+  let opener;
+  const show = next => {
+    index = (next + links.length) % links.length;
+    const source = links[index].querySelector("img");
+    image.src = links[index].href;
+    image.alt = source.alt;
+    caption.textContent = source.alt;
+    counter.textContent = `${index + 1} / ${links.length}`;
+  };
+  links.forEach((link, position) => {
+    link.addEventListener("click", event => {
+      event.preventDefault();
+      opener = link;
+      show(position);
+      dialog.showModal();
+    });
+  });
+  dialog.querySelector(".gallery-close").addEventListener("click", () => dialog.close());
+  dialog.querySelector(".gallery-prev").addEventListener("click", () => show(index - 1));
+  dialog.querySelector(".gallery-next").addEventListener("click", () => show(index + 1));
+  dialog.addEventListener("keydown", event => {
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      show(index + (event.key === "ArrowLeft" ? -1 : 1));
+    }
+  });
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener("close", () => opener?.focus({ preventScroll: true }));
+  let touchStart;
+  dialog.addEventListener("touchstart", event => {
+    touchStart = event.touches.length === 1
+      ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+  }, { passive: true });
+  dialog.addEventListener("touchend", event => {
+    if (!touchStart || event.touches.length) return;
+    const dx = event.changedTouches[0].clientX - touchStart.x;
+    const dy = event.changedTouches[0].clientY - touchStart.y;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) show(index + (dx < 0 ? 1 : -1));
+    touchStart = null;
+  }, { passive: true });
+  dialog.addEventListener("touchcancel", () => { touchStart = null; });
 }
 
 async function loadDayContent() {
@@ -316,7 +408,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let setupDay;
   if (script?.hasAttribute("data-day-script") && script.dataset.pending !== "true") {
     try {
-      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=winter-ui1`));
+      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=shuffled-selection1`));
     } catch (error) {
       console.error("Tages-Skript konnte nicht geladen werden", error);
       script.dataset.pending = "true";
@@ -325,5 +417,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       script.appendChild(message);
     }
   }
+  setupChatGallery();
   setupSantaChat(setupDay);
 });

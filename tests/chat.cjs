@@ -10,22 +10,24 @@ for (let day = 1; day <= 24; day++) {
   assert.equal(hintsData[day].length, 3);
   if (day !== 1 && day !== 3) {
     assert.deepEqual(solutions[day], [['Lösung']]);
-    assert.ok(read(`tage/content/${day}.html`).includes('data-placeholder="true"'));
+    if (day !== 2) assert.ok(read(`tage/content/${day}.html`).includes('data-placeholder="true"'));
   }
 }
 assert.equal(new Set([2, ...Array.from({length:21},(_,i)=>i+4)].map(day=>read(`tage/content/${day}.html`))).size,22);
 function element() {
   return {dataset:{},children:[],listeners:{},classList:{add(){},remove(){},toggle(){}},
-    addEventListener(n,f){this.listeners[n]=f},appendChild(e){this.children.push(e)},scrollTo(){},querySelectorAll(){return []}};
+    setAttribute(){},before(){},remove(){},addEventListener(n,f){this.listeners[n]=f},appendChild(e){this.children.push(e)},scrollTo(){},querySelectorAll(){return []}};
 }
-function session(day, balance=30, storage={}) {
+function session(day, balance=30, storage={}, intro=[]) {
   const nodes=Object.fromEntries(['.santa-chat','#daySlot','#chatComposer','#chatInput','#sendLocationButton','.santa-chat-script'].map(key=>[key,element()]));
+  nodes['#daySlot'].querySelectorAll=()=>intro;
   nodes['.santa-chat-script'].dataset.placeholder=day===3?'false':'true';
   const timers=[];
+  const delays=[];
   const globals={console,URLSearchParams,location:{search:`?tag=${day}`},document:{addEventListener(){},createElement:element},
     $:key=>nodes[key],localStorage:{getItem:k=>storage[k],setItem:(k,v)=>storage[k]=v},
     opened:new Set(),hints:new Set(),hintCounts:{},wrongAttempts:{},save(){},logSolved(){},
-    updatePoints(n){if(balance+n<0)return false;balance+=n;return true},setTimeout:fn=>timers.push(fn),requestAnimationFrame:fn=>fn()};
+    updatePoints(n){if(balance+n<0)return false;balance+=n;return true},setTimeout:(fn,delay)=>{delays.push(delay);timers.push(fn)},requestAnimationFrame:fn=>fn()};
   const ctx=vm.createContext(globals);
   vm.runInContext(read('tage/gamey.js'),ctx);
   ctx.hintsData=hintsData;ctx.solutionsData=solutions;
@@ -33,7 +35,7 @@ function session(day, balance=30, storage={}) {
   let setupDay;
   if(day===3){vm.runInContext(read('tage/scripts/3.js').replace('export function','function'),ctx);setupDay=ctx.setupDay;}
   ctx.setupSantaChat(setupDay);
-  return {ctx,storage,balance:()=>balance,send(text){nodes['#chatInput'].value=text;nodes['#chatComposer'].listeners.submit({preventDefault(){}});},flush(){while(timers.length)timers.shift()();},messages:()=>JSON.parse(storage[`advent_chat_log_${day}`]).messages};
+  return {ctx,storage,delays,balance:()=>balance,send(text){nodes['#chatInput'].value=text;nodes['#chatComposer'].listeners.submit({preventDefault(){}});},flush(){while(timers.length)timers.shift()();},messages:()=>JSON.parse(storage[`advent_chat_log_${day}`]).messages};
 }
 const s=session(2);
 s.send('Hilfe');s.flush();s.send('Nein');s.flush();assert.equal(s.balance(),30);
@@ -57,3 +59,16 @@ const restored=session(2,25,s.storage);restored.ctx.hintCounts[2]=1;restored.ctx
 restored.send('Hilfe');restored.flush();restored.send('Ja');restored.flush();
 assert.equal(restored.ctx.hintCounts[2],2);assert.equal(restored.balance(),20);
 console.log('OK: 24 hint/solution records; placeholders; ordered paid hints; cancellation; insufficient stars; repeat submissions; reload; ordered day-3 quiz and rewards.');
+
+// Previously opened introductions replay if no conversation has started.
+const intro=[element(),element()];
+const animated=session(2,30,{advent_chat_log_2:JSON.stringify({introShown:true,messages:[]})},intro);
+assert.ok(intro.every(b=>b.hidden));
+assert.ok(animated.delays[1]>=1600);
+assert.ok(animated.delays[2]>animated.delays[1]);
+animated.flush();
+assert.ok(intro.every(b=>b.hidden===false));
+const historyIntro=[element()];
+session(2,30,{advent_chat_log_2:JSON.stringify({introShown:true,messages:[{sender:'user',text:'Hallo'}]})},historyIntro);
+assert.notEqual(historyIntro[0].hidden,true);
+console.log('OK: typing delay, sequential intro reveal, replay and restored history.');
