@@ -3,7 +3,8 @@ let HINTS = {};
 let SOLUTIONS = {};
 
 function chatCharacter() {
-  return new URLSearchParams(location.search).get("contact") === "rudolf" ? "rudolf" : "santa";
+  const contact = new URLSearchParams(location.search).get("contact");
+  return ["rudolf", "nikolaus"].includes(contact) ? contact : "santa";
 }
 
 function dayFromURL() {
@@ -54,7 +55,8 @@ function rightSolution(day, points) {
   if (typeof currentChatDay === "function") {
     if (currentChatDay(chatCharacter()) > day) location.reload();
     else {
-      $("#chatComposer").hidden = true;
+      $("#sendLocationButton").hidden = true;
+      $("#chatComposer").classList.add("text-only");
       $(".new-messages")?.remove();
     }
   }
@@ -89,28 +91,38 @@ function setupSantaChat(setupDay) {
   if (!chat || !scroll || !composer || !input || !locationButton || !script) return;
   if (chat.dataset.ready) return;
   chat.dataset.ready = "true";
-  if (script.dataset.pending === "true") {
-    composer.hidden = true;
-    scroll.querySelectorAll(".chat-message").forEach((bubble) => bubble.classList.add("visible"));
-    return;
-  }
+  composer.hidden = false;
+  const pending = script.dataset.pending === "true";
   const day = dayFromURL();
-  const storageKey = `${LS_CHAT}_${day}`;
-
-  const fallbackReplies = [
-    "Aaargh, mein Kopf... 🥴",
-    "Ich bin mir gerade wirklich keine große Hilfe. 🎄",
-    "Kannst du das nochmal anders versuchen? ✨",
-    "Ho ho... oh nein. 🎅",
-  ];
-  let replies = fallbackReplies;
-  try {
-    replies = JSON.parse(script?.dataset.replies || "[]");
-    if (!Array.isArray(replies) || !replies.length) replies = fallbackReplies;
-  } catch {
-    replies = fallbackReplies;
-  }
-
+  const character = chatCharacter();
+  const storageKey = typeof chatStorageKey === "function" ? chatStorageKey(day, character) : `${LS_CHAT}_${day}${day === 6 && character === "santa" ? "_santa" : ""}`;
+  const characterReplies = {
+    santa: [
+      "Ho ho ho! Ich wollte nur kurz Kekse zählen. Jetzt fehlen drei. 🍪",
+      "Mein Navi sagt: Bitte wenden. Mein Bauch sagt: Bitte Waffeln. 🧇",
+      "Ich schicke dir eine Portion Weihnachtsstimmung rüber! 🎄✨",
+      "Mein Bart hat heute mehr Empfang als mein Handy. 🎅📱",
+      "Kurze Kakaopause. Die gehört zur Reiseplanung. ☕",
+      "Ich habe dem Schlitten Winterreifen bestellt. Die Rentiere fanden das komisch. 🛷",
+    ],
+    rudolf: [
+      "Meine Nase leuchtet heute im Energiesparmodus. 🦌💡",
+      "Die Elfen sagen, ich soll den Überblick behalten. Ich sehe vor allem Geschenkpapier. 🎁",
+      "Ich würde dir einen Keks schicken, aber der passt nicht durchs WLAN. 🍪",
+      "Immer der roten Nase nach! Außer ich habe mich verlaufen. 🧭",
+      "Kleine Pause für die Hufe. Gleich wird wieder Weihnachten gerettet. 🦌",
+      "Hab einen schönen Tag! Und lass dir den Kakao nicht kalt werden. ☕",
+    ],
+    nikolaus: [
+      "Ich bin heute gut zu Fuß. Zum Glück sind die Stiefel schon eingelaufen! 👢",
+      "Ein freundliches Moin passt zum Glück in jeden Stiefel. 🎁",
+      "Mein Sack ist schwer, aber die Stimmung ist leicht. ✨",
+      "Ich habe noch eine Mandarine übrig. Gedanklich ist sie schon bei dir! 🍊",
+      "Kurze Verschnaufpause. Auch ein Nikolaus braucht mal einen Schluck Tee. ☕",
+      "Bleib schön fröhlich. Das ist wärmer als die dicksten Socken! 🧦",
+    ],
+  };
+  const replies = characterReplies[character];
   locationButton.hidden = true;
   composer.classList.add("text-only");
 
@@ -204,6 +216,25 @@ function setupSantaChat(setupDay) {
     scrollToBottom(animate ? "smooth" : "auto");
   };
 
+  const appendImage = (src, alt, persist = true, animate = true) => {
+    if (!/^\.\.\/assets\//.test(src)) return;
+    const bubble = document.createElement("div");
+    bubble.className = "chat-message santa-message media-message";
+    const link = document.createElement("a");
+    link.href = src;
+    link.setAttribute("aria-label", "Foto groß öffnen");
+    const image = document.createElement("img");
+    image.src = src;
+    image.alt = alt;
+    link.appendChild(image);
+    bubble.appendChild(link);
+    scroll.appendChild(bubble);
+    if (animate) revealChatElement(bubble, false);
+    else bubble.classList.add("visible");
+    if (persist) { chatLog.messages.push({kind:"image", sender:"santa", src, alt}); saveChat(); }
+    scrollToBottom(animate ? "smooth" : "auto");
+  };
+
   (script.hasAttribute?.("data-active") ? script : scroll).querySelectorAll(".santa-chat-script > .chat-message:not(.hidden), :scope > .chat-message:not(.hidden)").forEach((bubble) => {
     revealChatElement(bubble);
   });
@@ -213,7 +244,8 @@ function setupSantaChat(setupDay) {
   }
 
   chatLog.messages.forEach((message) => {
-    appendBubble(message.text, message.sender, false, false);
+    if (message.kind === "image") appendImage(message.src, message.alt, false, false);
+    else appendBubble(message.text, message.sender, false, false);
   });
 
   const sendHintInChat = () => {
@@ -239,10 +271,15 @@ function setupSantaChat(setupDay) {
   const solutions = SOLUTIONS[String(day)] || [];
 
   // Tagesmodule verwenden den gemeinsamen Chat, ohne seine Abläufe zu duplizieren.
-  const dayGame = setupDay?.({
+  const dayGame = (!pending && (!opened.has(day) || day === 6) ? setupDay : null)?.({
     day,
+    character,
     chatLog,
     saveChat,
+    appendImage,
+    readQuest: () => readNikolausQuest(),
+    saveQuest: state => localStorage.setItem("advent_nikolaus_search", JSON.stringify(state)),
+    completeNow: points => rightSolution(day, points),
     appendBubble,
     normalize,
     solutions,
@@ -251,7 +288,11 @@ function setupSantaChat(setupDay) {
     complete: completeAfterMessages,
     celebrate: launchSuccessConfetti,
   }) || {};
+  if (opened.has(day)) locationButton.hidden = true;
   composer.classList.toggle("text-only", locationButton.hidden);
+  const smallTalk = () => {
+    setTimeout(() => appendBubble(replies[Math.floor(Math.random() * replies.length)], "santa"), 720);
+  };
 
   composer.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -260,6 +301,10 @@ function setupSantaChat(setupDay) {
     appendBubble(text, "user");
     input.value = "";
     const normalizedText = normalize(text);
+    if (opened.has(day) || pending) { smallTalk(); return; }
+    if (!chatLog.pendingHint && /^(hallo|hey|hi|moin|guten (morgen|tag|abend)|danke|dankeschön|wie geht.?s|wie geht es dir|erzähl.*witz|erzaehl.*witz|frohe weihnachten|tschüss|tschuess)[ !?.]*$/i.test(text.trim())) {
+      smallTalk(); return;
+    }
     if (chatLog.pendingHint) {
       if (["ja", "jap", "yes", "klar", "okay", "ok"].includes(normalizedText)) {
         sendHintInChat();
@@ -294,7 +339,7 @@ function setupSantaChat(setupDay) {
       }
       const index = Number(chatLog.solutionIndex) || 0;
       if (index >= solutions.length) {
-        rightSolution(day);
+        smallTalk();
         return;
       }
       if (answerMatches(text, solutions[index])) {
@@ -308,21 +353,16 @@ function setupSantaChat(setupDay) {
           appendBubble("Richtig! Jetzt fehlt noch die nächste Antwort. 🎁", "santa");
         }
       } else {
-        appendBubble(script.dataset.wrongReply || "Das war noch nicht die gesuchte Antwort. Versuch es noch einmal. 🎁", "santa");
+        smallTalk();
       }
       return;
     }
-    setTimeout(() => {
-      const answer = replies[Math.floor(Math.random() * replies.length)];
-      appendBubble(answer, "santa");
-    }, 850);
+    smallTalk();
   });
 }
 
 function setupChatGallery() {
-  const links = [...document.querySelectorAll(".santa-chat-script .media-message a")]
-    .filter(link => link.querySelector("img"));
-  if (!links.length) return;
+  let links = [];
   const dialog = document.createElement("dialog");
   dialog.className = "chat-gallery";
   dialog.setAttribute("aria-label", "Bilder aus dem Chat");
@@ -351,13 +391,16 @@ function setupChatGallery() {
     caption.textContent = source.alt;
     counter.textContent = `${index + 1} / ${links.length}`;
   };
-  links.forEach((link, position) => {
-    link.addEventListener("click", event => {
-      event.preventDefault();
-      opener = link;
-      show(position);
-      dialog.showModal();
-    });
+  $("#daySlot").addEventListener("click", event => {
+    const link = event.target.closest(".media-message a");
+    if (!link?.querySelector("img")) return;
+    links = [...document.querySelectorAll("#daySlot .media-message a")].filter(item => item.querySelector("img"));
+    const position = links.indexOf(link);
+    if (position < 0) return;
+    event.preventDefault();
+    opener = link;
+    show(position);
+    dialog.showModal();
   });
   dialog.querySelector(".gallery-close").addEventListener("click", () => dialog.close());
   dialog.querySelector(".gallery-prev").addEventListener("click", () => show(index - 1));
@@ -390,28 +433,33 @@ function setupChatGallery() {
 async function loadDayContent() {
   const slot = document.getElementById("daySlot");
   const day = dayFromURL();
-  const rudolf = chatCharacter() === "rudolf";
-  document.querySelector(".page-title").textContent = rudolf ? "Rudolf" : "Weihnachtsmann";
-  document.querySelector(".chat-contact-info b").textContent = rudolf ? "Rudolf 🦌" : "Weihnachtsmann 🎅";
-  document.querySelector(".chat-contact-info small").textContent = rudolf ? "in der Weihnachtswerkstatt" : "zuletzt am Glühweinstand";
-  document.querySelector(".chat-avatar").src = rudolf ? "../assets/avatars/rudolf.png" : "ProfilePic.jpeg";
-  document.querySelector(".santa-chat").setAttribute("aria-label", rudolf ? "Chat mit Rudolf" : "Chat mit dem Weihnachtsmann");
+  const contacts = {
+    santa: {name:"Weihnachtsmann 🎅", status: day >= 6 ? "auf dem Weg nach Norden" : "zuletzt am Glühweinstand", avatar:"ProfilePic.jpeg"},
+    rudolf: {name:"Rudolf 🦌", status:"in der Weihnachtswerkstatt", avatar:"../assets/avatars/rudolf.png"},
+    nikolaus: {name:"Nikolaus 🎁", status:"heute ordentlich unterwegs", avatar:"../assets/avatars/nikolaus.png"},
+  };
+  const contact = contacts[chatCharacter()];
+  document.querySelector(".page-title").textContent = contact.name;
+  document.querySelector(".chat-contact-info b").textContent = contact.name;
+  document.querySelector(".chat-contact-info small").textContent = contact.status;
+  document.querySelector(".chat-avatar").src = contact.avatar;
+  document.querySelector(".santa-chat").setAttribute("aria-label", `Chat mit ${contact.name}`);
   if (!day) { location.replace("../index.html"); return; }
   try {
-    const first = chatCharacter() === "rudolf" ? 4 : 1;
-    const contents = await Promise.all(Array.from({length:day-first+1}, async (_,i) => {
-      const response = await fetch(`./content/${i+first}.html`, {cache:"no-store"});
+    const dayNumbers = daysForChat(chatCharacter()).filter(number => number <= day);
+    const contents = await Promise.all(dayNumbers.map(async number => {
+      const response = await fetch(`./content/${number}${number === 6 && chatCharacter() === "santa" ? "-santa" : ""}.html`, {cache:"no-store"});
       if (!response.ok) throw new Error("Chat fehlt");
       return response.text();
     }));
     slot.innerHTML = "";
     contents.forEach((html, i) => {
-      const number = i + first;
+      const number = dayNumbers[i];
       const date = document.createElement("div");
       date.className = "chat-date";
       date.textContent = `${number}. Dezember`;
       slot.appendChild(date);
-      if (number === day && !opened.has(day)) {
+      if (number === day && hasUnreadDay(chatCharacter(), day)) {
         const marker = document.createElement("div");
         marker.className = "new-messages";
         marker.id = "newMessages";
@@ -429,14 +477,26 @@ async function loadDayContent() {
       while (container.firstChild) slot.appendChild(container.firstChild);
       if (number < day) {
         let saved;
-        try { saved = JSON.parse(localStorage.getItem(`${LS_CHAT}_${number}`) || "{}"); } catch {}
+        try { saved = JSON.parse(localStorage.getItem(chatStorageKey(number, chatCharacter())) || "{}"); } catch {}
         if (!script.dataset.chatVersion || saved?.version === script.dataset.chatVersion) {
           (saved?.messages || []).forEach(message => {
             const bubble = document.createElement("div");
             bubble.className = `chat-message visible ${message.sender === "user" ? "user-message" : "santa-message"}`;
-            const text = document.createElement("p");
-            text.textContent = message.text;
-            bubble.appendChild(text);
+            if (message.kind === "image" && /^\.\.\/assets\//.test(message.src)) {
+              bubble.classList.add("media-message");
+              const link = document.createElement("a");
+              link.href = message.src;
+              link.setAttribute("aria-label", "Foto groß öffnen");
+              const image = document.createElement("img");
+              image.src = message.src;
+              image.alt = message.alt;
+              link.appendChild(image);
+              bubble.appendChild(link);
+            } else {
+              const text = document.createElement("p");
+              text.textContent = message.text;
+              bubble.appendChild(text);
+            }
             slot.appendChild(bubble);
           });
         }
@@ -464,7 +524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let setupDay;
   if (script?.hasAttribute("data-day-script") && script.dataset.pending !== "true") {
     try {
-      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=shuffled-selection1`));
+      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=nikolaus6-1`));
     } catch (error) {
       console.error("Tages-Skript konnte nicht geladen werden", error);
       script.dataset.pending = "true";
@@ -475,7 +535,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   setupChatGallery();
   setupSantaChat(setupDay);
-  if (opened.has(dayFromURL())) $("#chatComposer").hidden = true;
   const marker = document.getElementById("newMessages");
   marker?.scrollIntoView({block:"start"});
 });

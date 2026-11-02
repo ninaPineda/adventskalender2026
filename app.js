@@ -211,19 +211,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Calendar release is based on the Advent calendar's local time in Berlin.
 function releasedChatDay() {
-  return 4; // Datumssperre zum Testen aus: alle vier fertigen Tage verfügbar.
+  return 6; // Datumssperre zum Testen aus: alle sechs fertigen Tage verfügbar.
   //const parts = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/Berlin", year:"numeric", month:"numeric", day:"numeric"}).formatToParts(new Date());
   //const date = Object.fromEntries(parts.map(p => [p.type, Number(p.value)]));
   //if (date.year < 2026 || (date.year === 2026 && date.month < 12)) return 0;
-  //return date.year > 2026 ? 4 : Math.min(4, date.day);
+  //return date.year > 2026 ? 6 : Math.min(6, date.day);
+}
+function daysForChat(character = "santa") {
+  return character === "rudolf" ? [4] : character === "nikolaus" ? [6] : [1, 2, 3, 5, 6];
 }
 function currentChatDay(character = "santa") {
-  const released = releasedChatDay();
-  const first = character === "rudolf" ? 4 : 1;
-  const last = Math.min(released, character === "rudolf" ? 4 : 3);
-  if (last < first) return 0;
-  for (let day = first; day <= last; day++) if (!opened.has(day)) return day;
-  return last;
+  const available = daysForChat(character).filter(day => day <= releasedChatDay());
+  return available.find(day => !opened.has(day)) || available[available.length - 1] || 0;
+}
+function readNikolausQuest() {
+  try { return JSON.parse(localStorage.getItem("advent_nikolaus_search") || "{}"); }
+  catch { return {}; }
+}
+function hasUnreadDay(character, day) {
+  if (day === 6 && character === "santa") {
+    const quest = readNikolausQuest();
+    return Boolean(quest.together && !quest.confirmationRead);
+  }
+  return !opened.has(day);
+}
+function chatStorageKey(day, character) {
+  return `advent_chat_log_${day}${day === 6 && character === "santa" ? "_santa" : ""}`;
 }
 function renderChatInbox() {
   const list = document.getElementById("chatList");
@@ -234,13 +247,23 @@ function renderChatInbox() {
     return;
   }
   const contacts = [
-    {id:"santa", name:"Weihnachtsmann 🎅", avatar:"tage/ProfilePic.jpeg", first:1, last:3, preview:"Eine neue Weihnachtsmission wartet auf dich."},
-    {id:"rudolf", name:"Rudolf 🦌", avatar:"assets/avatars/rudolf.png", first:4, last:4, preview:"Ey yo, wo ist mein Geschenkehaufen? Ich brauche deine Hilfe!"},
+    {id:"santa", name:"Weihnachtsmann 🎅", avatar:"tage/ProfilePic.jpeg",  preview:"Eine neue Weihnachtsmission wartet auf dich."},
+    {id:"nikolaus", name:"Nikolaus 🎁", avatar:"assets/avatars/nikolaus.png", preview:"Moin! Kannst du herausfinden, wo der Weihnachtsmann ist?"},
+    {id:"rudolf", name:"Rudolf 🦌", avatar:"assets/avatars/rudolf.png",  preview:"Ey yo, wo ist mein Geschenkehaufen? Ich brauche deine Hilfe!"},
   ];
-  list.innerHTML = contacts.filter(c => released >= c.first).map(c => {
-    const last = Math.min(released, c.last);
-    const unread = Array.from({length:last-c.first+1}, (_,i)=>i+c.first).filter(day=>!opened.has(day)).length;
-    return `<a class="chat-row" href="tage/template.html?contact=${c.id}"><img class="inbox-avatar" src="${c.avatar}" alt="" width="58" height="58"><span class="chat-row-copy"><strong>${c.name}</strong><span>${unread ? c.preview : "Alle Weihnachtsmissionen erledigt. ⭐"}</span></span><span class="chat-row-meta"><time>${last}. Dez.</time>${unread ? `<b class="unread-badge" aria-label="${unread} ungelöste Tagesmissionen">${unread}</b>` : '<span aria-label="Alles gelöst">✓✓</span>'}</span></a>`;
+  list.innerHTML = contacts.filter(c => daysForChat(c.id).some(day => day <= released)).map(c => {
+    const available = daysForChat(c.id).filter(day => day <= released);
+    const last = available[available.length - 1];
+    const unread = available.filter(day => hasUnreadDay(c.id, day)).length;
+    return `<a class="chat-row" href="tage/template.html?contact=${c.id}"><img class="inbox-avatar" src="${c.avatar}" alt="" width="58" height="58"><span class="chat-row-copy"><strong>${c.name}</strong><span>${c.id === "santa" && readNikolausQuest().together && !readNikolausQuest().confirmationRead ? "Hey, ich habe gerade den Nikolaus getroffen!" : unread ? c.preview : "Alle Weihnachtsmissionen erledigt. ⭐"}</span></span><span class="chat-row-meta"><time>${last}. Dez.</time>${unread ? `<b class="unread-badge" aria-label="${unread} ungelöste Tagesmissionen">${unread}</b>` : '<span aria-label="Alles gelöst">✓✓</span>'}</span></a>`;
   }).join("");
 }
 document.addEventListener("DOMContentLoaded", renderChatInbox);
+
+// Restore fresh state when switching back to a cached page or another open chat.
+if (typeof window !== "undefined") {
+  window.addEventListener("pageshow", event => { if (event.persisted) location.reload(); });
+  window.addEventListener("storage", event => {
+    if ([LS_OPEN, LS_POINTS, LS_HINT_COUNTS, "advent_nikolaus_search"].includes(event.key)) location.reload();
+  });
+}

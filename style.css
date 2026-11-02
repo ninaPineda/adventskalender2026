@@ -1702,8 +1702,8 @@ body.day-page::before {
 .account-page .leaderboard-table { padding-top: 0; }
 
 /* Every chat photo keeps its original proportions at mobile widths. */
-.santa-chat-script .media-message a { display: block; }
-.santa-chat-script .media-message img { display: block; width: 100%; height: auto; border-radius: .65rem; }
+.chat-scroll .media-message a { display: block; }
+.chat-scroll .media-message img { display: block; width: 100%; height: auto; border-radius: .65rem; }
 .chat-scroll > .chat-message, .santa-chat-script > .chat-message { flex-shrink: 0; }
 
 /* Automatic night palette, 20:00–06:00 Europe/Berlin. */

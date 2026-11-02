@@ -47,6 +47,8 @@ export function setupDay({ day, chatLog, saveChat, appendBubble, answerMatches, 
       return true;
     }
 
+    // Unrelated chat messages get a friendly reply from the shared composer.
+    if (!solutions.some(accepted => answerMatches(text, accepted))) return false;
     wrongAttempts[day] = (Number(wrongAttempts[day]) || 0) + 1;
     save();
     setTimeout(() => {
