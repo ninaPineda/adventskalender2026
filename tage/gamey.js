@@ -2,8 +2,12 @@ const LS_CHAT = "advent_chat_log";
 let HINTS = {};
 let SOLUTIONS = {};
 
+function chatCharacter() {
+  return new URLSearchParams(location.search).get("contact") === "rudolf" ? "rudolf" : "santa";
+}
+
 function dayFromURL() {
-  return Number(new URLSearchParams(location.search).get("tag")) || 1;
+  return typeof currentChatDay === "function" ? currentChatDay(chatCharacter()) : Number(new URLSearchParams(location.search).get("tag")) || 1;
 }
 
 function normalize(s) {
@@ -47,7 +51,13 @@ function rightSolution(day, points) {
     save();
     logSolved(day);
   }
-  setTimeout(() => (location.href = "../index.html"), 500);
+  if (typeof currentChatDay === "function") {
+    if (currentChatDay(chatCharacter()) > day) location.reload();
+    else {
+      $("#chatComposer").hidden = true;
+      $(".new-messages")?.remove();
+    }
+  }
 }
 
 // Die äußere Liste enthält die Schritte, die innere Liste akzeptierte Varianten.
@@ -75,7 +85,7 @@ function setupSantaChat(setupDay) {
   const composer = $("#chatComposer");
   const input = $("#chatInput");
   const locationButton = $("#sendLocationButton");
-  const script = $(".santa-chat-script");
+  const script = $(".santa-chat-script[data-active]") || $(".santa-chat-script");
   if (!chat || !scroll || !composer || !input || !locationButton || !script) return;
   if (chat.dataset.ready) return;
   chat.dataset.ready = "true";
@@ -194,7 +204,7 @@ function setupSantaChat(setupDay) {
     scrollToBottom(animate ? "smooth" : "auto");
   };
 
-  scroll.querySelectorAll(".santa-chat-script > .chat-message:not(.hidden)").forEach((bubble) => {
+  (script.hasAttribute?.("data-active") ? script : scroll).querySelectorAll(".santa-chat-script > .chat-message:not(.hidden), :scope > .chat-message:not(.hidden)").forEach((bubble) => {
     revealChatElement(bubble);
   });
   if (!chatLog.introShown) {
@@ -277,7 +287,7 @@ function setupSantaChat(setupDay) {
       return;
     }
     if (dayGame.handleAnswer?.(text)) return;
-    if (script.dataset.placeholder === "true") {
+    if (script.dataset.placeholder === "true" || script.dataset.answerMode === "text") {
       if (!solutions.length) {
         appendBubble("Meine Lösungsliste fehlt gerade. Lade die Seite bitte neu. 🎅", "santa");
         return;
@@ -291,14 +301,14 @@ function setupSantaChat(setupDay) {
         chatLog.solutionIndex = index + 1;
         saveChat();
         if (chatLog.solutionIndex === solutions.length) {
-          appendBubble("Richtig! Wieder ein Weihnachtsproblem weniger. Deine Sterne kommen sofort. 🎅⭐", "santa");
+          appendBubble(script.dataset.successReply || "Richtig! Wieder ein Weihnachtsproblem weniger. Deine Sterne kommen sofort. 🎅⭐", "santa");
           launchSuccessConfetti();
           completeAfterMessages();
         } else {
           appendBubble("Richtig! Jetzt fehlt noch die nächste Antwort. 🎁", "santa");
         }
       } else {
-        appendBubble("Mein Bart sagt: Versuch es mit „Lösung“. Der ist heute ausnahmsweise hilfreich. 🎅", "santa");
+        appendBubble(script.dataset.wrongReply || "Das war noch nicht die gesuchte Antwort. Versuch es noch einmal. 🎁", "santa");
       }
       return;
     }
@@ -379,15 +389,61 @@ function setupChatGallery() {
 
 async function loadDayContent() {
   const slot = document.getElementById("daySlot");
-  if (!slot) return;
   const day = dayFromURL();
-  document.querySelector(".page-title").textContent = `Tag ${day}`;
+  const rudolf = chatCharacter() === "rudolf";
+  document.querySelector(".page-title").textContent = rudolf ? "Rudolf" : "Weihnachtsmann";
+  document.querySelector(".chat-contact-info b").textContent = rudolf ? "Rudolf 🦌" : "Weihnachtsmann 🎅";
+  document.querySelector(".chat-contact-info small").textContent = rudolf ? "in der Weihnachtswerkstatt" : "zuletzt am Glühweinstand";
+  document.querySelector(".chat-avatar").src = rudolf ? "../assets/avatars/rudolf.png" : "ProfilePic.jpeg";
+  document.querySelector(".santa-chat").setAttribute("aria-label", rudolf ? "Chat mit Rudolf" : "Chat mit dem Weihnachtsmann");
+  if (!day) { location.replace("../index.html"); return; }
   try {
-    const response = await fetch(`./content/${day}.html`, { cache: "no-store" });
-    if (!response.ok) throw new Error("Day content unavailable");
-    slot.innerHTML = await response.text();
+    const first = chatCharacter() === "rudolf" ? 4 : 1;
+    const contents = await Promise.all(Array.from({length:day-first+1}, async (_,i) => {
+      const response = await fetch(`./content/${i+first}.html`, {cache:"no-store"});
+      if (!response.ok) throw new Error("Chat fehlt");
+      return response.text();
+    }));
+    slot.innerHTML = "";
+    contents.forEach((html, i) => {
+      const number = i + first;
+      const date = document.createElement("div");
+      date.className = "chat-date";
+      date.textContent = `${number}. Dezember`;
+      slot.appendChild(date);
+      if (number === day && !opened.has(day)) {
+        const marker = document.createElement("div");
+        marker.className = "new-messages";
+        marker.id = "newMessages";
+        marker.textContent = "↓ Neue Nachrichten";
+        slot.appendChild(marker);
+      }
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      const script = container.querySelector(".santa-chat-script");
+      if (number === day) script.setAttribute("data-active", "");
+      else {
+        container.querySelectorAll(".chat-message:not(.hidden)").forEach(b => b.classList.add("visible"));
+        container.querySelectorAll("button, input").forEach(control => control.disabled = true);
+      }
+      while (container.firstChild) slot.appendChild(container.firstChild);
+      if (number < day) {
+        let saved;
+        try { saved = JSON.parse(localStorage.getItem(`${LS_CHAT}_${number}`) || "{}"); } catch {}
+        if (!script.dataset.chatVersion || saved?.version === script.dataset.chatVersion) {
+          (saved?.messages || []).forEach(message => {
+            const bubble = document.createElement("div");
+            bubble.className = `chat-message visible ${message.sender === "user" ? "user-message" : "santa-message"}`;
+            const text = document.createElement("p");
+            text.textContent = message.text;
+            bubble.appendChild(text);
+            slot.appendChild(bubble);
+          });
+        }
+      }
+    });
   } catch {
-    slot.innerHTML = '<section class="santa-chat-script" data-pending="true"><div class="chat-message santa-message"><p>Dieser Tag konnte gerade nicht geladen werden. Versuch es später nochmal. 🎄</p></div></section>';
+    slot.innerHTML = '<section class="santa-chat-script" data-active data-pending="true"><div class="chat-message santa-message visible"><p>Der Chat konnte gerade nicht geladen werden. Bitte lade die Seite neu. 🎄</p></div></section>';
   }
 }
 
@@ -404,7 +460,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch {}
   await loadDayContent();
   // Nur fertige Tage mit eigenem Verhalten laden ein Modul.
-  const script = document.querySelector(".santa-chat-script");
+  const script = document.querySelector(".santa-chat-script[data-active]");
   let setupDay;
   if (script?.hasAttribute("data-day-script") && script.dataset.pending !== "true") {
     try {
@@ -419,4 +475,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   setupChatGallery();
   setupSantaChat(setupDay);
+  if (opened.has(dayFromURL())) $("#chatComposer").hidden = true;
+  const marker = document.getElementById("newMessages");
+  marker?.scrollIntoView({block:"start"});
 });

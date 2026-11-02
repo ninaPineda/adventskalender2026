@@ -8,7 +8,7 @@ const solutions = JSON.parse(read('solutions.json'));
 const hintsData = JSON.parse(read('hints.json'));
 for (let day = 1; day <= 24; day++) {
   assert.equal(hintsData[day].length, 3);
-  if (day !== 1 && day !== 3) {
+  if (day !== 1 && day !== 3 && day !== 4) {
     assert.deepEqual(solutions[day], [['Lösung']]);
     if (day !== 2) assert.ok(read(`tage/content/${day}.html`).includes('data-placeholder="true"'));
   }
@@ -21,10 +21,16 @@ function element() {
 function session(day, balance=30, storage={}, intro=[]) {
   const nodes=Object.fromEntries(['.santa-chat','#daySlot','#chatComposer','#chatInput','#sendLocationButton','.santa-chat-script'].map(key=>[key,element()]));
   nodes['#daySlot'].querySelectorAll=()=>intro;
-  nodes['.santa-chat-script'].dataset.placeholder=day===3?'false':'true';
+  nodes['.santa-chat-script'].dataset.placeholder=day===3 || day===4?'false':'true';
+  if(day===4) {
+    const content=read('tage/content/4.html');
+    for (const [attribute, key] of [['answer-mode','answerMode'], ['chat-version','chatVersion'], ['success-reply','successReply'], ['wrong-reply','wrongReply']]) {
+      nodes['.santa-chat-script'].dataset[key]=content.match(new RegExp(`data-${attribute}="([^"]+)"`))[1];
+    }
+  }
   const timers=[];
   const delays=[];
-  const globals={console,URLSearchParams,location:{search:`?tag=${day}`},document:{addEventListener(){},createElement:element},
+  const globals={console,URLSearchParams,location:{search:`?tag=${day}`},document:{addEventListener(){},createElement:element,querySelector(){return null},getElementById(){return null}},
     $:key=>nodes[key],localStorage:{getItem:k=>storage[k],setItem:(k,v)=>storage[k]=v},
     opened:new Set(),hints:new Set(),hintCounts:{},wrongAttempts:{},save(){},logSolved(){},
     updatePoints(n){if(balance+n<0)return false;balance+=n;return true},setTimeout:(fn,delay)=>{delays.push(delay);timers.push(fn)},requestAnimationFrame:fn=>fn()};
@@ -33,9 +39,9 @@ function session(day, balance=30, storage={}, intro=[]) {
   ctx.hintsData=hintsData;ctx.solutionsData=solutions;
   vm.runInContext('HINTS=hintsData; SOLUTIONS=solutionsData;',ctx);
   let setupDay;
-  if(day===3){vm.runInContext(read('tage/scripts/3.js').replace('export function','function'),ctx);setupDay=ctx.setupDay;}
+  if(day===1 || day===3){vm.runInContext(read(`tage/scripts/${day}.js`).replace('export function','function'),ctx);setupDay=ctx.setupDay;}
   ctx.setupSantaChat(setupDay);
-  return {ctx,storage,delays,balance:()=>balance,send(text){nodes['#chatInput'].value=text;nodes['#chatComposer'].listeners.submit({preventDefault(){}});},flush(){while(timers.length)timers.shift()();},messages:()=>JSON.parse(storage[`advent_chat_log_${day}`]).messages};
+  return {ctx,storage,delays,nodes,balance:()=>balance,send(text){nodes['#chatInput'].value=text;nodes['#chatComposer'].listeners.submit({preventDefault(){}});},flush(){while(timers.length)timers.shift()();},messages:()=>JSON.parse(storage[`advent_chat_log_${day}`]).messages};
 }
 const s=session(2);
 s.send('Hilfe');s.flush();s.send('Nein');s.flush();assert.equal(s.balance(),30);
@@ -47,8 +53,8 @@ for(let i=1;i<=3;i++){
 s.send('Hilfe');s.flush();assert.equal(s.balance(),15);
 s.send('Lösung');s.flush();assert.equal(s.balance(),25);assert.ok(s.ctx.opened.has(2));
 s.send('Lösung');s.flush();assert.equal(s.balance(),25);
-const poor=session(4,4);poor.send('Hilfe');poor.flush();poor.send('Ja');poor.flush();
-assert.equal(poor.balance(),4);assert.equal(poor.ctx.hintCounts[4],undefined);
+const poor=session(5,4);poor.send('Hilfe');poor.flush();poor.send('Ja');poor.flush();
+assert.equal(poor.balance(),4);assert.equal(poor.ctx.hintCounts[5],undefined);
 poor.send('LÖSUNG!');poor.flush();assert.equal(poor.balance(),14);
 const rapid=session(5);rapid.send('Hilfe');rapid.send('Ja');rapid.send('Ja');rapid.flush();assert.equal(rapid.balance(),25);
 const quiz=session(3);quiz.send('Dover');quiz.flush();assert.equal(quiz.ctx.wrongAttempts[3],1);
@@ -72,3 +78,32 @@ const historyIntro=[element()];
 session(2,30,{advent_chat_log_2:JSON.stringify({introShown:true,messages:[{sender:'user',text:'Hallo'}]})},historyIntro);
 assert.notEqual(historyIntro[0].hidden,true);
 console.log('OK: typing delay, sequential intro reveal, replay and restored history.');
+
+const geo=session(1);
+assert.equal(geo.nodes['#sendLocationButton'].hidden,false);
+assert.ok(geo.nodes['#sendLocationButton'].listeners.click);
+const textDay=session(2);
+assert.equal(textDay.nodes['#sendLocationButton'].hidden,true);
+console.log('OK: day one exposes map action; day two uses text composer.');
+const rudolf=session(4);
+rudolf.send('Lego');rudolf.flush();
+assert.ok(!rudolf.ctx.opened.has(4));
+rudolf.send('C1');rudolf.flush();
+assert.ok(!rudolf.ctx.opened.has(4));
+rudolf.send('d1');rudolf.flush();
+assert.ok(rudolf.ctx.opened.has(4));
+assert.ok(!rudolf.ctx.opened.has(1));
+assert.equal(rudolf.balance(),40);
+assert.equal(rudolf.nodes['#sendLocationButton'].hidden,true);
+assert.ok(rudolf.messages().some(m=>m.text.includes('Weihnachtskarte noch dazu')));
+rudolf.send('D1');rudolf.flush();assert.equal(rudolf.balance(),40);
+for (const answer of ['D 1','D-1','D1!']) {
+  const variant=session(4);variant.send(answer);variant.flush();assert.ok(variant.ctx.opened.has(4));
+}
+const warehouseHints=session(4);
+for (let i=1;i<=3;i++) {
+  warehouseHints.send('Hilfe');warehouseHints.flush();warehouseHints.send('Ja');warehouseHints.flush();
+  assert.ok(warehouseHints.messages().some(m=>m.text.includes(hintsData[4][i-1])));
+  assert.equal(warehouseHints.balance(),30-i*5);
+}
+console.log('OK: Rudolf coordinates, wrong answers, three ordered hints, separate completion and single reward.');

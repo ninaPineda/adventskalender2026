@@ -21,7 +21,7 @@ const opened = new Set(JSON.parse(localStorage.getItem(LS_OPEN) || "[]"));
 const hints = new Set(JSON.parse(localStorage.getItem(LS_HINTS) || "[]"));
 const wrongAttempts = JSON.parse(localStorage.getItem(LS_ATTEMPTS) || "{}");
 const hintCounts = JSON.parse(localStorage.getItem(LS_HINT_COUNTS) || "{}");
-let allPoints = Number(localStorage.getItem(LS_POINTS) || 0);
+let allPoints = Number(localStorage.getItem(LS_POINTS) || 10);
 const SLIDE = "advent_slide";
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -73,7 +73,7 @@ function renderProfile() {
   const solved = new Set(solvedDays());
   $("#profileDays").innerHTML = Array.from({ length: 24 }, (_, i) => {
     const day = i + 1;
-    return `<span class="${solved.has(day) ? "Gelöst" : ""}">${day}</span>`;
+    return `<span class="${solved.has(day) ? "done" : ""}">${day}</span>`;
   }).join("");
   setupNameChange();
 }
@@ -208,3 +208,39 @@ document.addEventListener("DOMContentLoaded", () => {
   renderProfile();
   setupSlide();
 });
+
+// Calendar release is based on the Advent calendar's local time in Berlin.
+function releasedChatDay() {
+  return 4; // Datumssperre zum Testen aus: alle vier fertigen Tage verfügbar.
+  //const parts = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/Berlin", year:"numeric", month:"numeric", day:"numeric"}).formatToParts(new Date());
+  //const date = Object.fromEntries(parts.map(p => [p.type, Number(p.value)]));
+  //if (date.year < 2026 || (date.year === 2026 && date.month < 12)) return 0;
+  //return date.year > 2026 ? 4 : Math.min(4, date.day);
+}
+function currentChatDay(character = "santa") {
+  const released = releasedChatDay();
+  const first = character === "rudolf" ? 4 : 1;
+  const last = Math.min(released, character === "rudolf" ? 4 : 3);
+  if (last < first) return 0;
+  for (let day = first; day <= last; day++) if (!opened.has(day)) return day;
+  return last;
+}
+function renderChatInbox() {
+  const list = document.getElementById("chatList");
+  if (!list) return;
+  const released = releasedChatDay();
+  if (!released) {
+    list.innerHTML = '<p class="inbox-empty">Am 1. Dezember schreibt dir der Weihnachtsmann. 🎅</p>';
+    return;
+  }
+  const contacts = [
+    {id:"santa", name:"Weihnachtsmann 🎅", avatar:"tage/ProfilePic.jpeg", first:1, last:3, preview:"Eine neue Weihnachtsmission wartet auf dich."},
+    {id:"rudolf", name:"Rudolf 🦌", avatar:"assets/avatars/rudolf.png", first:4, last:4, preview:"Ey yo, wo ist mein Geschenkehaufen? Ich brauche deine Hilfe!"},
+  ];
+  list.innerHTML = contacts.filter(c => released >= c.first).map(c => {
+    const last = Math.min(released, c.last);
+    const unread = Array.from({length:last-c.first+1}, (_,i)=>i+c.first).filter(day=>!opened.has(day)).length;
+    return `<a class="chat-row" href="tage/template.html?contact=${c.id}"><img class="inbox-avatar" src="${c.avatar}" alt="" width="58" height="58"><span class="chat-row-copy"><strong>${c.name}</strong><span>${unread ? c.preview : "Alle Weihnachtsmissionen erledigt. ⭐"}</span></span><span class="chat-row-meta"><time>${last}. Dez.</time>${unread ? `<b class="unread-badge" aria-label="${unread} ungelöste Tagesmissionen">${unread}</b>` : '<span aria-label="Alles gelöst">✓✓</span>'}</span></a>`;
+  }).join("");
+}
+document.addEventListener("DOMContentLoaded", renderChatInbox);
