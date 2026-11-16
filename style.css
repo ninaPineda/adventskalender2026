@@ -740,9 +740,6 @@ dialog {
   border-radius: .6rem;
   box-shadow: .35rem .35rem 0 var(--shadow);
 }
-#failOverlay { position: fixed; inset: 0; background: rgba(179, 38, 30, .62); }
-#overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(217, 154, 18, .68); }
-.overlay-content { padding: 1rem; background: var(--snow); border-radius: .5rem; }
 
 .geoguessr {
   display: grid;
@@ -1069,15 +1066,6 @@ td, th { padding: .4rem; border-bottom: 1px solid var(--line); text-align: left;
 img, svg, canvas, video {
   max-width: 100%;
 }
-
-.field-container { display: grid; gap: .75rem; justify-items: center; }
-.target-field, .play-field { display: grid; gap: .35rem; }
-.cell { width: min(3rem, 14vw); aspect-ratio: 1; perspective: 600px; }
-.cell-inner { position: relative; width: 100%; height: 100%; transition: transform .25s; transform-style: preserve-3d; }
-.cell.flipped .cell-inner { transform: rotateY(180deg); }
-.front, .back { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; }
-.front { background: var(--muted); }
-.back { background: var(--accent); transform: rotateY(180deg); }
 
 @media (max-width: 430px) {
   body {
@@ -1747,8 +1735,7 @@ html[data-theme="dark"] dialog,
 html[data-theme="dark"] .assignment-dialog,
 html[data-theme="dark"] .assignment-person,
 html[data-theme="dark"] .assignment-footer,
-html[data-theme="dark"] .geo-answer-panel,
-html[data-theme="dark"] .overlay-content { background: #211b20; color: #f3e9ee; border-color: #5d4350; }
+html[data-theme="dark"] .geo-answer-panel { background: #211b20; color: #f3e9ee; border-color: #5d4350; }
 html[data-theme="dark"] .assignment-intro,
 html[data-theme="dark"] .assignment-field small,
 html[data-theme="dark"] .assignment-option small { color: #cfabb9; }

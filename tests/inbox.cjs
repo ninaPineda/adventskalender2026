@@ -17,7 +17,7 @@ assert.equal(String(state('2026-12-04T12:00:00Z', [1,2,3])), '4,3,4');
 console.log('OK: Berlin midnight release, hidden future days, catch-up order, separate Santa and Rudolf conversations.');
 
 const list = {innerHTML:""};
-const context = vm.createContext({Intl, Date, opened:new Set([1,2,3,5]), localStorage:{getItem(){return null}},document:{getElementById(){return list},addEventListener(){}}});
+const context = vm.createContext({Intl, Date, opened:new Set([1,2,3,5]), store:{read(){return {}}},document:{getElementById(){return list},addEventListener(){}}});
 vm.runInContext(configuredSource.slice(configuredSource.indexOf('function releasedChatDay()')), context);
 vm.runInContext('renderChatInbox()', context);
 assert.ok(list.innerHTML.includes('contact=santa'));
@@ -37,7 +37,7 @@ console.log('OK: day five appends to Santa; Rudolf day four excluded from Santa 
 assert.equal(String(state('2026-12-06T12:00:00Z', [1,2,3,5])), '6,6,4');
 assert.ok(list.innerHTML.includes('contact=nikolaus'));
 const quest={together:true,confirmationRead:false};
-context.localStorage.getItem=()=>JSON.stringify(quest);
+context.store.read=()=>({quest});
 context.opened.add(6);
 vm.runInContext('renderChatInbox()',context);
 assert.ok(list.innerHTML.includes('Hey, ich habe gerade den Nikolaus getroffen!'));

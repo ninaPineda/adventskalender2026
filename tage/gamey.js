@@ -1,4 +1,3 @@
-const LS_CHAT = "advent_chat_log";
 let HINTS = {};
 let SOLUTIONS = {};
 
@@ -49,7 +48,6 @@ function rightSolution(day, points) {
     const earnedPoints = Number.isFinite(Number(points)) ? Number(points) : pointsForDay(day);
     delete wrongAttempts[day];
     updatePoints(earnedPoints);
-    save();
     logScore(day);
   }
   if (typeof currentChatDay === "function") {
@@ -77,13 +75,12 @@ function hintsForDay(day) {
 }
 
 function hintsUsed(day) {
-  // Bereits gekaufte Hinweise aus der bisherigen Version zählen als erster Hinweis.
-  return Number(hintCounts[day]) || (hints.has(day) ? 1 : 0);
+  return Number(hintCounts[day]) || 0;
 }
 
 function readChatLog(storageKey, version) {
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey));
+    const saved = store.read().chats?.[storageKey];
     if (Array.isArray(saved?.messages) && (!version || saved.version === version)) return saved;
   } catch {}
   return { messages: [], pendingHint: false, version };
@@ -115,8 +112,30 @@ async function restoreChatLog(day, character, script) {
   ];
   chatLog.pendingHint = false;
   chatLog.introShown = true;
-  localStorage.setItem(key, JSON.stringify(chatLog));
+  store.saveChat(key, chatLog);
   return chatLog;
+}
+
+// Aktuelle und ältere Nachrichten werden identisch aufgebaut.
+function createChatBubble(message) {
+  const bubble = document.createElement("div");
+  bubble.className = `chat-message ${message.sender === "user" ? "user-message" : "santa-message"}`;
+  if (message.kind === "image" && /^\.\.\/assets\//.test(message.src)) {
+    bubble.classList.add("media-message");
+    const link = document.createElement("a");
+    link.href = message.src;
+    link.setAttribute("aria-label", "Foto groß öffnen");
+    const image = document.createElement("img");
+    image.src = message.src;
+    image.alt = message.alt;
+    link.appendChild(image);
+    bubble.appendChild(link);
+  } else {
+    const text = document.createElement("p");
+    text.textContent = message.text;
+    bubble.appendChild(text);
+  }
+  return bubble;
 }
 
 function setupSantaChat(setupDay) {
@@ -133,7 +152,7 @@ function setupSantaChat(setupDay) {
   const pending = script.dataset.pending === "true";
   const day = dayFromURL();
   const character = chatCharacter();
-  const storageKey = typeof chatStorageKey === "function" ? chatStorageKey(day, character) : `${LS_CHAT}_${day}${day === 6 && character === "santa" ? "_santa" : ""}`;
+  const storageKey = chatStorageKey(day, character);
   const characterReplies = {
     santa: [
       "Ho ho ho! Ich wollte nur kurz Kekse zählen. Jetzt fehlen drei. 🍪",
@@ -170,7 +189,7 @@ function setupSantaChat(setupDay) {
   let nextSantaMessageAt = Date.now();
 
   const saveChat = () => {
-    localStorage.setItem(storageKey, JSON.stringify(chatLog));
+    store.saveChat(storageKey, chatLog);
   };
 
   const scrollToBottom = (behavior = "smooth") => {
@@ -222,44 +241,19 @@ function setupSantaChat(setupDay) {
     setTimeout(() => rightSolution(day, points), Math.max(0, nextSantaMessageAt - Date.now()) + 1400);
   };
 
-  const appendBubble = (text, sender = "user", persist = true, animate = true) => {
-    const bubble = document.createElement("div");
-    bubble.className = `chat-message ${sender === "user" ? "user-message" : "santa-message"}`;
-    const p = document.createElement("p");
-    p.textContent = text;
-    bubble.appendChild(p);
+  const appendMessage = (message, persist, animate) => {
+    const bubble = createChatBubble(message);
     scroll.appendChild(bubble);
-    if (sender === "santa" && animate) {
-      revealChatElement(bubble, false);
-    } else if (animate) {
-      requestAnimationFrame(() => bubble.classList.add("visible"));
-    } else {
-      bubble.classList.add("visible");
-    }
-    if (persist) {
-      chatLog.messages.push({ sender, text });
-      saveChat();
-    }
+    if (message.sender === "santa" && animate) revealChatElement(bubble, false);
+    else if (animate) requestAnimationFrame(() => bubble.classList.add("visible"));
+    else bubble.classList.add("visible");
+    if (persist) { chatLog.messages.push(message); saveChat(); }
     scrollToBottom(animate ? "smooth" : "auto");
   };
-
+  const appendBubble = (text, sender = "user", persist = true, animate = true) =>
+    appendMessage({ sender, text }, persist, animate);
   const appendImage = (src, alt, persist = true, animate = true) => {
-    if (!/^\.\.\/assets\//.test(src)) return;
-    const bubble = document.createElement("div");
-    bubble.className = "chat-message santa-message media-message";
-    const link = document.createElement("a");
-    link.href = src;
-    link.setAttribute("aria-label", "Foto groß öffnen");
-    const image = document.createElement("img");
-    image.src = src;
-    image.alt = alt;
-    link.appendChild(image);
-    bubble.appendChild(link);
-    scroll.appendChild(bubble);
-    if (animate) revealChatElement(bubble, false);
-    else bubble.classList.add("visible");
-    if (persist) { chatLog.messages.push({kind:"image", sender:"santa", src, alt}); saveChat(); }
-    scrollToBottom(animate ? "smooth" : "auto");
+    if (/^\.\.\/assets\//.test(src)) appendMessage({ kind: "image", sender: "santa", src, alt }, persist, animate);
   };
 
   (script.hasAttribute?.("data-active") ? script : scroll).querySelectorAll(".santa-chat-script > .chat-message:not(.hidden), :scope > .chat-message:not(.hidden)").forEach((bubble) => {
@@ -289,7 +283,6 @@ function setupSantaChat(setupDay) {
       return;
     }
     hintCounts[day] = index + 1;
-    hints.add(day);
     save();
     logScore();
     appendBubble(`Hinweis ${index + 1}/3: ${hint} ✨`, "santa");
@@ -305,7 +298,7 @@ function setupSantaChat(setupDay) {
     saveChat,
     appendImage,
     readQuest: () => readNikolausQuest(),
-    saveQuest: state => localStorage.setItem("advent_nikolaus_search", JSON.stringify(state)),
+    saveQuest: quest => store.update({ quest }),
     completeNow: points => rightSolution(day, points),
     appendBubble,
     normalize,
@@ -507,23 +500,8 @@ async function loadDayContent() {
       while (container.firstChild) slot.appendChild(container.firstChild);
       if (number < day) {
         saved.messages.forEach(message => {
-          const bubble = document.createElement("div");
-          bubble.className = `chat-message visible ${message.sender === "user" ? "user-message" : "santa-message"}`;
-          if (message.kind === "image" && /^\.\.\/assets\//.test(message.src)) {
-            bubble.classList.add("media-message");
-            const link = document.createElement("a");
-            link.href = message.src;
-            link.setAttribute("aria-label", "Foto groß öffnen");
-            const image = document.createElement("img");
-            image.src = message.src;
-            image.alt = message.alt;
-            link.appendChild(image);
-            bubble.appendChild(link);
-          } else {
-            const text = document.createElement("p");
-            text.textContent = message.text;
-            bubble.appendChild(text);
-          }
+          const bubble = createChatBubble(message);
+          bubble.classList.add("visible");
           slot.appendChild(bubble);
         });
       }

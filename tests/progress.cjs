@@ -27,10 +27,11 @@ function session(rows, storage = {}) {
     fetch: async (url, options) => { posts.push(options.body); },
     solutions: JSON.parse(read('solutions.json')),
   });
+  vm.runInContext(read('storage.js'), context);
   vm.runInContext(read('app.js'), context);
   vm.runInContext(read('tage/gamey.js'), context);
   vm.runInContext('SOLUTIONS = solutions;', context);
-  return {storage, posts, run: code => vm.runInContext(code, context)};
+  return {storage, state: () => JSON.parse(storage.advent_state), posts, run: code => vm.runInContext(code, context)};
 }
 
 function row(solved, points, hour, name = 'Katrin') {
@@ -46,38 +47,38 @@ async function main() {
   ];
   const automatic = session([...history].reverse(), {advent_user_name: '  KATRIN  '});
   await automatic.run('loadInitialProgress()');
-  assert.deepEqual(JSON.parse(automatic.storage.advent_opened), [1, 2, 3, 5]);
-  assert.equal(automatic.storage.advent_points, '38.5');
+  assert.deepEqual(automatic.state().opened, [1, 2, 3, 5]);
+  assert.equal(automatic.state().points, 38.5);
   assert.equal(automatic.run('currentChatDay("santa")'), 6);
   assert.equal(automatic.run('hasUnreadDay("rudolf", 4)'), true);
   assert.equal(automatic.run('hasUnreadDay("nikolaus", 6)'), true);
   await automatic.run('restoreChatLog(3, "santa", {dataset: {chatVersion: "quiz"}})');
-  const quiz = JSON.parse(automatic.storage.advent_chat_log_3);
+  const quiz = automatic.state().chats[3];
   assert.deepEqual(quiz.messages.filter(message => message.sender === 'user').map(message => message.text),
     ['Eurostar', 'Ärmelkanal', 'Dover']);
-  automatic.storage.advent_chat_log_5 = JSON.stringify({messages: [{sender: 'user', text: 'Meine Antwort'}]});
-  const original = automatic.storage.advent_chat_log_5;
+  automatic.run('store.saveChat("5", {messages: [{sender: "user", text: "Meine Antwort"}]})');
+  const original = JSON.stringify(automatic.state().chats[5]);
   await automatic.run('restoreChatLog(5, "santa", {dataset: {}})');
   await automatic.run('restoreChatLog(6, "nikolaus", {dataset: {}})');
-  assert.equal(automatic.storage.advent_chat_log_5, original);
-  assert.equal(automatic.storage.advent_chat_log_6, undefined);
+  assert.equal(JSON.stringify(automatic.state().chats[5]), original);
+  assert.equal(automatic.state().chats[6], undefined);
   assert.equal(automatic.posts.length, 0);
 
   const manual = session([...history, row(4, 48.5, '15'), row(6, 48.5, '16')]);
   assert.equal(await manual.run('restorePlayerProgress("unbekannt")'), false);
-  assert.equal(manual.storage.advent_user_name, undefined);
+  assert.equal(manual.state().name, undefined);
   assert.equal(await manual.run('restorePlayerProgress("katrin")'), true);
-  assert.equal(manual.storage.advent_user_name, 'Katrin');
+  assert.equal(manual.state().name, 'Katrin');
   assert.equal(manual.run('solvedDays().join(",")'), '1,2,3,4,5,6');
   assert.equal(manual.run('readNikolausQuest().together'), true);
   await manual.run('restoreChatLog(6, "nikolaus", {dataset: {}})');
-  const reunion = manual.storage.advent_chat_log_6;
+  const reunion = JSON.stringify(manual.state().chats[6]);
   assert.ok(reunion.includes('Köln'));
   await manual.run('restoreChatLog(6, "nikolaus", {dataset: {}})');
-  assert.equal(manual.storage.advent_chat_log_6, reunion);
+  assert.equal(JSON.stringify(manual.state().chats[6]), reunion);
   manual.run('allPoints += 1; save()');
   await manual.run('restorePlayerProgress("Katrin")');
-  assert.equal(manual.storage.advent_points, '49.5');
+  assert.equal(manual.state().points, 49.5);
   assert.equal(manual.posts.length, 0);
 
   manual.run('logScore(); logScore(6)');
@@ -85,8 +86,8 @@ async function main() {
 
   const offline = session(null, {advent_user_name: 'Katrin'});
   await offline.run('loadInitialProgress()');
-  assert.equal(offline.storage.advent_opened, undefined);
-  assert.equal(offline.storage.advent_points, undefined);
+  assert.equal(offline.state().opened, undefined);
+  assert.equal(offline.state().points, undefined);
   console.log('OK: automatic and named recovery, independent days, legacy hints, default and original chats, repeat recovery, and offline fallback.');
 }
 

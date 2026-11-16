@@ -32,18 +32,20 @@ function session(day, balance=30, storage={}, intro=[], character="santa", progr
   const timers=[];
   const delays=[];
   const globals={console,URLSearchParams,location:{search:`?tag=${day}&contact=${character}`},document:{addEventListener(){},createElement:element,querySelector(){return null},getElementById(){return null}},
-    $:key=>nodes[key],localStorage:{getItem:k=>storage[k],setItem:(k,v)=>storage[k]=v},
+    $:key=>nodes[key],localStorage:{getItem:k=>storage[k] ?? null,setItem:(k,v)=>storage[k]=v,removeItem:k=>delete storage[k]},
     opened:progress.opened || new Set(),hints:progress.hints || new Set(),hintCounts:progress.hintCounts || {},wrongAttempts:{},save(){},logScore(){},
-    readNikolausQuest(){try{return JSON.parse(storage.advent_nikolaus_search || '{}')}catch{return {}}},
+    readNikolausQuest(){return JSON.parse(storage.advent_state || '{}').quest || {}},
+    chatStorageKey:(day, character)=>`${day}${day===6 && character==='santa'?'_santa':''}`,
     updatePoints(n){if(balance+n<0)return false;balance+=n;return true},setTimeout:(fn,delay)=>{delays.push(delay);timers.push(fn)},requestAnimationFrame:fn=>fn()};
   const ctx=vm.createContext(globals);
+  vm.runInContext(read('storage.js'),ctx);
   vm.runInContext(read('tage/gamey.js'),ctx);
   ctx.hintsData=hintsData;ctx.solutionsData=solutions;
   vm.runInContext('HINTS=hintsData; SOLUTIONS=solutionsData;',ctx);
   let setupDay;
   if(day===1 || day===3 || day===6){vm.runInContext(read(`tage/scripts/${day}.js`).replace('export function','function'),ctx);setupDay=ctx.setupDay;}
   ctx.setupSantaChat(setupDay);
-  return {ctx,storage,delays,nodes,balance:()=>balance,send(text){nodes['#chatInput'].value=text;nodes['#chatComposer'].listeners.submit({preventDefault(){}});},flush(){while(timers.length)timers.shift()();},messages:()=>JSON.parse(storage[`advent_chat_log_${day}${day===6 && character==='santa'?'_santa':''}`]).messages};
+  return {ctx,storage,delays,nodes,balance:()=>balance,send(text){nodes['#chatInput'].value=text;nodes['#chatComposer'].listeners.submit({preventDefault(){}});},flush(){while(timers.length)timers.shift()();},messages:()=>JSON.parse(storage.advent_state).chats[`${day}${day===6 && character==='santa'?'_santa':''}`].messages};
 }
 const s=session(2);
 s.send('Hilfe');s.flush();s.send('Nein');s.flush();assert.equal(s.balance(),30);
@@ -134,7 +136,7 @@ santa.send('Hallo');santa.flush();
 assert.equal(santa.messages().filter(m=>m.kind==='image').length,0);
 santa.send('Hey, wo bist du gerade?');santa.flush();
 assert.equal(santa.messages().filter(m=>m.kind==='image').length,1);
-assert.ok(JSON.parse(questStorage.advent_nikolaus_search).photoSent);
+assert.ok(JSON.parse(questStorage.advent_state).quest.photoSent);
 santa.send('Wo bist du?');santa.flush();
 assert.equal(santa.messages().filter(m=>m.kind==='image').length,1);
 santa.send('Köln');santa.flush();
@@ -148,12 +150,12 @@ assert.ok(nicholas.messages().some(m=>m.text?.includes(hintsData[6][1])));
 nicholas.send('Berlin');nicholas.flush();assert.ok(!progress.opened.has(6));
 nicholas.send('KOELN!');nicholas.flush();
 assert.ok(progress.opened.has(6));assert.equal(nicholas.balance(),35);
-assert.ok(!JSON.parse(questStorage.advent_nikolaus_search).confirmationRead);
+assert.ok(!JSON.parse(questStorage.advent_state).quest.confirmationRead);
 nicholas.send('Köln');nicholas.flush();assert.equal(nicholas.balance(),35);
 assert.equal(nicholas.nodes['#chatComposer'].hidden,false);
 const reunion=session(6,35,questStorage,[],'santa',progress);reunion.flush();
 assert.ok(reunion.messages().some(m=>m.text?.includes('gerade den Nikolaus getroffen')));
-assert.ok(JSON.parse(questStorage.advent_nikolaus_search).confirmationRead);
+assert.ok(JSON.parse(questStorage.advent_state).quest.confirmationRead);
 const reunionAgain=session(6,35,questStorage,[],'santa',progress);reunionAgain.flush();
 assert.equal(reunionAgain.messages().filter(m=>m.text?.includes('gerade den Nikolaus getroffen')).length,1);
 assert.equal(reunionAgain.messages().filter(m=>m.kind==='image').length,1);

@@ -1,37 +1,15 @@
-const LS_OPEN = "advent_opened";
-const LS_HINTS = "hints_opened";
-const LS_HINT_COUNTS = "advent_hint_counts";
-const LS_POINTS = "advent_points";
-const LS_NAME = "advent_user_name";
-const LS_RESET = "advent_reset_version";
-const LS_ATTEMPTS = "advent_wrong_attempts";
-const RESET = "2026-score-reset-2";
 const LOG_URL = "https://script.google.com/macros/s/AKfycbx4yiiDjuIbqZ2r0DlZVQHbTEXiknKmS0AnVCiMGVSnFhZrnyVW6j_3KjPH22eyM7WRJQ/exec";
 
-if (localStorage.getItem(LS_RESET) !== RESET) {
-  localStorage.removeItem(LS_OPEN);
-  localStorage.removeItem(LS_HINTS);
-  localStorage.removeItem(LS_HINT_COUNTS);
-  localStorage.removeItem(LS_POINTS);
-  localStorage.removeItem(LS_ATTEMPTS);
-  localStorage.setItem(LS_RESET, RESET);
-}
-
-const opened = new Set(JSON.parse(localStorage.getItem(LS_OPEN) || "[]"));
-const hints = new Set(JSON.parse(localStorage.getItem(LS_HINTS) || "[]"));
-const wrongAttempts = JSON.parse(localStorage.getItem(LS_ATTEMPTS) || "{}");
-const hintCounts = JSON.parse(localStorage.getItem(LS_HINT_COUNTS) || "{}");
-let allPoints = Number(localStorage.getItem(LS_POINTS) || 10);
+// Spielfortschritt im Arbeitsspeicher; storage.js übernimmt das Speichern.
+const progress = store.read();
+const opened = new Set(progress.opened || []);
+const wrongAttempts = progress.wrongAttempts || {};
+const hintCounts = progress.hintCounts || {};
+let allPoints = progress.points ?? 10;
 const SLIDE = "advent_slide";
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
-const save = () => {
-  localStorage.setItem(LS_OPEN, JSON.stringify([...opened]));
-  localStorage.setItem(LS_HINTS, JSON.stringify([...hints]));
-  localStorage.setItem(LS_HINT_COUNTS, JSON.stringify(hintCounts));
-  localStorage.setItem(LS_POINTS, allPoints);
-  localStorage.setItem(LS_ATTEMPTS, JSON.stringify(wrongAttempts));
-};
+const save = () => store.update({ opened: [...opened], points: allPoints, hintCounts, wrongAttempts });
 
 function solvedDays() {
   return [...opened].map(Number).filter((n) => n >= 1 && n <= 24).sort((a, b) => a - b);
@@ -110,7 +88,7 @@ function loadScoreRows() {
 }
 
 function savedPlayerName() {
-  const name = localStorage.getItem(LS_NAME);
+  const name = store.read().name;
   return name && name !== "undefined" && name !== "null" ? name : "";
 }
 
@@ -137,11 +115,11 @@ async function restorePlayerProgress(name) {
   const hasNewDays = [...recovered].some(day => !opened.has(day));
   const hasLocalOnlyDays = solvedDays().some(day => !recovered.has(day));
   if (recordedPoints !== undefined &&
-      (localStorage.getItem(LS_POINTS) === null || (hasNewDays && !hasLocalOnlyDays))) {
+      (store.read().points == null || (hasNewDays && !hasLocalOnlyDays))) {
     allPoints = recordedPoints;
   }
   recovered.forEach(day => opened.add(day));
-  localStorage.setItem(LS_NAME, normalizePlayerName(rows.at(-1).name));
+  store.update({ name: normalizePlayerName(rows.at(-1).name) });
   restoreNikolausQuest();
   save();
   return true;
@@ -151,7 +129,7 @@ let initialProgress;
 function loadInitialProgress() {
   if (initialProgress) return initialProgress;
   const name = savedPlayerName();
-  if (name && (localStorage.getItem(LS_OPEN) === null || localStorage.getItem(LS_POINTS) === null)) {
+  if (name && (store.read().opened == null || store.read().points == null)) {
     initialProgress = restorePlayerProgress(name).catch(() => {});
   } else {
     restoreNikolausQuest();
@@ -164,7 +142,7 @@ function restoreNikolausQuest() {
   if (!opened.has(6)) return;
   const quest = readNikolausQuest();
   if (!quest.together) {
-    localStorage.setItem("advent_nikolaus_search", JSON.stringify({...quest, together: true}));
+    store.update({ quest: {...quest, together: true} });
   }
 }
 
@@ -264,7 +242,7 @@ function setupNameChange() {
       return;
     }
 
-    localStorage.setItem(LS_NAME, newName);
+    store.update({ name: newName });
     $("#profileName").textContent = newName;
     input.value = newName;
     logNameChange(oldName, newName);
@@ -287,7 +265,7 @@ function getUserName() {
   let name = savedPlayerName();
   if (!name) {
     name = normalizePlayerName(prompt("Wie heißt du? (Nur einmal nötig)") || "");
-    if (name) localStorage.setItem(LS_NAME, name);
+    if (name) store.update({ name });
   }
   return name;
 }
@@ -338,8 +316,7 @@ function currentChatDay(character = "santa") {
   return available.find(day => !opened.has(day)) || available[available.length - 1] || 0;
 }
 function readNikolausQuest() {
-  try { return JSON.parse(localStorage.getItem("advent_nikolaus_search") || "{}"); }
-  catch { return {}; }
+  return store.read().quest || {};
 }
 function hasUnreadDay(character, day) {
   if (day === 6 && character === "santa") {
@@ -349,7 +326,7 @@ function hasUnreadDay(character, day) {
   return !opened.has(day);
 }
 function chatStorageKey(day, character) {
-  return `advent_chat_log_${day}${day === 6 && character === "santa" ? "_santa" : ""}`;
+  return `${day}${day === 6 && character === "santa" ? "_santa" : ""}`;
 }
 function renderChatInbox() {
   const list = document.getElementById("chatList");
@@ -376,6 +353,6 @@ function renderChatInbox() {
 if (typeof window !== "undefined") {
   window.addEventListener("pageshow", event => { if (event.persisted) location.reload(); });
   window.addEventListener("storage", event => {
-    if ([LS_OPEN, LS_POINTS, LS_HINT_COUNTS, "advent_nikolaus_search"].includes(event.key)) location.reload();
+    if (event.key === store.key || event.key === null) location.reload();
   });
 }
