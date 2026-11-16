@@ -1,3 +1,5 @@
+const LS_TEST_MODE = "advent_test_mode";
+const testMode = localStorage.getItem(LS_TEST_MODE) === "true";
 const LS_OPEN = "advent_opened";
 const LS_HINTS = "hints_opened";
 const LS_HINT_COUNTS = "advent_hint_counts";
@@ -5,7 +7,9 @@ const LS_POINTS = "advent_points";
 const LS_NAME = "advent_user_name";
 const LS_RESET = "advent_reset_version";
 const LS_ATTEMPTS = "advent_wrong_attempts";
+const LS_NIKOLAUS_QUEST = "advent_nikolaus_search";
 const RESET = "2026-score-reset-2";
+const LAST_CHAT_DAY = 6;
 const LOG_URL = "https://script.google.com/macros/s/AKfycbx4yiiDjuIbqZ2r0DlZVQHbTEXiknKmS0AnVCiMGVSnFhZrnyVW6j_3KjPH22eyM7WRJQ/exec";
 
 if (localStorage.getItem(LS_RESET) !== RESET) {
@@ -17,7 +21,9 @@ if (localStorage.getItem(LS_RESET) !== RESET) {
   localStorage.setItem(LS_RESET, RESET);
 }
 
-const opened = new Set(JSON.parse(localStorage.getItem(LS_OPEN) || "[]"));
+restoreLegacyTestProgress();
+
+const opened = readOpened(LS_OPEN);
 const hints = new Set(JSON.parse(localStorage.getItem(LS_HINTS) || "[]"));
 const wrongAttempts = JSON.parse(localStorage.getItem(LS_ATTEMPTS) || "{}");
 const hintCounts = JSON.parse(localStorage.getItem(LS_HINT_COUNTS) || "{}");
@@ -32,6 +38,36 @@ const save = () => {
   localStorage.setItem(LS_POINTS, allPoints);
   localStorage.setItem(LS_ATTEMPTS, JSON.stringify(wrongAttempts));
 };
+
+function readOpened(key) {
+  try {
+    const days = JSON.parse(localStorage.getItem(key) || "[]");
+    return new Set(days.map(Number).filter(day => Number.isInteger(day) && day >= 1 && day <= 24));
+  } catch {
+    return new Set();
+  }
+}
+
+function restoreLegacyTestProgress() {
+  const migrationKey = "advent_shared_progress_version";
+  if (localStorage.getItem(migrationKey) === RESET || localStorage.getItem(`test_${LS_RESET}`) !== RESET) return;
+  const normalOpened = readOpened(LS_OPEN);
+  const testOpened = readOpened(`test_${LS_OPEN}`);
+  const keys = [LS_OPEN, LS_HINTS, LS_HINT_COUNTS, LS_POINTS, LS_ATTEMPTS, LS_NIKOLAUS_QUEST, chatStorageKey(6, "santa")];
+  for (let day = 1; day <= LAST_CHAT_DAY; day++) keys.push(chatStorageKey(day));
+  if (testOpened.size > normalOpened.size || !keys.some(key => localStorage.getItem(key) !== null)) {
+    for (const key of keys) {
+      const value = localStorage.getItem(`test_${key}`);
+      if (value !== null) localStorage.setItem(key, value);
+    }
+    localStorage.setItem(LS_OPEN, JSON.stringify([...new Set([...normalOpened, ...testOpened])]));
+  }
+  if (!localStorage.getItem(LS_NAME)) {
+    const testName = localStorage.getItem(`test_${LS_NAME}`);
+    if (testName) localStorage.setItem(LS_NAME, testName);
+  }
+  localStorage.setItem(migrationKey, RESET);
+}
 
 function solvedDays() {
   return [...opened].map(Number).filter((n) => n >= 1 && n <= 24).sort((a, b) => a - b);
@@ -86,32 +122,59 @@ function nameKey(name) {
   return normalizePlayerName(name).toLowerCase();
 }
 
-function loadTakenNames() {
-  return new Promise((resolve) => {
-    const callback = `onNameCheck_${Date.now()}_${Math.round(Math.random() * 100000)}`;
+let highscoresRequest;
+function loadHighscores() {
+  return highscoresRequest ??= new Promise((resolve) => {
+    const callback = `onHighscores_${Date.now()}_${Math.round(Math.random() * 100000)}`;
     const script = document.createElement("script");
-    let finished = false;
-    const done = (names = []) => {
-      if (finished) return;
-      finished = true;
+    const done = (rows) => {
+      clearTimeout(timeout);
       delete window[callback];
       script.remove();
-      resolve(new Set(names.map(nameKey)));
+      resolve(Array.isArray(rows) ? rows : []);
     };
 
-    window[callback] = (rows) => {
-      done((Array.isArray(rows) ? rows : []).map((row) => row.name).filter(Boolean));
-    };
+    window[callback] = done;
     script.src = `${LOG_URL}?callback=${callback}`;
     script.onerror = () => done();
+    const timeout = setTimeout(done, 6000);
     document.body.appendChild(script);
-    setTimeout(() => done(), 6000);
+  }).finally(() => {
+    highscoresRequest = undefined;
   });
 }
 
+function scoreDay(value) {
+  const match = String(value ?? "").trim().match(/^(?:Tag\s*)?(\d+)$/i);
+  const day = Number(match?.[1]);
+  return day >= 1 && day <= 24 ? day : 0;
+}
+
+async function restoreSolvedDays() {
+  const player = nameKey(localStorage.getItem(LS_NAME) || "");
+  if (!player) return;
+  const rows = await loadHighscores();
+  if (nameKey(localStorage.getItem(LS_NAME) || "") !== player) return;
+  let lastSolved = 0;
+  for (const row of rows) {
+    if (typeof row?.name === "string" && nameKey(row.name) === player) {
+      lastSolved = Math.max(lastSolved, scoreDay(row.solved));
+    }
+  }
+  if (!lastSolved) return;
+  const persisted = readOpened(LS_OPEN);
+  for (const day of persisted) opened.add(day);
+  for (let day = 1; day <= lastSolved; day++) opened.add(day);
+  if ([...opened].some(day => !persisted.has(day))) {
+    localStorage.setItem(LS_OPEN, JSON.stringify(solvedDays()));
+  }
+}
+
+function lastSolvedDay() {
+  return solvedDays().at(-1) || 0;
+}
+
 function logNameChange(oldName, newName) {
-  const days = solvedDays();
-  const lastSolved = days.length ? days[days.length - 1] : 0;
   fetch(LOG_URL, {
     method: "POST",
     mode: "no-cors",
@@ -120,7 +183,7 @@ function logNameChange(oldName, newName) {
       oldName,
       newName,
       name: newName,
-      solved: `${lastSolved}`,
+      solved: `${lastSolvedDay()}`,
       points: `${allPoints}`,
     }),
   }).catch(() => {});
@@ -153,7 +216,8 @@ function setupNameChange() {
 
     saveButton.disabled = true;
     pageStatus.textContent = "Prüfe Namen...";
-    const takenNames = await loadTakenNames();
+    const rows = await loadHighscores();
+    const takenNames = new Set(rows.map(row => row?.name).filter(name => typeof name === "string").map(nameKey));
     if (takenNames.has(nameKey(newName))) {
       saveButton.disabled = false;
       pageStatus.textContent = "Der Name ist leider schon vergeben.";
@@ -182,16 +246,18 @@ function getUserName() {
   let name = localStorage.getItem(LS_NAME);
   if (!name) {
     name = prompt("Wie heißt du? (Nur einmal nötig)")?.trim();
-    localStorage.setItem(LS_NAME, name);
+    if (name) localStorage.setItem(LS_NAME, name);
   }
   return name;
 }
 
-function logSolved(day) {
+function logSolved() {
+  const name = getUserName();
+  if (!name) return;
   fetch(LOG_URL, {
     method: "POST",
     mode: "no-cors",
-    body: new URLSearchParams({ name: getUserName(), solved: `${day}`, points: `${allPoints}` }),
+    body: new URLSearchParams({ name, solved: `${lastSolvedDay()}`, points: `${allPoints}` }),
   }).catch(() => {});
 }
 
@@ -203,30 +269,53 @@ function updatePoints(amount) {
   return true;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+const progressReady = restoreSolvedDays();
+
+document.addEventListener("DOMContentLoaded", async () => {
+  renderShell();
+  setupSlide();
+  const toggle = $("#testModeToggle");
+  if (toggle) {
+    toggle.checked = testMode;
+    toggle.addEventListener("change", () => {
+      localStorage.setItem(LS_TEST_MODE, String(toggle.checked));
+      location.reload();
+    });
+  }
+  await progressReady;
   renderShell();
   renderProfile();
-  setupSlide();
+  renderChatInbox();
 });
 
 // Calendar release is based on the Advent calendar's local time in Berlin.
+function calendarChatDay() {
+  const parts = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/Berlin", year:"numeric", month:"numeric", day:"numeric"}).formatToParts(new Date());
+  const date = Object.fromEntries(parts.map(part => [part.type, Number(part.value)]));
+  if (date.year < 2026 || (date.year === 2026 && date.month < 12)) return 0;
+  return date.year > 2026 ? LAST_CHAT_DAY : Math.min(LAST_CHAT_DAY, date.day);
+}
 function releasedChatDay() {
-  return 6; // Datumssperre zum Testen aus: alle sechs fertigen Tage verfügbar.
-  //const parts = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/Berlin", year:"numeric", month:"numeric", day:"numeric"}).formatToParts(new Date());
-  //const date = Object.fromEntries(parts.map(p => [p.type, Number(p.value)]));
-  //if (date.year < 2026 || (date.year === 2026 && date.month < 12)) return 0;
-  //return date.year > 2026 ? 6 : Math.min(6, date.day);
+  const limit = testMode ? LAST_CHAT_DAY : calendarChatDay();
+  for (let day = 1; day < limit; day++) {
+    if (!opened.has(day)) return day;
+  }
+  return limit;
 }
 function daysForChat(character = "santa") {
   return character === "rudolf" ? [4] : character === "nikolaus" ? [6] : [1, 2, 3, 5, 6];
 }
 function currentChatDay(character = "santa") {
-  const available = daysForChat(character).filter(day => day <= releasedChatDay());
+  const released = releasedChatDay();
+  const available = daysForChat(character).filter(day => day <= released);
   return available.find(day => !opened.has(day)) || available[available.length - 1] || 0;
 }
 function readNikolausQuest() {
-  try { return JSON.parse(localStorage.getItem("advent_nikolaus_search") || "{}"); }
+  try { return JSON.parse(localStorage.getItem(LS_NIKOLAUS_QUEST) || "{}"); }
   catch { return {}; }
+}
+function saveNikolausQuest(state) {
+  localStorage.setItem(LS_NIKOLAUS_QUEST, JSON.stringify(state));
 }
 function hasUnreadDay(character, day) {
   if (day === 6 && character === "santa") {
@@ -255,15 +344,15 @@ function renderChatInbox() {
     const available = daysForChat(c.id).filter(day => day <= released);
     const last = available[available.length - 1];
     const unread = available.filter(day => hasUnreadDay(c.id, day)).length;
-    return `<a class="chat-row" href="tage/template.html?contact=${c.id}"><img class="inbox-avatar" src="${c.avatar}" alt="" width="58" height="58"><span class="chat-row-copy"><strong>${c.name}</strong><span>${c.id === "santa" && readNikolausQuest().together && !readNikolausQuest().confirmationRead ? "Hey, ich habe gerade den Nikolaus getroffen!" : unread ? c.preview : "Alle Weihnachtsmissionen erledigt. ⭐"}</span></span><span class="chat-row-meta"><time>${last}. Dez.</time>${unread ? `<b class="unread-badge" aria-label="${unread} ungelöste Tagesmissionen">${unread}</b>` : '<span aria-label="Alles gelöst">✓✓</span>'}</span></a>`;
+    const showReunion = c.id === "santa" && available.includes(6) && hasUnreadDay("santa", 6);
+    return `<a class="chat-row" href="tage/template.html?contact=${c.id}"><img class="inbox-avatar" src="${c.avatar}" alt="" width="58" height="58"><span class="chat-row-copy"><strong>${c.name}</strong><span>${showReunion ? "Hey, ich habe gerade den Nikolaus getroffen!" : unread ? c.preview : "Keine neuen Nachrichten."}</span></span><span class="chat-row-meta"><time>${last}. Dez.</time>${unread ? `<b class="unread-badge" aria-label="${unread} ungelöste Tagesmissionen">${unread}</b>` : '<span aria-label="Keine neuen Nachrichten">✓✓</span>'}</span></a>`;
   }).join("");
 }
-document.addEventListener("DOMContentLoaded", renderChatInbox);
 
 // Restore fresh state when switching back to a cached page or another open chat.
 if (typeof window !== "undefined") {
   window.addEventListener("pageshow", event => { if (event.persisted) location.reload(); });
   window.addEventListener("storage", event => {
-    if ([LS_OPEN, LS_POINTS, LS_HINT_COUNTS, "advent_nikolaus_search"].includes(event.key)) location.reload();
+    if ([LS_TEST_MODE, LS_OPEN, LS_POINTS, LS_HINT_COUNTS, LS_NIKOLAUS_QUEST].includes(event.key)) location.reload();
   });
 }

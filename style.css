@@ -1653,6 +1653,42 @@ body.day-page::before {
 }
 .inbox-page .topbar { border-radius: 0; }
 .inbox-page .topbar .coin-count { color: #fff2d5; }
+.test-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 2rem;
+  font: 600 .85rem system-ui, sans-serif;
+  cursor: pointer;
+}
+.test-mode-toggle input {
+  appearance: none;
+  display: inline-grid;
+  align-items: center;
+  width: 2.25rem;
+  height: 1.25rem;
+  margin: 0;
+  padding: .12rem;
+  border: 1px solid currentColor;
+  border-radius: 1rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.test-mode-toggle input::before {
+  content: "";
+  width: .8rem;
+  height: .8rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.test-mode-toggle input:checked {
+  background: #fff2d5;
+  border-color: #fff2d5;
+  color: #632036;
+}
+.test-mode-toggle input:checked::before { justify-self: end; }
+.test-mode-toggle input:focus-visible { outline-color: #fff2d5; }
 .inbox-page .bottombar { border-radius: 0; }
 .inbox-page .bottombar a, .inbox-page .bottombar a[aria-current="page"] {
   color: #fff3e9; background: transparent; border: 0; box-shadow: none; transform: none;

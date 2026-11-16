@@ -35,6 +35,7 @@ function session(day, balance=30, storage={}, intro=[], character="santa", progr
     $:key=>nodes[key],localStorage:{getItem:k=>storage[k],setItem:(k,v)=>storage[k]=v},
     opened:progress.opened || new Set(),hints:progress.hints || new Set(),hintCounts:progress.hintCounts || {},wrongAttempts:{},save(){},logSolved(){},
     readNikolausQuest(){try{return JSON.parse(storage.advent_nikolaus_search || '{}')}catch{return {}}},
+    saveNikolausQuest(state){storage.advent_nikolaus_search=JSON.stringify(state)},
     updatePoints(n){if(balance+n<0)return false;balance+=n;return true},setTimeout:(fn,delay)=>{delays.push(delay);timers.push(fn)},requestAnimationFrame:fn=>fn()};
   const ctx=vm.createContext(globals);
   vm.runInContext(read('tage/gamey.js'),ctx);
@@ -92,8 +93,9 @@ rudolf.send('Lego');rudolf.flush();
 assert.ok(!rudolf.ctx.opened.has(4));
 rudolf.send('C1');rudolf.flush();
 assert.ok(!rudolf.ctx.opened.has(4));
-rudolf.send('d1');rudolf.flush();
+rudolf.send('d1');
 assert.ok(rudolf.ctx.opened.has(4));
+rudolf.flush();
 assert.ok(!rudolf.ctx.opened.has(1));
 assert.equal(rudolf.balance(),40);
 assert.equal(rudolf.nodes['#sendLocationButton'].hidden,true);

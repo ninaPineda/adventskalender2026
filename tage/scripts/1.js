@@ -106,7 +106,7 @@ export function setupDay({ appendBubble, locationButton, complete }) {
       L.marker([target.lat, target.lng]).addTo(map).bindPopup("Richtiger Ort").openPopup();
       L.polyline([[guess.lat, guess.lng], [target.lat, target.lng]], { color: "#b3261e" }).addTo(map);
       setTimeout(() => dialog?.close(), 700);
-      setTimeout(() => complete(points), 2400);
+      complete(points, 2400);
     });
   }
 

@@ -32,18 +32,19 @@ export function setupDay({ day, chatLog, saveChat, appendBubble, answerMatches, 
 
     if (answerMatches(text, solutions[chatLog.quizIndex])) {
       chatLog.quizIndex += 1;
-      saveChat();
-      setTimeout(() => {
-        appendBubble(step.correct, "santa");
-        if (step.next) {
+      if (step.next) {
+        saveChat();
+        setTimeout(() => {
+          appendBubble(step.correct, "santa");
           setTimeout(() => appendBubble(step.next, "santa"), 850);
-          return;
-        }
+        }, 720);
+      } else {
         chatLog.quizDone = true;
         saveChat();
+        appendBubble(step.correct, "santa");
         celebrate();
-        setTimeout(() => complete(pointsForTravelQuiz()), 1000);
-      }, 720);
+        complete(pointsForTravelQuiz());
+      }
       return true;
     }
 

@@ -19,18 +19,17 @@
     function onScores(data) {
       const latestPerPlayer = new Map();
       const solvedPerPlayer = new Map();
-      data.map((row) => {
-        const m = String(row.solved || "").match(/(?:Tag\s*)?(\d+)/i);
+      data.filter(row => typeof row?.name === "string" && row.name.trim()).map((row) => {
         const date = new Date(row.timestamp);
-        return m && {
-          name: row.name || "Unbekannt",
-          tag: Number(m[1]),
+        return {
+          name: row.name,
+          tag: scoreDay(row.solved),
           points: Number(String(row.points || 0).replace(",", ".")) || 0,
           timestamp: date.getTime() || 0,
         };
-      }).filter(Boolean).forEach((row) => {
+      }).forEach((row) => {
         if (!solvedPerPlayer.has(row.name)) solvedPerPlayer.set(row.name, new Set());
-        solvedPerPlayer.get(row.name).add(row.tag);
+        if (row.tag) solvedPerPlayer.get(row.name).add(row.tag);
         const old = latestPerPlayer.get(row.name);
         if (!old || row.timestamp > old.timestamp) {
           latestPerPlayer.set(row.name, {
@@ -73,7 +72,7 @@
         : "Noch keine Einträge.";
     }
   </script>
-  <script src="https://script.google.com/macros/s/AKfycbx4yiiDjuIbqZ2r0DlZVQHbTEXiknKmS0AnVCiMGVSnFhZrnyVW6j_3KjPH22eyM7WRJQ/exec?callback=onScores"></script>
-  <script src="app.js?v=nikolaus6-1"></script>
+  <script src="app.js?v=shared-progress-1"></script>
+  <script>loadHighscores().then(onScores);</script>
 </body>
 </html>

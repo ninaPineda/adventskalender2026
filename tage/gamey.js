@@ -43,23 +43,26 @@ function pointsForDay(day) {
   return Math.max(10 - (Number(wrongAttempts[day]) || 0) * 2, 0);
 }
 
-function rightSolution(day, points) {
+function rightSolution(day, points, delay = 0) {
   if (!opened.has(day)) {
     opened.add(day);
     const earnedPoints = Number.isFinite(Number(points)) ? Number(points) : pointsForDay(day);
     delete wrongAttempts[day];
     updatePoints(earnedPoints);
     save();
-    logSolved(day);
+    logSolved();
   }
-  if (typeof currentChatDay === "function") {
+  if (typeof currentChatDay !== "function") return;
+  const updateChat = () => {
     if (currentChatDay(chatCharacter()) > day) location.reload();
     else {
       $("#sendLocationButton").hidden = true;
       $("#chatComposer").classList.add("text-only");
       $(".new-messages")?.remove();
     }
-  }
+  };
+  if (delay) setTimeout(updateChat, delay);
+  else updateChat();
 }
 
 // Die äußere Liste enthält die Schritte, die innere Liste akzeptierte Varianten.
@@ -190,9 +193,9 @@ function setupSantaChat(setupDay) {
     }, wait + typingDuration);
   };
 
-  // Leave enough time to read the last queued reply before leaving the chat.
-  const completeAfterMessages = (points) => {
-    setTimeout(() => rightSolution(day, points), Math.max(0, nextSantaMessageAt - Date.now()) + 1400);
+  // Save completion before waiting for the last queued reply.
+  const completeAfterMessages = (points, minimumDelay = 0) => {
+    rightSolution(day, points, Math.max(minimumDelay, Math.max(0, nextSantaMessageAt - Date.now()) + 1400));
   };
 
   const appendBubble = (text, sender = "user", persist = true, animate = true) => {
@@ -264,7 +267,7 @@ function setupSantaChat(setupDay) {
     hintCounts[day] = index + 1;
     hints.add(day);
     save();
-    logSolved(day);
+    logSolved();
     appendBubble(`Hinweis ${index + 1}/3: ${hint} ✨`, "santa");
   };
 
@@ -278,7 +281,7 @@ function setupSantaChat(setupDay) {
     saveChat,
     appendImage,
     readQuest: () => readNikolausQuest(),
-    saveQuest: state => localStorage.setItem("advent_nikolaus_search", JSON.stringify(state)),
+    saveQuest: state => saveNikolausQuest(state),
     completeNow: points => rightSolution(day, points),
     appendBubble,
     normalize,
@@ -430,9 +433,8 @@ function setupChatGallery() {
   dialog.addEventListener("touchcancel", () => { touchStart = null; });
 }
 
-async function loadDayContent() {
+async function loadDayContent(day) {
   const slot = document.getElementById("daySlot");
-  const day = dayFromURL();
   const contacts = {
     santa: {name:"Weihnachtsmann 🎅", status: day >= 6 ? "auf dem Weg nach Norden" : "zuletzt am Glühweinstand", avatar:"ProfilePic.jpeg"},
     rudolf: {name:"Rudolf 🦌", status:"in der Weihnachtswerkstatt", avatar:"../assets/avatars/rudolf.png"},
@@ -444,7 +446,6 @@ async function loadDayContent() {
   document.querySelector(".chat-contact-info small").textContent = contact.status;
   document.querySelector(".chat-avatar").src = contact.avatar;
   document.querySelector(".santa-chat").setAttribute("aria-label", `Chat mit ${contact.name}`);
-  if (!day) { location.replace("../index.html"); return; }
   try {
     const dayNumbers = daysForChat(chatCharacter()).filter(number => number <= day);
     const contents = await Promise.all(dayNumbers.map(async number => {
@@ -509,6 +510,12 @@ async function loadDayContent() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!document.getElementById("daySlot")) return;
+  await progressReady;
+  const day = dayFromURL();
+  if (!day) {
+    location.replace("../index.html");
+    return;
+  }
   try {
     const [hintsResponse, solutionsResponse] = await Promise.all([
       fetch("../hints.json", { cache: "no-store" }),
@@ -518,13 +525,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     HINTS = await hintsResponse.json();
     SOLUTIONS = await solutionsResponse.json();
   } catch {}
-  await loadDayContent();
+  await loadDayContent(day);
   // Nur fertige Tage mit eigenem Verhalten laden ein Modul.
   const script = document.querySelector(".santa-chat-script[data-active]");
   let setupDay;
   if (script?.hasAttribute("data-day-script") && script.dataset.pending !== "true") {
     try {
-      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=nikolaus6-1`));
+      ({ setupDay } = await import(`./scripts/${day}.js?v=test-mode-1`));
     } catch (error) {
       console.error("Tages-Skript konnte nicht geladen werden", error);
       script.dataset.pending = "true";
