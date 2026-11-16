@@ -50,7 +50,7 @@ function rightSolution(day, points) {
     delete wrongAttempts[day];
     updatePoints(earnedPoints);
     save();
-    logSolved(day);
+    logScore(day);
   }
   if (typeof currentChatDay === "function") {
     if (currentChatDay(chatCharacter()) > day) location.reload();
@@ -79,6 +79,44 @@ function hintsForDay(day) {
 function hintsUsed(day) {
   // Bereits gekaufte Hinweise aus der bisherigen Version zählen als erster Hinweis.
   return Number(hintCounts[day]) || (hints.has(day) ? 1 : 0);
+}
+
+function readChatLog(storageKey, version) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    if (Array.isArray(saved?.messages) && (!version || saved.version === version)) return saved;
+  } catch {}
+  return { messages: [], pendingHint: false, version };
+}
+
+async function restoreChatLog(day, character, script) {
+  const key = chatStorageKey(day, character);
+  const chatLog = readChatLog(key, script.dataset.chatVersion);
+  if (!opened.has(day) || chatLog.messages.length || (day === 6 && character === "santa")) return chatLog;
+
+  let answers = (SOLUTIONS[day] || []).map(variants => variants[0]);
+  if (day === 1) {
+    const { targetLat, targetLng } = script.dataset;
+    if (targetLat && targetLng) answers = [`📍 Standort gesendet\n${Number(targetLat).toFixed(4)}, ${Number(targetLng).toFixed(4)}`];
+  }
+  if (day === 2) {
+    try {
+      const { defaultAssignmentAnswer } = await import("./scripts/2.js?v=progress-restore1");
+      answers = [defaultAssignmentAnswer()];
+    } catch {
+      return chatLog;
+    }
+  }
+  if (!answers.length) return chatLog;
+
+  chatLog.messages = [
+    ...answers.map(text => ({sender: "user", text})),
+    {sender: "santa", text: "Dieses Rätsel ist gelöst. Die angezeigte Lösung wurde wiederhergestellt. ✓"},
+  ];
+  chatLog.pendingHint = false;
+  chatLog.introShown = true;
+  localStorage.setItem(key, JSON.stringify(chatLog));
+  return chatLog;
 }
 
 function setupSantaChat(setupDay) {
@@ -126,18 +164,7 @@ function setupSantaChat(setupDay) {
   locationButton.hidden = true;
   composer.classList.add("text-only");
 
-  const loadSavedChat = () => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || '{"messages":[],"pendingHint":false}');
-      if (script?.dataset.chatVersion && saved.version !== script.dataset.chatVersion) {
-        return { messages: [], pendingHint: false, version: script.dataset.chatVersion };
-      }
-      return saved;
-    } catch {
-      return { messages: [], pendingHint: false, version: script?.dataset.chatVersion };
-    }
-  };
-  const chatLog = loadSavedChat();
+  const chatLog = readChatLog(storageKey, script.dataset.chatVersion);
   const revealExistingImmediately = opened.has(day) || Boolean(chatLog.messages?.length);
   const chatMessageGap = 700;
   let nextSantaMessageAt = Date.now();
@@ -264,7 +291,7 @@ function setupSantaChat(setupDay) {
     hintCounts[day] = index + 1;
     hints.add(day);
     save();
-    logSolved(day);
+    logScore();
     appendBubble(`Hinweis ${index + 1}/3: ${hint} ✨`, "santa");
   };
 
@@ -453,7 +480,7 @@ async function loadDayContent() {
       return response.text();
     }));
     slot.innerHTML = "";
-    contents.forEach((html, i) => {
+    for (const [i, html] of contents.entries()) {
       const number = dayNumbers[i];
       const date = document.createElement("div");
       date.className = "chat-date";
@@ -472,36 +499,35 @@ async function loadDayContent() {
       if (number === day) script.setAttribute("data-active", "");
       else {
         container.querySelectorAll(".chat-message:not(.hidden)").forEach(b => b.classList.add("visible"));
+      }
+      if (number < day || opened.has(number)) {
         container.querySelectorAll("button, input").forEach(control => control.disabled = true);
       }
+      const saved = await restoreChatLog(number, chatCharacter(), script);
       while (container.firstChild) slot.appendChild(container.firstChild);
       if (number < day) {
-        let saved;
-        try { saved = JSON.parse(localStorage.getItem(chatStorageKey(number, chatCharacter())) || "{}"); } catch {}
-        if (!script.dataset.chatVersion || saved?.version === script.dataset.chatVersion) {
-          (saved?.messages || []).forEach(message => {
-            const bubble = document.createElement("div");
-            bubble.className = `chat-message visible ${message.sender === "user" ? "user-message" : "santa-message"}`;
-            if (message.kind === "image" && /^\.\.\/assets\//.test(message.src)) {
-              bubble.classList.add("media-message");
-              const link = document.createElement("a");
-              link.href = message.src;
-              link.setAttribute("aria-label", "Foto groß öffnen");
-              const image = document.createElement("img");
-              image.src = message.src;
-              image.alt = message.alt;
-              link.appendChild(image);
-              bubble.appendChild(link);
-            } else {
-              const text = document.createElement("p");
-              text.textContent = message.text;
-              bubble.appendChild(text);
-            }
-            slot.appendChild(bubble);
-          });
-        }
+        saved.messages.forEach(message => {
+          const bubble = document.createElement("div");
+          bubble.className = `chat-message visible ${message.sender === "user" ? "user-message" : "santa-message"}`;
+          if (message.kind === "image" && /^\.\.\/assets\//.test(message.src)) {
+            bubble.classList.add("media-message");
+            const link = document.createElement("a");
+            link.href = message.src;
+            link.setAttribute("aria-label", "Foto groß öffnen");
+            const image = document.createElement("img");
+            image.src = message.src;
+            image.alt = message.alt;
+            link.appendChild(image);
+            bubble.appendChild(link);
+          } else {
+            const text = document.createElement("p");
+            text.textContent = message.text;
+            bubble.appendChild(text);
+          }
+          slot.appendChild(bubble);
+        });
       }
-    });
+    }
   } catch {
     slot.innerHTML = '<section class="santa-chat-script" data-active data-pending="true"><div class="chat-message santa-message visible"><p>Der Chat konnte gerade nicht geladen werden. Bitte lade die Seite neu. 🎄</p></div></section>';
   }
@@ -509,6 +535,7 @@ async function loadDayContent() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!document.getElementById("daySlot")) return;
+  await loadInitialProgress();
   try {
     const [hintsResponse, solutionsResponse] = await Promise.all([
       fetch("../hints.json", { cache: "no-store" }),
@@ -524,7 +551,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let setupDay;
   if (script?.hasAttribute("data-day-script") && script.dataset.pending !== "true") {
     try {
-      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=nikolaus6-1`));
+      ({ setupDay } = await import(`./scripts/${dayFromURL()}.js?v=progress-restore1`));
     } catch (error) {
       console.error("Tages-Skript konnte nicht geladen werden", error);
       script.dataset.pending = "true";

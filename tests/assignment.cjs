@@ -13,6 +13,7 @@ for (let i=0;i<5;i++) for (const group of ['coat','bag','ticket']) ctx.assignIte
 assert.equal(ctx.isCorrect(rows), true);
 const restored = JSON.parse(JSON.stringify(rows));
 assert.equal(ctx.isCorrect(restored), true);
+assert.match(ctx.defaultAssignmentAnswer(), /Weihnachtsmann: Mantel 1 · ganz links · Sack · Paris/);
 ctx.assignItem(rows,0,'bag',1);
 assert.equal(ctx.isComplete(rows), false);
 ctx.assignItem(rows,1,'bag',0);

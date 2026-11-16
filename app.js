@@ -66,7 +66,7 @@ function renderShell() {
 
 function renderProfile() {
   if (!$("#profileName")) return;
-  const savedName = localStorage.getItem(LS_NAME) || "";
+  const savedName = savedPlayerName();
   $("#profileName").textContent = savedName || "Noch kein Name gespeichert";
   const nameInput = $("#profileNameInput");
   if (nameInput) nameInput.value = savedName;
@@ -86,26 +86,119 @@ function nameKey(name) {
   return normalizePlayerName(name).toLowerCase();
 }
 
-function loadTakenNames() {
-  return new Promise((resolve) => {
-    const callback = `onNameCheck_${Date.now()}_${Math.round(Math.random() * 100000)}`;
+let scoreRequest;
+function loadScoreRows() {
+  if (scoreRequest) return scoreRequest;
+  scoreRequest = new Promise((resolve, reject) => {
+    const callback = `onScoreRows_${Date.now()}_${Math.round(Math.random() * 100000)}`;
     const script = document.createElement("script");
-    let finished = false;
-    const done = (names = []) => {
-      if (finished) return;
-      finished = true;
+    const done = (rows) => {
+      clearTimeout(timeout);
       delete window[callback];
       script.remove();
-      resolve(new Set(names.map(nameKey)));
+      if (Array.isArray(rows)) resolve(rows);
+      else reject(new Error("Bestenliste konnte nicht geladen werden"));
     };
 
-    window[callback] = (rows) => {
-      done((Array.isArray(rows) ? rows : []).map((row) => row.name).filter(Boolean));
-    };
+    window[callback] = done;
     script.src = `${LOG_URL}?callback=${callback}`;
     script.onerror = () => done();
+    const timeout = setTimeout(() => done(), 6000);
     document.body.appendChild(script);
-    setTimeout(() => done(), 6000);
+  }).finally(() => { scoreRequest = undefined; });
+  return scoreRequest;
+}
+
+function savedPlayerName() {
+  const name = localStorage.getItem(LS_NAME);
+  return name && name !== "undefined" && name !== "null" ? name : "";
+}
+
+async function restorePlayerProgress(name) {
+  const rows = (await loadScoreRows()).filter(row =>
+    typeof row?.name === "string" && nameKey(row.name) === nameKey(name)
+  ).sort((a, b) => (new Date(a.timestamp).getTime() || 0) - (new Date(b.timestamp).getTime() || 0));
+  if (!rows.length) return false;
+
+  const recovered = new Set();
+  let points = 10;
+  let recordedPoints;
+  for (const row of rows) {
+    const match = String(row.solved ?? "").trim().match(/^(?:Tag\s*)?(\d+)$/i);
+    const day = Number(match?.[1]);
+    const balanceText = String(row.points ?? "").trim();
+    const balance = Number(balanceText.replace(",", "."));
+    const hasBalance = balanceText !== "" && Number.isFinite(balance) && balance >= 0;
+    // Ältere Hinweiskäufe wurden mit der Tagesnummer und fünf Sternen Abzug gespeichert.
+    if (day >= 1 && day <= 24 && !(hasBalance && balance === points - 5)) recovered.add(day);
+    if (hasBalance) points = recordedPoints = balance;
+  }
+
+  const hasNewDays = [...recovered].some(day => !opened.has(day));
+  const hasLocalOnlyDays = solvedDays().some(day => !recovered.has(day));
+  if (recordedPoints !== undefined &&
+      (localStorage.getItem(LS_POINTS) === null || (hasNewDays && !hasLocalOnlyDays))) {
+    allPoints = recordedPoints;
+  }
+  recovered.forEach(day => opened.add(day));
+  localStorage.setItem(LS_NAME, normalizePlayerName(rows.at(-1).name));
+  restoreNikolausQuest();
+  save();
+  return true;
+}
+
+let initialProgress;
+function loadInitialProgress() {
+  if (initialProgress) return initialProgress;
+  const name = savedPlayerName();
+  if (name && (localStorage.getItem(LS_OPEN) === null || localStorage.getItem(LS_POINTS) === null)) {
+    initialProgress = restorePlayerProgress(name).catch(() => {});
+  } else {
+    restoreNikolausQuest();
+    initialProgress = Promise.resolve();
+  }
+  return initialProgress;
+}
+
+function restoreNikolausQuest() {
+  if (!opened.has(6)) return;
+  const quest = readNikolausQuest();
+  if (!quest.together) {
+    localStorage.setItem("advent_nikolaus_search", JSON.stringify({...quest, together: true}));
+  }
+}
+
+function setupProgressRestore() {
+  const button = $("#restoreProgressButton");
+  if (!button) return;
+  const input = $("#profileNameInput");
+  const status = $("#nameChangeStatus");
+  const saveButton = $("#saveNameButton");
+  button.addEventListener("click", async () => {
+    const name = normalizePlayerName(input.value);
+    if (!name) {
+      status.textContent = "Gib deinen bisherigen Spielernamen ein.";
+      return;
+    }
+    if (savedPlayerName() && nameKey(savedPlayerName()) !== nameKey(name)) {
+      status.textContent = "Gib den Namen ein, der in deinem Profil gespeichert ist.";
+      return;
+    }
+    button.disabled = saveButton.disabled = true;
+    status.textContent = "Lade deinen Spielstand …";
+    try {
+      if (await restorePlayerProgress(name)) {
+        renderShell();
+        renderProfile();
+        status.textContent = "Dein Spielstand wurde aus der Bestenliste geladen.";
+      } else {
+        status.textContent = "In der Bestenliste gibt es keinen Eintrag für diesen Namen.";
+      }
+    } catch {
+      status.textContent = "Die Bestenliste ist gerade nicht erreichbar. Versuch es erneut.";
+    } finally {
+      button.disabled = saveButton.disabled = false;
+    }
   });
 }
 
@@ -139,7 +232,7 @@ function setupNameChange() {
   });
 
   saveButton.addEventListener("click", async () => {
-    const oldName = normalizePlayerName(localStorage.getItem(LS_NAME) || "");
+    const oldName = normalizePlayerName(savedPlayerName());
     const newName = normalizePlayerName(input.value);
     if (newName.length < 2) {
       pageStatus.textContent = "Der Name muss mindestens 2 Zeichen lang sein.";
@@ -152,10 +245,21 @@ function setupNameChange() {
     }
 
     saveButton.disabled = true;
+    const restoreButton = $("#restoreProgressButton");
+    if (restoreButton) restoreButton.disabled = true;
     pageStatus.textContent = "Prüfe Namen...";
-    const takenNames = await loadTakenNames();
-    if (takenNames.has(nameKey(newName))) {
+    let rows;
+    try {
+      rows = await loadScoreRows();
+    } catch {
       saveButton.disabled = false;
+      if (restoreButton) restoreButton.disabled = false;
+      pageStatus.textContent = "Die Bestenliste ist gerade nicht erreichbar. Versuch es erneut.";
+      return;
+    }
+    if (rows.some(row => typeof row?.name === "string" && nameKey(row.name) === nameKey(newName))) {
+      saveButton.disabled = false;
+      if (restoreButton) restoreButton.disabled = false;
       pageStatus.textContent = "Der Name ist leider schon vergeben.";
       return;
     }
@@ -166,6 +270,7 @@ function setupNameChange() {
     logNameChange(oldName, newName);
     pageStatus.textContent = "Name gespeichert.";
     saveButton.disabled = false;
+    if (restoreButton) restoreButton.disabled = false;
   });
 }
 
@@ -179,19 +284,22 @@ function setupSlide() {
 }
 
 function getUserName() {
-  let name = localStorage.getItem(LS_NAME);
+  let name = savedPlayerName();
   if (!name) {
-    name = prompt("Wie heißt du? (Nur einmal nötig)")?.trim();
-    localStorage.setItem(LS_NAME, name);
+    name = normalizePlayerName(prompt("Wie heißt du? (Nur einmal nötig)") || "");
+    if (name) localStorage.setItem(LS_NAME, name);
   }
   return name;
 }
 
-function logSolved(day) {
+function logScore(day) {
+  const name = getUserName();
+  if (!name) return;
   fetch(LOG_URL, {
     method: "POST",
     mode: "no-cors",
-    body: new URLSearchParams({ name: getUserName(), solved: `${day}`, points: `${allPoints}` }),
+    keepalive: true,
+    body: new URLSearchParams({ name, solved: String(day ?? 0), points: String(allPoints) }),
   }).catch(() => {});
 }
 
@@ -203,10 +311,15 @@ function updatePoints(amount) {
   return true;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  setupSlide();
+  await loadInitialProgress();
   renderShell();
   renderProfile();
-  setupSlide();
+  setupProgressRestore();
+  renderChatInbox();
+  const restoreLink = $("#restoreProgressLink");
+  if (restoreLink) restoreLink.hidden = Boolean(savedPlayerName());
 });
 
 // Calendar release is based on the Advent calendar's local time in Berlin.
@@ -258,7 +371,6 @@ function renderChatInbox() {
     return `<a class="chat-row" href="tage/template.html?contact=${c.id}"><img class="inbox-avatar" src="${c.avatar}" alt="" width="58" height="58"><span class="chat-row-copy"><strong>${c.name}</strong><span>${c.id === "santa" && readNikolausQuest().together && !readNikolausQuest().confirmationRead ? "Hey, ich habe gerade den Nikolaus getroffen!" : unread ? c.preview : "Alle Weihnachtsmissionen erledigt. ⭐"}</span></span><span class="chat-row-meta"><time>${last}. Dez.</time>${unread ? `<b class="unread-badge" aria-label="${unread} ungelöste Tagesmissionen">${unread}</b>` : '<span aria-label="Alles gelöst">✓✓</span>'}</span></a>`;
   }).join("");
 }
-document.addEventListener("DOMContentLoaded", renderChatInbox);
 
 // Restore fresh state when switching back to a cached page or another open chat.
 if (typeof window !== "undefined") {

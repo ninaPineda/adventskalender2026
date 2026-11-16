@@ -24,6 +24,15 @@ const EXPECTED = [
   { coat: 2, bag: 2, ticket: 2 }, { coat: 3, bag: 3, ticket: 3 },
   { coat: 4, bag: 4, ticket: 4 },
 ];
+function assignmentAnswer(rows) {
+  return 'Hier ist meine Zuordnung:\n' + PEOPLE.map((name, i) =>
+    `${name}: ${Object.entries(GROUPS).map(([group, data]) => data.items[rows[i][group]][0]).join(' · ')}`
+  ).join('\n');
+}
+export function defaultAssignmentAnswer() {
+  return assignmentAnswer(EXPECTED);
+}
+
 export function shuffledItems(random = Math.random) {
   const items = [0, 1, 2, 3, 4];
   for (let i = items.length - 1; i > 0; i--) {
@@ -121,7 +130,7 @@ export function setupDay({ chatLog, saveChat, appendBubble, complete, celebrate 
   check.addEventListener('click', () => {
     if (!isComplete(rows) || chatLog.assignmentDone) return;
     dialog.close();
-    appendBubble('Hier ist meine Zuordnung:\n' + PEOPLE.map((name, i) => `${name}: ${Object.entries(GROUPS).map(([group, data]) => data.items[rows[i][group]][0]).join(' · ')}`).join('\n'), 'user');
+    appendBubble(assignmentAnswer(rows), 'user');
     if (isCorrect(rows)) {
       chatLog.assignmentDone = true;
       persist();

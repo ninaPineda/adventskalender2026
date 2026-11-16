@@ -33,7 +33,7 @@ function session(day, balance=30, storage={}, intro=[], character="santa", progr
   const delays=[];
   const globals={console,URLSearchParams,location:{search:`?tag=${day}&contact=${character}`},document:{addEventListener(){},createElement:element,querySelector(){return null},getElementById(){return null}},
     $:key=>nodes[key],localStorage:{getItem:k=>storage[k],setItem:(k,v)=>storage[k]=v},
-    opened:progress.opened || new Set(),hints:progress.hints || new Set(),hintCounts:progress.hintCounts || {},wrongAttempts:{},save(){},logSolved(){},
+    opened:progress.opened || new Set(),hints:progress.hints || new Set(),hintCounts:progress.hintCounts || {},wrongAttempts:{},save(){},logScore(){},
     readNikolausQuest(){try{return JSON.parse(storage.advent_nikolaus_search || '{}')}catch{return {}}},
     updatePoints(n){if(balance+n<0)return false;balance+=n;return true},setTimeout:(fn,delay)=>{delays.push(delay);timers.push(fn)},requestAnimationFrame:fn=>fn()};
   const ctx=vm.createContext(globals);

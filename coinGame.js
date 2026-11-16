@@ -379,6 +379,8 @@ function resetGame() {
   }, 300);
 }
 
-resetBtn.addEventListener("click", resetGame);
-
-resetGame();
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadInitialProgress();
+  resetBtn.addEventListener("click", resetGame);
+  resetGame();
+});
