@@ -1,0 +1,177 @@
+/* DESIGN-ZENTRALE: Nur hier stehen Farben und wiederverwendbare Designwerte.
+   Komponenten verwenden diese Variablen. Nachtmodus überschreibt nur die Palette. */
+:root {
+  color-scheme: light;
+  --canvas: #f6f6f5;
+  --surface: #ffffff;
+  --soft: #e7e7e5;
+  --text: #171915;
+  --muted: #777a73;
+  --border: #e1e3df;
+  --primary: #585f3b;
+  --primary-hover: #474f2e;
+  --sage: #929a72;
+  --selected: #d9ddcb;
+  --selected-border: #a7ad96;
+  --berry: #b51b4c;
+  --on-primary: #ffffff;
+  --gold: #ffbf00;
+  --gold-edge: #d99516;
+  --silver: #e2e4e2;
+  --silver-edge: #7c807a;
+  --bronze: #d18e21;
+  --bronze-edge: #85400e;
+  --paper: #fff8df;
+  --paper-fold: #e8dfbf;
+  --skin: #f4c397;
+  --cheek: #df8667;
+  --ink: #403b2a;
+  --clear: transparent;
+  --overlay: #172015b8;
+  --shadow-color: var(--border);
+  --shadow-x: .3rem;
+  --shadow-y: .4rem;
+  --shadow-blur: 0rem;
+  --shadow-card: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color);
+  --shadow-button: 0 .22rem 0 var(--primary-hover);
+  --shadow-paper: .08rem .17rem .06rem var(--paper-shadow-color);
+  --paper-shadow-color: #353b302b;
+  --shadow-none: none;
+  --backdrop-filter: blur(4px);
+  --font-family: 'Advent Pro', 'Arial Narrow', sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --text-xs: .85rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.3rem;
+  --text-xl: 1.65rem;
+  --text-score: 2.5rem;
+  --weight-normal: 400;
+  --weight-bold: 700;
+  --leading: 1.4;
+  --space-xs: .25rem;
+  --space-sm: .5rem;
+  --space-md: .75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --space-3xl: 3rem;
+  --radius-sm: .65rem;
+  --radius-card: 1.2rem;
+  --radius-bubble: 1.6rem;
+  --radius-pill: 999px;
+  --border-width: 2px;
+  --border-thin: 1px;
+  --focus-width: 3px;
+  --focus-offset: 4px;
+  --page-width: 38rem;
+  --header-height: 5rem;
+  --nav-height: 6rem;
+  --nav-size: 4.4rem;
+  --icon-size: 3.35rem;
+  --avatar-size: 3.5rem;
+  --contact-avatar-size: 2.75rem;
+  --control-height: 2.8rem;
+  --progress-height: 1.25rem;
+  --podium-first: 10rem;
+  --podium-second: 7rem;
+  --podium-third: 5.5rem;
+  --motion: 160ms;
+  --pressed-offset: .2rem;
+  --bubble-width: 85%;
+  /* Compatibility names used by the existing puzzle scripts. */
+  --bg: var(--canvas);
+  --accent: var(--berry);
+  --holly: var(--berry);
+  --evergreen: var(--primary);
+  --line: var(--gold);
+  --snow: var(--surface);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #20231c;
+  --surface: #292e24;
+  --soft: #373e30;
+  --text: #f6f5ec;
+  --muted: #b8bead;
+  --border: #434b3a;
+  --primary: #a5b47e;
+  --primary-hover: #899b60;
+  --sage: #65734e;
+  --selected: #424d33;
+  --selected-border: #829261;
+  --berry: #ee7e9d;
+  --on-primary: #1d2818;
+  --paper-shadow-color: #00000050;
+}
+
+/* Größen der Rätsel-, Dialog- und Galerieansichten. */
+:root {
+  --inbox-row-height: 6rem;
+  --badge-width: 1.75rem;
+  --badge-height: 1.75rem;
+  --typing-duration: 1s;
+  --typing-delay-second: .15s;
+  --typing-delay-third: .3s;
+  --detail-padding-1: .8rem;
+  --detail-padding-2: 1.1rem;
+  --detail-font-1: .95rem;
+  --detail-margin-top-1: .65rem;
+  --assignment-width: 52rem;
+  --assignment-height: 58rem;
+  --detail-padding-3: 1.2rem;
+  --detail-font-size-1: .65rem;
+  --detail-font-2: 1.35rem;
+  --detail-margin-1: .3rem;
+  --dialog-close-width: 2.8rem;
+  --dialog-close-height: 2.8rem;
+  --detail-font-size-2: 1.7rem;
+  --detail-font-3: .9rem;
+  --detail-margin-2: .7rem;
+  --detail-gap-1: .6rem;
+  --detail-gap-2: .35rem;
+  --detail-font-size-3: .8rem;
+  --detail-font-size-4: .7rem;
+  --assignment-thumbnail-height: 5rem;
+  --detail-font-size-5: 1.6rem;
+  --detail-font-4: .85rem;
+  --detail-gap-3: .8rem;
+  --assignment-option-height: 11rem;
+  --detail-padding-4: .65rem;
+  --detail-padding-5: .4rem;
+  --geo-dialog-width: 46rem;
+  --geo-dialog-height: 48rem;
+  --detail-grid-template-columns-1: 2.75rem;
+  --detail-gap-4: .7rem;
+  --detail-grid-template-rows-1: 18rem;
+  --detail-gap-5: .65rem;
+  --detail-height-7: 4.25rem;
+  --map-min-height: 18rem;
+  --detail-gap-6: .85rem;
+  --streetview-height: 22rem;
+  --detail-height-9: 4.2rem;
+  --detail-margin-top-2: -4.2rem;
+  --detail-min-height-3: 1.4rem;
+  --gallery-width: 90rem;
+  --gallery-height: 64rem;
+  --detail-left-1: .4rem;
+  --detail-right-1: .4rem;
+  --detail-padding-6: .6rem;
+}
+
+@media (max-width: 430px) {
+  :root { --space-xl: 1.15rem; --avatar-size: 3rem; --text-lg: 1.15rem; --nav-size: 4rem; --icon-size: 3rem; --podium-first: 9rem; --podium-second: 6.4rem; --podium-third: 5rem; }
+}
+
+.podium-card { --shadow-podium: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--podium-edge); }
+:root {
+  --finale-size-1: 920px;
+  --finale-size-2: 60px;
+  --finale-size-3: 44px;
+  --finale-size-4: 22px;
+  --finale-size-5: .2px;
+  --finale-size-6: 18px;
+  --finale-size-7: 13px;
+  --finale-size-8: 280px;
+  --finale-size-9: 380px;
+}

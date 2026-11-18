@@ -55,7 +55,7 @@ Die alten Einträge werden einmalig übernommen und erst nach erfolgreichem Spei
 4. Nur bei besonderem Verhalten ein Tagesmodul mit `export function setupDay(...)` anlegen und im Tagesinhalt `data-day-script` setzen.
 5. Die Zuordnung zu Weihnachtsmann, Rudolf oder Nikolaus steht in `daysForChat()` in `app.js`.
 
-`releasedChatDay()` gibt derzeit wie bisher zum Testen Tag 6 frei. Die darunter auskommentierte Datumsprüfung kann für den Kalenderbetrieb wieder aktiviert werden.
+`releasedChatDay()` gibt derzeit wie bisher zum Testen Tag 7 frei. Die darunter auskommentierte Datumsprüfung kann für den Kalenderbetrieb wieder aktiviert werden.
 
 ## Prüfen
 
@@ -66,3 +66,17 @@ for test in tests/*.cjs; do node "$test" || exit 1; done
 ```
 
 Die Tests prüfen Rätsel, Hinweise, Chatverläufe, Wiederherstellung, Speicherübernahme und Nachtmodus. Eine Sichtprüfung im Browser ergänzt diese Logiktests, besonders bei Änderungen an HTML oder CSS.
+
+## Design anpassen
+
+`tokens.css` ist die zentrale Design-Datei. Farben stehen ausschließlich dort – einschließlich Nachtpalette und Papier-Icons. `style.css` definiert die Komponenten und verwendet die Variablen.
+
+- `--primary`, `--sage`, `--berry`, `--gold`: Weihnachtsfarben.
+- `--surface`, `--canvas`, `--text`, `--muted`, `--border`: Oberflächen und Text.
+- `--shadow-x`, `--shadow-y`, `--shadow-blur`, `--shadow-color`: gemeinsame Kartenschatten.
+- `--shadow-paper`, `--paper-shadow-color`: Papier-Icons.
+- `--radius-card`, `--radius-bubble`, `--radius-pill`: Rundungen.
+- `--font-family`, `--text-*`, `--space-*`: Schrift und Abstände.
+- `--nav-size`, `--icon-size`, `--avatar-size`: Navigation und Bilder.
+
+„Advent Pro“ liegt inklusive OFL-Lizenz in `assets/fonts/` und wird lokal geladen. Es gibt keinen externen Schriftabruf. Die Navigation enthält Chats, Bestenliste, Profil und Hilfe. Der bestehende automatische Nachtmodus überschreibt nur zentrale Farbvariablen.

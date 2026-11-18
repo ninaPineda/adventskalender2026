@@ -99,7 +99,7 @@
       return;
     }
     const s = steps[state.step];
-    setHint(`Nächster Schritt: <b>${s.name}</b> (tipp: <code style="background:var(--line); padding:2px 6px; border-radius:8px;">help</code>)`);
+    setHint(`Nächster Schritt: <b>${s.name}</b> (tipp: <code class="terminal-command">help</code>)`);
     printLine(`--- ${s.name} ---`, "warn");
   }
 
@@ -176,7 +176,7 @@
     $("log").innerHTML = "";
     steps[0].onEnter();
     printLine("--- Firewall entschärfen ---", "warn");
-    setHint(`Tipp: <code style="background:var(--line); padding:2px 6px; border-radius:8px;">help</code> zeigt dir die möglichen Befehle.`);
+    setHint(`Tipp: <code class="terminal-command">help</code> zeigt dir die möglichen Befehle.`);
     $("cmd").focus();
   }
 

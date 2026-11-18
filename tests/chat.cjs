@@ -8,7 +8,7 @@ const solutions = JSON.parse(read('solutions.json'));
 const hintsData = JSON.parse(read('hints.json'));
 for (let day = 1; day <= 24; day++) {
   assert.equal(hintsData[day].length, 3);
-  if (day !== 1 && day !== 3 && day !== 4 && day !== 5 && day !== 6) {
+  if (day !== 1 && day !== 3 && day !== 4 && day !== 5 && day !== 6 && day !== 7) {
     assert.deepEqual(solutions[day], [['Lösung']]);
     if (day !== 2) assert.ok(read(`tage/content/${day}.html`).includes('data-placeholder="true"'));
   }
@@ -21,8 +21,8 @@ function element() {
 function session(day, balance=30, storage={}, intro=[], character="santa", progress={}) {
   const nodes=Object.fromEntries(['.santa-chat','#daySlot','#chatComposer','#chatInput','#sendLocationButton','.santa-chat-script'].map(key=>[key,element()]));
   nodes['#daySlot'].querySelectorAll=()=>intro;
-  nodes['.santa-chat-script'].dataset.placeholder=day===3 || day===4 || day===5 || day===6?'false':'true';
-  if(day===4 || day===5) {
+  nodes['.santa-chat-script'].dataset.placeholder=day===3 || day===4 || day===5 || day===6 || day===7?'false':'true';
+  if(day===4 || day===5 || day===7) {
     const content=read(`tage/content/${day}.html`);
     for (const [attribute, key] of [['answer-mode','answerMode'], ['chat-version','chatVersion'], ['success-reply','successReply'], ['wrong-reply','wrongReply']]) {
       nodes['.santa-chat-script'].dataset[key]=content.match(new RegExp(`data-${attribute}="([^"]+)"`))[1];
@@ -59,7 +59,7 @@ s.send('Lösung');s.flush();assert.equal(s.balance(),25);assert.ok(s.ctx.opened.
 s.send('Lösung');s.flush();assert.equal(s.balance(),25);
 const poor=session(7,4);poor.send('Hilfe');poor.flush();poor.send('Ja');poor.flush();
 assert.equal(poor.balance(),4);assert.equal(poor.ctx.hintCounts[7],undefined);
-poor.send('LÖSUNG!');poor.flush();assert.equal(poor.balance(),14);
+poor.send('ab-47-216');poor.flush();assert.equal(poor.balance(),14);
 const rapid=session(7);rapid.send('Hilfe');rapid.send('Ja');rapid.send('Ja');rapid.flush();assert.equal(rapid.balance(),25);
 const quiz=session(3);quiz.send('Erzähl mir irgendwas Nettes');quiz.flush();assert.equal(quiz.ctx.wrongAttempts[3],undefined);quiz.send('Dover');quiz.flush();assert.equal(quiz.ctx.wrongAttempts[3],1);
 for(const answer of ['Eurostar','Ärmelkanal','Dover']){quiz.send(answer);quiz.flush();}
@@ -168,3 +168,15 @@ for (const who of ['santa','rudolf','nikolaus']) {
   finished.send('Hilfe');finished.flush();assert.equal(finished.balance(),40);
 }
 console.log('OK: cross-chat photo request, shared hints, only Nikolaus accepts city, single reward, persisted photo/reunion and permanent composers.');
+
+// Only the next route via Flensburg wins, regardless of registration country.
+for (const answer of ['AB 47 216', 'ab47216', 'AB-47-216']) {
+ const truck=session(7);
+ for (const wrong of ['KTR-582', 'HH EM 241', 'SJL 803', 'Lösung']) {
+  truck.send(wrong); truck.flush(); assert.ok(!truck.ctx.opened.has(7));
+ }
+ truck.send(answer); truck.flush(); assert.ok(truck.ctx.opened.has(7));
+ assert.ok(truck.messages().some(m=>m.text.includes('Padborg')));
+ const balance=truck.balance(); truck.send(answer); truck.flush(); assert.equal(truck.balance(),balance);
+}
+console.log('OK: day seven rejects distractors, accepts plate formatting and rewards only once.');
