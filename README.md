@@ -55,7 +55,7 @@ Die alten Einträge werden einmalig übernommen und erst nach erfolgreichem Spei
 4. Nur bei besonderem Verhalten ein Tagesmodul mit `export function setupDay(...)` anlegen und im Tagesinhalt `data-day-script` setzen.
 5. Die Zuordnung zu Weihnachtsmann, Rudolf oder Nikolaus steht in `daysForChat()` in `app.js`.
 
-`releasedChatDay()` gibt derzeit wie bisher zum Testen Tag 7 frei. Die darunter auskommentierte Datumsprüfung kann für den Kalenderbetrieb wieder aktiviert werden.
+`releasedChatDay()` gibt derzeit wie bisher zum Testen Tag 8 frei. Die darunter auskommentierte Datumsprüfung kann für den Kalenderbetrieb wieder aktiviert werden.
 
 ## Prüfen
 
@@ -80,3 +80,15 @@ Die Tests prüfen Rätsel, Hinweise, Chatverläufe, Wiederherstellung, Speicher�
 - `--nav-size`, `--icon-size`, `--avatar-size`: Navigation und Bilder.
 
 „Advent Pro“ liegt inklusive OFL-Lizenz in `assets/fonts/` und wird lokal geladen. Es gibt keinen externen Schriftabruf. Die Navigation enthält Chats, Bestenliste, Profil und Hilfe. Der bestehende automatische Nachtmodus überschreibt nur zentrale Farbvariablen.
+
+## Tag 7: Weihnachtsmann im Sanitärlabyrinth
+
+Der Chat verlinkt auf `tage/santa-call.html`. Der simulierte Videoanruf benötigt weder Kamera noch Mikrofon und lädt keine 3D-Bibliothek nach. Ein Canvas-Raycaster zeichnet die zusammenhängenden Gänge, Fliesen, Deckenlichter und Orientierungspunkte. Links/rechts drehen die Kamera und gehen bis zur nächsten Abzweigung; geradeaus läuft bis zur nächsten Entscheidung. Umdrehen ist jederzeit möglich. Sackgassen kosten keine Sterne. Der kürzeste Weg braucht 18 Richtungsanweisungen; zusätzliche Schleifen und Sackgassen erschweren die Orientierung. Wandbilder und Türen sind perspektivisch fest auf den Wandflächen angebracht. Am Ausgang öffnet man die Tür über einen eigenen Button.
+
+- `tage/scripts/maze-world.js`: fester Grundriss, Start, Ausgang und Orientierungspunkte.
+- `tage/scripts/santa-maze.js`: Darstellung, Bewegungsanimation, Speicherstand und Abschluss.
+- `tage/santa-call.css`: mobile und große Anrufansicht; Farben in `tokens.css`.
+- `advent_state.santaMaze`: Position, Blickrichtung, Schritte und Abschluss. Der überarbeitete Grundriss verwendet Speicherversion 2 und startet ältere Labyrinthpositionen am Eingang neu. Ein erneuter Durchlauf vergibt keine zusätzlichen Sterne. Bereits früher gelöste Tage bleiben gelöst.
+- `tests/maze.cjs` und `tests/maze-call.cjs`: Erreichbarkeit, Kollisionen, Lösungsweg, Fortsetzen und einmalige Belohnung.
+
+Direkte lokale Vorschau: `http://localhost:8000/tage/santa-call.html`.

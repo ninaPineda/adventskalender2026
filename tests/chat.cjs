@@ -8,7 +8,7 @@ const solutions = JSON.parse(read('solutions.json'));
 const hintsData = JSON.parse(read('hints.json'));
 for (let day = 1; day <= 24; day++) {
   assert.equal(hintsData[day].length, 3);
-  if (day !== 1 && day !== 3 && day !== 4 && day !== 5 && day !== 6 && day !== 7) {
+  if (day !== 1 && day !== 3 && day !== 4 && day !== 5 && day !== 6 && day !== 7 && day !== 8) {
     assert.deepEqual(solutions[day], [['Lösung']]);
     if (day !== 2) assert.ok(read(`tage/content/${day}.html`).includes('data-placeholder="true"'));
   }
@@ -21,8 +21,8 @@ function element() {
 function session(day, balance=30, storage={}, intro=[], character="santa", progress={}) {
   const nodes=Object.fromEntries(['.santa-chat','#daySlot','#chatComposer','#chatInput','#sendLocationButton','.santa-chat-script'].map(key=>[key,element()]));
   nodes['#daySlot'].querySelectorAll=()=>intro;
-  nodes['.santa-chat-script'].dataset.placeholder=day===3 || day===4 || day===5 || day===6 || day===7?'false':'true';
-  if(day===4 || day===5 || day===7) {
+  nodes['.santa-chat-script'].dataset.placeholder=day===3 || day===4 || day===5 || day===6 || day===7 || day===8?'false':'true';
+  if(day===4 || day===5 || day===8) {
     const content=read(`tage/content/${day}.html`);
     for (const [attribute, key] of [['answer-mode','answerMode'], ['chat-version','chatVersion'], ['success-reply','successReply'], ['wrong-reply','wrongReply']]) {
       nodes['.santa-chat-script'].dataset[key]=content.match(new RegExp(`data-${attribute}="([^"]+)"`))[1];
@@ -52,6 +52,7 @@ s.send('Hilfe');s.flush();s.send('Nein');s.flush();assert.equal(s.balance(),30);
 for(let i=1;i<=3;i++){
  s.send('Hilfe');s.flush();s.send('Ja');s.flush();
  assert.equal(s.balance(),30-i*5);assert.equal(s.ctx.hintCounts[2],i);
+ assert.equal(s.messages().filter(m=>m.kind==='hostel-grid').length,i===3?1:0);
  assert.ok(s.messages().some(m=>m.text.startsWith(`Hinweis ${i}/3:`)));
 }
 s.send('Hilfe');s.flush();assert.equal(s.balance(),15);
@@ -59,7 +60,7 @@ s.send('Lösung');s.flush();assert.equal(s.balance(),25);assert.ok(s.ctx.opened.
 s.send('Lösung');s.flush();assert.equal(s.balance(),25);
 const poor=session(7,4);poor.send('Hilfe');poor.flush();poor.send('Ja');poor.flush();
 assert.equal(poor.balance(),4);assert.equal(poor.ctx.hintCounts[7],undefined);
-poor.send('ab-47-216');poor.flush();assert.equal(poor.balance(),14);
+poor.send('ab-47-216');poor.flush();assert.equal(poor.balance(),4);assert.ok(!poor.ctx.opened.has(7));
 const rapid=session(7);rapid.send('Hilfe');rapid.send('Ja');rapid.send('Ja');rapid.flush();assert.equal(rapid.balance(),25);
 const quiz=session(3);quiz.send('Erzähl mir irgendwas Nettes');quiz.flush();assert.equal(quiz.ctx.wrongAttempts[3],undefined);quiz.send('Dover');quiz.flush();assert.equal(quiz.ctx.wrongAttempts[3],1);
 for(const answer of ['Eurostar','Ärmelkanal','Dover']){quiz.send(answer);quiz.flush();}
@@ -169,14 +170,29 @@ for (const who of ['santa','rudolf','nikolaus']) {
 }
 console.log('OK: cross-chat photo request, shared hints, only Nikolaus accepts city, single reward, persisted photo/reunion and permanent composers.');
 
-// Only the next route via Flensburg wins, regardless of registration country.
-for (const answer of ['AB 47 216', 'ab47216', 'AB-47-216']) {
- const truck=session(7);
- for (const wrong of ['KTR-582', 'HH EM 241', 'SJL 803', 'Lösung']) {
-  truck.send(wrong); truck.flush(); assert.ok(!truck.ctx.opened.has(7));
- }
- truck.send(answer); truck.flush(); assert.ok(truck.ctx.opened.has(7));
- assert.ok(truck.messages().some(m=>m.text.includes('Padborg')));
- const balance=truck.balance(); truck.send(answer); truck.flush(); assert.equal(truck.balance(),balance);
-}
-console.log('OK: day seven rejects distractors, accepts plate formatting and rewards only once.');
+// Day seven no longer accepts the removed truck puzzle answer.
+assert.deepEqual(solutions[7], []);
+assert.ok(read('tage/content/7.html').includes('santa-call.html'));
+
+// The third hostel hint keeps its actionable link when the chat is reopened.
+const gridHistory=session(2,15,s.storage);
+const gridLinks=gridHistory.nodes['#daySlot'].children.flatMap(b=>b.children).filter(e=>e.href==='logic-grid-solver.html');
+assert.equal(gridLinks.length,1);
+assert.equal(gridLinks[0].target,'_blank');
+assert.equal(gridLinks[0].rel,'noopener');
+const cannotBuyGrid=session(2,4,{},[],'santa',{hintCounts:{2:2}});
+cannotBuyGrid.send('Hilfe');cannotBuyGrid.flush();cannotBuyGrid.send('Ja');cannotBuyGrid.flush();
+assert.equal(cannotBuyGrid.ctx.hintCounts[2],2);
+assert.equal(cannotBuyGrid.messages().filter(m=>m.kind==='hostel-grid').length,0);
+console.log('OK: hostel grid appears only as third paid hint; link survives reload; insufficient stars do not unlock it.');
+
+const crossword = session(8, 30);
+crossword.send('Lösung'); crossword.flush();
+assert.ok(!crossword.ctx.opened.has(8));
+crossword.send('ADVENT!'); crossword.flush();
+assert.ok(crossword.ctx.opened.has(8));
+const crosswordBalance = crossword.balance();
+crossword.send('Advent'); crossword.flush();
+assert.equal(crossword.balance(), crosswordBalance);
+assert.ok(fs.existsSync(path.join(root, 'assets/day-8/korvatunturi-raetsel.png')));
+console.log('OK: day eight crossword answer, incorrect answer, image asset and single reward.');

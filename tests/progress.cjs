@@ -81,6 +81,20 @@ async function main() {
   assert.equal(manual.state().points, 49.5);
   assert.equal(manual.posts.length, 0);
 
+  // Reading Santa after day six has become history still clears the reunion badge.
+  manual.run('opened.add(7); save()');
+  assert.equal(manual.run('currentChatDay("santa")'), 8);
+  assert.equal(manual.run('hasUnreadDay("santa", 6)'), true);
+  await manual.run('restoreChatLog(6, "santa", {dataset: {chatVersion: "santa-nikolaus-search-1"}})');
+  assert.equal(manual.run('hasUnreadDay("santa", 6)'), false);
+  assert.equal(manual.state().chats['6_santa'].messages.length, 1);
+  // Repair old saves where the message exists but its acknowledgement is missing.
+  manual.run('store.update({quest: {...readNikolausQuest(), confirmationRead: false}})');
+  await manual.run('restoreChatLog(6, "santa", {dataset: {chatVersion: "santa-nikolaus-search-1"}})');
+  assert.equal(manual.run('hasUnreadDay("santa", 6)'), false);
+  assert.equal(manual.state().chats['6_santa'].messages.length, 1);
+  assert.equal(manual.run('hasUnreadDay("santa", 8)'), true);
+
   manual.run('logScore(); logScore(6)');
   assert.deepEqual(manual.posts.map(post => post.get('solved')), ['0', '6']);
 

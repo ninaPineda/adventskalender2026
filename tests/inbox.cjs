@@ -17,7 +17,7 @@ assert.equal(String(state('2026-12-04T12:00:00Z', [1,2,3])), '4,3,4');
 console.log('OK: Berlin midnight release, hidden future days, catch-up order, separate Santa and Rudolf conversations.');
 
 const list = {innerHTML:""};
-const context = vm.createContext({Intl, Date, opened:new Set([1,2,3,5,7]), store:{read(){return {}}},document:{getElementById(){return list},addEventListener(){}}});
+const context = vm.createContext({Intl, Date, opened:new Set([1,2,3,5,7,8]), store:{read(){return {}}},document:{getElementById(){return list},addEventListener(){}}});
 vm.runInContext(configuredSource.slice(configuredSource.indexOf('function releasedChatDay()')), context);
 vm.runInContext('renderChatInbox()', context);
 assert.ok(list.innerHTML.includes('contact=santa'));
@@ -31,7 +31,7 @@ console.log('OK: preview lists both contacts; Rudolf and Nikolaus unread; all th
 assert.equal(String(state('2026-12-05T12:00:00Z', [1,2,3])), '5,5,4');
 assert.equal(String(state('2026-12-05T12:00:00Z', [1,2,3,5])), '5,5,4');
 assert.equal(String(state('2026-12-05T12:00:00Z', [1,2])), '5,3,4');
-assert.equal(String(vm.runInContext('daysForChat("santa")', context)), '1,2,3,5,6,7');
+assert.equal(String(vm.runInContext('daysForChat("santa")', context)), '1,2,3,5,6,7,8');
 console.log('OK: day five appends to Santa; Rudolf day four excluded from Santa history.');
 
 assert.equal(String(state('2026-12-06T12:00:00Z', [1,2,3,5])), '6,6,4');
@@ -47,3 +47,5 @@ assert.equal(vm.runInContext('hasUnreadDay("santa",6)',context),false);
 console.log('OK: Nikolaus release and Santa reunion unread notification.');
 
 assert.equal(String(state('2026-12-07T12:00:00Z', [1,2,3,5,6])), '7,7,4');
+
+assert.equal(String(state("2026-12-08T12:00:00Z", [1,2,3,5,6,7])), "8,8,4");

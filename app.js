@@ -302,14 +302,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Calendar release is based on the Advent calendar's local time in Berlin.
 function releasedChatDay() {
-  return 7; // Datumssperre zum Testen aus: alle sieben fertigen Tage verfügbar.
+  return 8; // Datumssperre zum Testen aus: alle acht fertigen Tage verfügbar.
   //const parts = new Intl.DateTimeFormat("en-GB", {timeZone:"Europe/Berlin", year:"numeric", month:"numeric", day:"numeric"}).formatToParts(new Date());
   //const date = Object.fromEntries(parts.map(p => [p.type, Number(p.value)]));
   //if (date.year < 2026 || (date.year === 2026 && date.month < 12)) return 0;
-  //return date.year > 2026 ? 7 : Math.min(7, date.day);
+  //return date.year > 2026 ? 8 : Math.min(8, date.day);
 }
 function daysForChat(character = "santa") {
-  return character === "rudolf" ? [4] : character === "nikolaus" ? [6] : [1, 2, 3, 5, 6, 7];
+  return character === "rudolf" ? [4] : character === "nikolaus" ? [6] : [1, 2, 3, 5, 6, 7, 8];
 }
 function currentChatDay(character = "santa") {
   const available = daysForChat(character).filter(day => day <= releasedChatDay());

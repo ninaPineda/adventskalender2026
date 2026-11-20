@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weihnachtsmann · Videoanruf · Tag 7</title>
+<link rel="stylesheet" href="../tokens.css?v=maze-2"><link rel="stylesheet" href="santa-call.css?v=maze-2">
+</head>
+<body>
+<main class="call">
+  <canvas id="camera" aria-label="Außenkamera: geflieste Gänge einer Raststätte. Die verfügbaren Wege stehen auf den Richtungsbuttons."></canvas>
+  <header class="call-header"><div><span class="live-dot"></span> WEIHNACHTSMANN <span class="call-label">VIDEOANRUF</span><p>Raststätte Hamburg · Außenkamera</p></div><span id="timer" aria-label="Anrufdauer">00:00</span></header>
+  <div class="camera-label">↗ LIVE <span>RÜCKKAMERA</span></div>
+  <section class="controls" aria-label="Dem Weihnachtsmann den Weg zeigen">
+    <p id="speech" role="status" aria-live="polite">Okay. Hinter mir ist das Klo. Wohin jetzt?</p>
+    <div class="directions"><button data-turn="-1"><span>↰</span>Geh nach links</button><button data-turn="0"><span>↑</span>Geh geradeaus</button><button data-turn="1"><span>↱</span>Geh nach rechts</button></div>
+    <button id="open-exit" hidden>EXIT · Tür öffnen →</button>
+    <div class="call-tools"><button id="turn-around">↶ Umdrehen</button><span id="steps">0 Schritte</span><a href="template.html?contact=santa" class="hangup" aria-label="Anruf verlassen und zurück zum Chat">☎</a></div>
+  </section>
+  <section id="success" class="success" hidden><span class="success-icon">✦</span><p>VERBINDUNG ZUR AUSSENWELT</p><h1>Endlich draußen.</h1><p>Ho ho holy … frische Luft! Ohne dich würde ich hier noch Ostern feiern. Danke! 🎅</p><p id="reward"></p><a href="template.html?contact=santa">Zurück zum Chat →</a><button id="replay">Noch eine Runde</button></section>
+</main>
+<script src="../storage.js"></script><script src="../app.js"></script><script type="module" src="scripts/santa-maze.js?v=maze-2"></script>
+</body></html>

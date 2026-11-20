@@ -33,7 +33,8 @@
   --shadow-y: .4rem;
   --shadow-blur: 0rem;
   --shadow-card: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color);
-  --shadow-button: 0 .22rem 0 var(--primary-hover);
+  --button-shadow-color: var(--primary-hover);
+  --shadow-button: 0 .22rem 0 var(--button-shadow-color);
   --shadow-paper: .08rem .17rem .06rem var(--paper-shadow-color);
   --paper-shadow-color: #353b302b;
   --shadow-none: none;
@@ -102,6 +103,8 @@ html[data-theme="dark"] {
   --selected-border: #829261;
   --berry: #ee7e9d;
   --on-primary: #1d2818;
+  --shadow-color: #11160e;
+  --button-shadow-color: #536337;
   --paper-shadow-color: #00000050;
 }
 
@@ -174,4 +177,19 @@ html[data-theme="dark"] {
   --finale-size-7: 13px;
   --finale-size-8: 280px;
   --finale-size-9: 380px;
+}
+
+/* Immersiver Videoanruf, Tag 7. */
+:root {
+  --call-ink:#f5f2e9; --call-glass:#132525dd; --call-line:#ffffff36; --call-green:#c5efc8; --call-red:#be4845;
+  --call-background:#122322;
+  --call-fallback:#667b77;
+  --call-top-shade:#06191877;
+  --call-bottom-shade:#071d21ef;
+  --call-shadow-color:#0004;
+  --call-portrait-shade:#000a;
+  --call-black:#000;
+  --call-hover:#41665e;
+  --call-success-bg:#112b29ed;
+  --call-success-text:#17372d;
 }

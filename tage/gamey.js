@@ -89,6 +89,15 @@ function readChatLog(storageKey, version) {
 async function restoreChatLog(day, character, script) {
   const key = chatStorageKey(day, character);
   const chatLog = readChatLog(key, script.dataset.chatVersion);
+  // The reunion must also appear and be acknowledged in archived day-six history.
+  if (day === 6 && character === "santa" && readNikolausQuest().together) {
+    if (!chatLog.reunionShown) {
+      chatLog.messages.push({sender: "santa", text: "Hey, ich habe gerade den Nikolaus getroffen! Er nimmt mich ein Stück mit nach Norden. Super Sache – ich komme meinem Ziel immer näher. Danke dir! 🎅🚗✨"});
+      chatLog.reunionShown = true;
+      store.saveChat(key, chatLog);
+    }
+    store.update({quest: {...readNikolausQuest(), confirmationRead: true}});
+  }
   if (!opened.has(day) || chatLog.messages.length || (day === 6 && character === "santa")) return chatLog;
 
   let answers = (SOLUTIONS[day] || []).map(variants => variants[0]);
@@ -134,6 +143,15 @@ function createChatBubble(message) {
     const text = document.createElement("p");
     text.textContent = message.text;
     bubble.appendChild(text);
+  }
+  if (message.kind === "hostel-grid") {
+    const link = document.createElement("a");
+    link.href = "logic-grid-solver.html";
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.className = "assignment-open";
+    link.textContent = "Logikgitter öffnen 🧩";
+    bubble.appendChild(link);
   }
   return bubble;
 }
@@ -266,7 +284,7 @@ function setupSantaChat(setupDay) {
 
   chatLog.messages.forEach((message) => {
     if (message.kind === "image") appendImage(message.src, message.alt, false, false);
-    else appendBubble(message.text, message.sender, false, false);
+    else appendMessage(message, false, false);
   });
 
   const sendHintInChat = () => {
@@ -285,7 +303,11 @@ function setupSantaChat(setupDay) {
     hintCounts[day] = index + 1;
     save();
     logScore();
-    appendBubble(`Hinweis ${index + 1}/3: ${hint} ✨`, "santa");
+    appendMessage({
+      sender: "santa",
+      text: `Hinweis ${index + 1}/3: ${hint} ✨`,
+      ...(day === 2 && index === 2 ? { kind: "hostel-grid" } : {}),
+    }, true, true);
   };
 
   const solutions = SOLUTIONS[String(day)] || [];
